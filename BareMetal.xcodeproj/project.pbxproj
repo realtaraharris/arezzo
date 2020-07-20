@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5060DB9324C273FE00940927 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9224C273FE00940927 /* AppDelegate.swift */; };
+		5060DB9524C273FE00940927 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9424C273FE00940927 /* ViewController.swift */; };
+		5060DB9724C2740000940927 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9624C2740000940927 /* Assets.xcassets */; };
+		5060DB9A24C2740000940927 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9824C2740000940927 /* Main.storyboard */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
 		50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A70124A67F87000F3B93 /* ViewController.swift */; };
@@ -17,6 +21,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5060DB9024C273FE00940927 /* BareMetal.app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5060DB9224C273FE00940927 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		5060DB9424C273FE00940927 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		5060DB9624C2740000940927 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5060DB9924C2740000940927 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		5060DB9B24C2740000940927 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5060DB9C24C2740000940927 /* BareMetal_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal_app.entitlements; sourceTree = "<group>"; };
+		5060DBA024C2742600940927 /* BareMetal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal.entitlements; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* BareMetal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -29,6 +41,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5060DB8D24C273FE00940927 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50C2A6F724A67F87000F3B93 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -39,10 +58,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5060DB9124C273FE00940927 /* BareMetal.app */ = {
+			isa = PBXGroup;
+			children = (
+				5060DB9224C273FE00940927 /* AppDelegate.swift */,
+				5060DB9424C273FE00940927 /* ViewController.swift */,
+				5060DB9624C2740000940927 /* Assets.xcassets */,
+				5060DB9824C2740000940927 /* Main.storyboard */,
+				5060DB9B24C2740000940927 /* Info.plist */,
+				5060DB9C24C2740000940927 /* BareMetal_app.entitlements */,
+			);
+			path = BareMetal.app;
+			sourceTree = "<group>";
+		};
 		50C2A6F124A67F87000F3B93 = {
 			isa = PBXGroup;
 			children = (
 				50C2A6FC24A67F87000F3B93 /* BareMetal */,
+				5060DB9124C273FE00940927 /* BareMetal.app */,
 				50C2A6FB24A67F87000F3B93 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -51,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				50C2A6FA24A67F87000F3B93 /* BareMetal.app */,
+				5060DB9024C273FE00940927 /* BareMetal.app.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -58,6 +92,7 @@
 		50C2A6FC24A67F87000F3B93 /* BareMetal */ = {
 			isa = PBXGroup;
 			children = (
+				5060DBA024C2742600940927 /* BareMetal.entitlements */,
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
 				50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */,
 				50C2A70124A67F87000F3B93 /* ViewController.swift */,
@@ -73,6 +108,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5060DB8F24C273FE00940927 /* BareMetal.app */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5060DB9D24C2740000940927 /* Build configuration list for PBXNativeTarget "BareMetal.app" */;
+			buildPhases = (
+				5060DB8C24C273FE00940927 /* Sources */,
+				5060DB8D24C273FE00940927 /* Frameworks */,
+				5060DB8E24C273FE00940927 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BareMetal.app;
+			productName = BareMetal.app;
+			productReference = 5060DB9024C273FE00940927 /* BareMetal.app.app */;
+			productType = "com.apple.product-type.application";
+		};
 		50C2A6F924A67F87000F3B93 /* BareMetal */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 50C2A70E24A67F8A000F3B93 /* Build configuration list for PBXNativeTarget "BareMetal" */;
@@ -100,6 +152,9 @@
 				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Max Harris";
 				TargetAttributes = {
+					5060DB8F24C273FE00940927 = {
+						CreatedOnToolsVersion = 11.3.1;
+					};
 					50C2A6F924A67F87000F3B93 = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
@@ -119,11 +174,21 @@
 			projectRoot = "";
 			targets = (
 				50C2A6F924A67F87000F3B93 /* BareMetal */,
+				5060DB8F24C273FE00940927 /* BareMetal.app */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5060DB8E24C273FE00940927 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5060DB9724C2740000940927 /* Assets.xcassets in Resources */,
+				5060DB9A24C2740000940927 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50C2A6F824A67F87000F3B93 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,6 +202,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5060DB8C24C273FE00940927 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5060DB9524C273FE00940927 /* ViewController.swift in Sources */,
+				5060DB9324C273FE00940927 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50C2A6F624A67F87000F3B93 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -151,6 +225,14 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		5060DB9824C2740000940927 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5060DB9924C2740000940927 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
 		50C2A70324A67F87000F3B93 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -170,6 +252,50 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		5060DB9E24C2740000940927 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = BareMetal.app/BareMetal_app.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = D2LEWKHUL9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = BareMetal.app/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.BareMetal-app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		5060DB9F24C2740000940927 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = BareMetal.app/BareMetal_app.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = D2LEWKHUL9;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = BareMetal.app/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = "test.BareMetal-app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		50C2A70C24A67F8A000F3B93 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -288,7 +414,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = BareMetal/BareMetal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetal/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -297,6 +425,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -306,7 +435,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = BareMetal/BareMetal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetal/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -315,6 +446,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -323,6 +455,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5060DB9D24C2740000940927 /* Build configuration list for PBXNativeTarget "BareMetal.app" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5060DB9E24C2740000940927 /* Debug */,
+				5060DB9F24C2740000940927 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		50C2A6F524A67F87000F3B93 /* Build configuration list for PBXProject "BareMetal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
