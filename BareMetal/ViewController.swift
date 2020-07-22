@@ -8,8 +8,8 @@
 
 import Metal
 import QuartzCore
-import UIKit
 import simd // vector_float2, vector_float4
+import UIKit
 
 struct CubicBezierParameters {
     static let coordinateRange: Float = 1.0
@@ -24,7 +24,7 @@ struct CubicBezierParameters {
     var color: vector_float4 = vector_float4()
     var timestamp: Int64 = 0
     var elementsPerInstance: Int = 128
-    
+
     init(start: vector_float2, end: vector_float2, control1: vector_float2, control2: vector_float2, itemColor: vector_float4, ts: Int64) {
         a = start
         b = end
@@ -106,10 +106,8 @@ class ViewController: UIViewController {
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
         let pipelineStateDescriptor = MTLRenderPipelineDescriptor()
-//        pipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "bezier_vertex_quadratic")
-//        pipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "bezier_fragment")
         pipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "basic_vertex")
-        pipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "cubic_basic_fragment")
+        pipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
         pipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
 
         do {
@@ -124,116 +122,21 @@ class ViewController: UIViewController {
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
 
-        func generateVerts2 () {
-    //        let bezierData = [CubicBezierParameters(
-    //            start: vector_float2(0.0, 0.0),
-    //            end: vector_float2(1.0, 0.0),
-    //            control1: vector_float2(0.25, 1.0),
-    //            control2: vector_float2(0.75, 1.0),
-    //            itemColor: vector_float4(x: Float(arc4random_uniform(1000)) / 1000.0,
-    //                                     y: Float(arc4random_uniform(1000)) / 1000.0,
-    //                                     z: Float(arc4random_uniform(1000)) / 1000.0,
-    //                                     w: 1.0),
-    //            ts: Date().toMilliseconds()
-    //        )]
+    func generateVerts() {
+        let bezierOptions = BezierTesselationOptions(
+            //            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.1, mCuspLimit: 0.0, thickness: 0.025, miterLimit: -1.0, scale: 150
+            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.2, mCuspLimit: 0.0, thickness: 0.025, miterLimit: -1.0, scale: 500
+        )
 
-            let bezierData = [QuadraticBezierParameters(
-                start: vector_float2(0.0, 0.0),
-                end: vector_float2(1.0, 0.0),
-                control: vector_float2(0.5, 1.0),
-                itemColor: vector_float4(x: Float(arc4random_uniform(1000)) / 1000.0,
-                                         y: Float(arc4random_uniform(1000)) / 1000.0,
-                                         z: Float(arc4random_uniform(1000)) / 1000.0,
-                                         w: 1.0),
-                ts: Date().toMilliseconds()
-            )]
-            
-            let quad = [
-                0, 0, 0,
-                1, 0, 0,
-                0.5, 1.0, 0
-//          -1, -1, 0, // lower-left
-//                -1, 1, 0, // upper-left
-//                1, 1, 0, // upper-right
-//                1, -1, 0 // lower-right
-            ]
-
-            let dataSize = quad.count * MemoryLayout.size(ofValue: quad[0])
-    //        let dataSize = bezierData.count * MemoryLayout.size(ofValue: bezierData[0])
-    //        vertexBuffer = device.makeBuffer(bytes: bezierData,
-    //                                         length: dataSize,
-    //                                         options: .storageModeShared)
-
-            vertexBuffer = device.makeBuffer(bytes: quad,
-                                             length: dataSize,
-                                             options: .storageModeShared)
-            
-    //        vertexBuffer = device.makeBuffer(
-    //            bytes: bezierData,
-    //            length: bezierData.count * MemoryLayout<CubicBezierParameters>.size,
-    //            options: .storageModeShared)
-            
-            vertexBuffer.label = "cubic beziers"
-
-            vertexCount = quad.count // bezierData.count
-        }
-    
-    func generateVerts () {
-//        let tol: Float = Float.random(in: -0.1 ..< 0.1)
-
-        let vertexData: [Float] = [
-//            0.0, 0.0, 0.0, // start
-//            0.7, 0.9, 0.0, // control1
-//            0.0, 0.9, 0.0, // control2
-//            1.0, 0.4, 0.0, // end
-//            0.0, 0.0, 0.0
-
-            0.0, 0.0, 0.0,
-            1.0, 0.0, 0.0,
-            1.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0
-        ]
-        
-        let cubicBezierData = [CubicBezierParameters(
-            start: vector_float2(0.0, 0.0),
-            end: vector_float2(1.0, 0.4),
-            control1: vector_float2(0.7, 1.0),
-            control2: vector_float2(0.2, 1.0),
-            itemColor: vector_float4(x: Float(arc4random_uniform(1000)) / 1000.0,
-                                     y: Float(arc4random_uniform(1000)) / 1000.0,
-                                     z: Float(arc4random_uniform(1000)) / 1000.0,
-                                     w: 1.0),
-            ts: Date().toMilliseconds()
-        )]
-        
-        let quadraticBezierData = [QuadraticBezierParameters(
-            start: vector_float2(0.0, 0.0),
-            end: vector_float2(1.0, 0.0),
-            control: vector_float2(0.5, 0.75),
-            itemColor: vector_float4(x: Float(arc4random_uniform(1000)) / 1000.0,
-                                     y: Float(arc4random_uniform(1000)) / 1000.0,
-                                     z: Float(arc4random_uniform(1000)) / 1000.0,
-                                     w: 1.0),
-            ts: Date().toMilliseconds()
-        )]
-        
-        cubicBezierBuffer = device.makeBuffer(
-        bytes: cubicBezierData,
-        length: cubicBezierData.count * MemoryLayout<CubicBezierParameters>.size,
-        options: .storageModeShared)
-
-        quadraticBezierBuffer = device.makeBuffer(
-            bytes: quadraticBezierData,
-            length: quadraticBezierData.count * MemoryLayout<QuadraticBezierParameters>.size,
-            options: .storageModeShared)
+        let cubicBezier = CubicBezierTesselator(start: [-1.0, -1.0], c1: [1.0, 2.0], c2: [1.0, -2.0], end: [-1.0, 1.0], existingPoints: [], options: bezierOptions)
+        let vertexData = cubicBezier.dumpTriangleStrip()
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
                                          length: dataSize,
                                          options: .storageModeShared)
 
-        vertexCount = vertexData.count/3
+        vertexCount = vertexData.count / 3
     }
 
     func render() {
@@ -250,8 +153,6 @@ class ViewController: UIViewController {
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
         renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderCommandEncoder.setFragmentBuffer(cubicBezierBuffer, offset: 0, index: 0)
-//        renderCommandEncoder.setFragmentBuffer()
         renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: vertexCount)
         renderCommandEncoder.endEncoding()
         commandBuffer.present(drawable)

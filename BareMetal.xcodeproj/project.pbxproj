@@ -11,6 +11,7 @@
 		5060DB9524C273FE00940927 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9424C273FE00940927 /* ViewController.swift */; };
 		5060DB9724C2740000940927 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9624C2740000940927 /* Assets.xcassets */; };
 		5060DB9A24C2740000940927 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9824C2740000940927 /* Main.storyboard */; };
+		5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5095390D24C6224B00A861CB /* AdaptiveBezier.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
 		50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A70124A67F87000F3B93 /* ViewController.swift */; };
@@ -21,6 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		5060DB9024C273FE00940927 /* BareMetal.app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5060DB9224C273FE00940927 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5060DB9424C273FE00940927 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -29,6 +31,7 @@
 		5060DB9B24C2740000940927 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5060DB9C24C2740000940927 /* BareMetal_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal_app.entitlements; sourceTree = "<group>"; };
 		5060DBA024C2742600940927 /* BareMetal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal.entitlements; sourceTree = "<group>"; };
+		5095390D24C6224B00A861CB /* AdaptiveBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveBezier.swift; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* BareMetal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -58,6 +61,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		502160AE24C8222C00A658D1 /* Storyboard */ = {
+			isa = PBXGroup;
+			children = (
+				50C2A70624A67F8A000F3B93 /* Assets.xcassets */,
+				50C2A70824A67F8A000F3B93 /* LaunchScreen.storyboard */,
+				50C2A70324A67F87000F3B93 /* Main.storyboard */,
+			);
+			path = Storyboard;
+			sourceTree = "<group>";
+		};
 		5060DB9124C273FE00940927 /* BareMetal.app */ = {
 			isa = PBXGroup;
 			children = (
@@ -92,15 +105,15 @@
 		50C2A6FC24A67F87000F3B93 /* BareMetal */ = {
 			isa = PBXGroup;
 			children = (
+				502160AE24C8222C00A658D1 /* Storyboard */,
 				5060DBA024C2742600940927 /* BareMetal.entitlements */,
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
 				50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */,
 				50C2A70124A67F87000F3B93 /* ViewController.swift */,
-				50C2A70324A67F87000F3B93 /* Main.storyboard */,
-				50C2A70624A67F8A000F3B93 /* Assets.xcassets */,
-				50C2A70824A67F8A000F3B93 /* LaunchScreen.storyboard */,
 				50C2A70B24A67F8A000F3B93 /* Info.plist */,
 				50C2A71124A68667000F3B93 /* Shaders.metal */,
+				5095390D24C6224B00A861CB /* AdaptiveBezier.swift */,
+				504EFD9124C7DED5008F9334 /* README.md */,
 			);
 			path = BareMetal;
 			sourceTree = "<group>";
@@ -219,6 +232,7 @@
 				50C2A71224A68667000F3B93 /* Shaders.metal in Sources */,
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
+				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
