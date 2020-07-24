@@ -123,24 +123,28 @@ class ViewController: UIViewController {
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
 
+    func addCubicBezier(
+        start: [Float], c1: [Float], c2: [Float], end: [Float], options: BezierTesselationOptions, vertexData: inout [Float]
+    ) {
+        let cubicBezier = CubicBezierTesselator(start: start, c1: c1, c2: c2, end: end, existingPoints: [], options: options)
+        let cubicBezierTriangles = cubicBezier.dumpTriangleStrip()
+
+        shapeIndex.append(cubicBezierTriangles.count / 3)
+        vertexData.append(contentsOf: cubicBezierTriangles)
+    }
+
     func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
             curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.2, mCuspLimit: 0.0, thickness: 0.05, miterLimit: 1.0, scale: 300
         )
 
-        let cubicBezier = CubicBezierTesselator(start: [-1.0, -1.0], c1: [1.0, 2.0], c2: [1.0, -2.0], end: [-1.0, 1.0], existingPoints: [], options: bezierOptions)
-        let cubicBezierTriangles = cubicBezier.dumpTriangleStrip()
-        shapeIndex.append(cubicBezierTriangles.count/3)
+        var vertexData: [Float] = []
+        shapeIndex.removeAll() // clear this or else render() will loop infinitely
 
-        let cubicBezier2 = CubicBezierTesselator(start: [1.0, 1.0], c1: [-1.0, 1.0], c2: [-1.0, -1.0], end: [1.0, -1.0], existingPoints: [], options: bezierOptions)
-        let cubicBezierTriangles2 = cubicBezier2.dumpTriangleStrip()
-        shapeIndex.append(cubicBezierTriangles2.count/3)
-
-        let cubicBezier3 = CubicBezierTesselator(start: [-0.5, 0.5], c1: [1.0, 1.0], c2: [-1.0, -1.0], end: [0.5, -0.5], existingPoints: [], options: bezierOptions)
-        let cubicBezierTriangles3 = cubicBezier3.dumpTriangleStrip()
-        shapeIndex.append(cubicBezierTriangles3.count/3)
-
-        let vertexData = cubicBezierTriangles + cubicBezierTriangles2 + cubicBezierTriangles3;
+        addCubicBezier(start: [-1.0, -1.0], c1: [1.0, 2.0], c2: [1.0, -2.0], end: [-1.0, 1.0], options: bezierOptions, vertexData: &vertexData)
+        addCubicBezier(start: [1.0, 1.0], c1: [-1.0, 1.0], c2: [-1.0, -1.0], end: [1.0, -1.0], options: bezierOptions, vertexData: &vertexData)
+        addCubicBezier(start: [-0.5, 0.5], c1: [1.0, 1.0], c2: [-1.0, -1.0], end: [0.5, -0.5], options: bezierOptions, vertexData: &vertexData)
+        addCubicBezier(start: [-0.25, 0.35], c1: [0.1, 0.9], c2: [-0.1, 1.0], end: [0.25, 0.5], options: bezierOptions, vertexData: &vertexData)
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
@@ -164,14 +168,10 @@ class ViewController: UIViewController {
         renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
 
         var currentVertexPosition = 0
-        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: shapeIndex[0])
-        currentVertexPosition += shapeIndex[0]
-
-        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: shapeIndex[1]);
-        currentVertexPosition += shapeIndex[1]
-
-        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: shapeIndex[2])
-        currentVertexPosition += shapeIndex[2]
+        for si in shapeIndex {
+            renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: si)
+            currentVertexPosition += si
+        }
 
         renderCommandEncoder.endEncoding()
         commandBuffer.present(drawable)
