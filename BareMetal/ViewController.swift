@@ -141,11 +141,11 @@ class ViewController: UIViewController {
         var vertexData: [Float] = []
         shapeIndex.removeAll() // clear this or else render() will loop infinitely
 
-        addCubicBezier(start: [-1.0, -1.0], c1: [1.0, 2.0], c2: [1.0, -2.0], end: [-1.0, 1.0], options: bezierOptions, vertexData: &vertexData)
-        addCubicBezier(start: [1.0, 1.0], c1: [-1.0, 1.0], c2: [-1.0, -1.0], end: [1.0, -1.0], options: bezierOptions, vertexData: &vertexData)
-        addCubicBezier(start: [-0.5, 0.5], c1: [1.0, 1.0], c2: [-1.0, -1.0], end: [0.5, -0.5], options: bezierOptions, vertexData: &vertexData)
-        addCubicBezier(start: [-0.25, 0.35], c1: [0.1, 0.9], c2: [-0.1, 1.0], end: [0.25, 0.5], options: bezierOptions, vertexData: &vertexData)
-
+        func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
+                                            Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
+        for _ in 0 ... 100 {
+            addCubicBezier(start: veryRandomVect(), c1: veryRandomVect(), c2: veryRandomVect(), end: veryRandomVect(), options: bezierOptions, vertexData: &vertexData)
+        }
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
                                          length: dataSize,
