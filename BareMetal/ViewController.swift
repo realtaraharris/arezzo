@@ -82,6 +82,7 @@ class ViewController: UIViewController {
     var commandQueue: MTLCommandQueue!
     var renderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
+    var shapeIndex: [Int] = []
 
     var vertexCount: Int = 0
 
@@ -124,19 +125,27 @@ class ViewController: UIViewController {
 
     func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
-            //            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.1, mCuspLimit: 0.0, thickness: 0.025, miterLimit: -1.0, scale: 150
-            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.2, mCuspLimit: 0.0, thickness: 0.025, miterLimit: -1.0, scale: 500
+            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.2, mCuspLimit: 0.0, thickness: 0.05, miterLimit: 1.0, scale: 300
         )
 
         let cubicBezier = CubicBezierTesselator(start: [-1.0, -1.0], c1: [1.0, 2.0], c2: [1.0, -2.0], end: [-1.0, 1.0], existingPoints: [], options: bezierOptions)
-        let vertexData = cubicBezier.dumpTriangleStrip()
+        let cubicBezierTriangles = cubicBezier.dumpTriangleStrip()
+        shapeIndex.append(cubicBezierTriangles.count/3)
+
+        let cubicBezier2 = CubicBezierTesselator(start: [1.0, 1.0], c1: [-1.0, 1.0], c2: [-1.0, -1.0], end: [1.0, -1.0], existingPoints: [], options: bezierOptions)
+        let cubicBezierTriangles2 = cubicBezier2.dumpTriangleStrip()
+        shapeIndex.append(cubicBezierTriangles2.count/3)
+
+        let cubicBezier3 = CubicBezierTesselator(start: [-0.5, 0.5], c1: [1.0, 1.0], c2: [-1.0, -1.0], end: [0.5, -0.5], existingPoints: [], options: bezierOptions)
+        let cubicBezierTriangles3 = cubicBezier3.dumpTriangleStrip()
+        shapeIndex.append(cubicBezierTriangles3.count/3)
+
+        let vertexData = cubicBezierTriangles + cubicBezierTriangles2 + cubicBezierTriangles3;
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
                                          length: dataSize,
                                          options: .storageModeShared)
-
-        vertexCount = vertexData.count / 3
     }
 
     func render() {
@@ -153,7 +162,17 @@ class ViewController: UIViewController {
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
         renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: vertexCount)
+
+        var currentVertexPosition = 0
+        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: shapeIndex[0])
+        currentVertexPosition += shapeIndex[0]
+
+        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: shapeIndex[1]);
+        currentVertexPosition += shapeIndex[1]
+
+        renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: shapeIndex[2])
+        currentVertexPosition += shapeIndex[2]
+
         renderCommandEncoder.endEncoding()
         commandBuffer.present(drawable)
         // NB: you can pass in a time to present the finished image:
