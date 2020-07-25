@@ -9,14 +9,33 @@
 #include <metal_stdlib>
 using namespace metal;
 
-fragment half4 basic_fragment(float4 params[[stage_in]])
-{
-    return half4(1.0);
+struct VertexOut {
+    float4 position[[position]];
+    float4 color;
+};
+
+//struct QuadraticBezierParameters
+//{
+//    float4 color;
+//};
+
+vertex VertexOut basic_vertex(
+    constant packed_float3* vertex_array[[buffer(0)]],
+    constant float4 *allParams[[buffer(1)]],
+    unsigned int vid[[vertex_id]],
+    const uint instanceId [[instance_id]]
+) {
+    VertexOut vo;
+
+    const float4 color = allParams[instanceId];
+    float3 vert = vertex_array[vid];
+    vo.position.xyzw = float4(vert, 1.0);
+    vo.color = color;
+    
+    return vo;
 }
 
-vertex float4 basic_vertex(
-   const device packed_float3* vertex_array[[buffer(0)]],
-   unsigned int vid[[vertex_id]]
-) {
-    return float4(vertex_array[vid], 1.0);
+fragment half4 basic_fragment(VertexOut params[[stage_in]])
+{
+    return half4(params.color);
 }
