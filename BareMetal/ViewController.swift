@@ -84,6 +84,7 @@ class ViewController: UIViewController {
     var renderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
     var shapeIndex: [Int] = []
+    var renderCount: Int = 0
 
     var vertexCount: Int = 0
 
@@ -112,13 +113,13 @@ class ViewController: UIViewController {
         pipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
         pipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
 
-        let vertexDesc = MTLVertexDescriptor.init();
-        vertexDesc.attributes[0].format = MTLVertexFormat.float3;
-        vertexDesc.attributes[0].offset = 0;
-        vertexDesc.attributes[0].bufferIndex = 0;
-        vertexDesc.attributes[1].format = MTLVertexFormat.float4;
-        vertexDesc.attributes[1].offset = 0;
-        vertexDesc.attributes[1].bufferIndex = 0;
+        let vertexDesc = MTLVertexDescriptor()
+        vertexDesc.attributes[0].format = MTLVertexFormat.float3
+        vertexDesc.attributes[0].offset = 0
+        vertexDesc.attributes[0].bufferIndex = 0
+        vertexDesc.attributes[1].format = MTLVertexFormat.float4
+        vertexDesc.attributes[1].offset = 0
+        vertexDesc.attributes[1].bufferIndex = 0
         vertexDesc.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
         vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride * 8
 
@@ -131,7 +132,7 @@ class ViewController: UIViewController {
         }
 
         commandQueue = device.makeCommandQueue() // this is expensive to create, so we save a reference to it
-        
+
         generateVerts()
 
         timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
@@ -156,6 +157,17 @@ class ViewController: UIViewController {
         colorData.append(contentsOf: veryRandomColor())
     }
 
+    func addQuadraticBezier(
+        start: [Float], c: [Float], end: [Float], options: BezierTesselationOptions, colorData: inout [Float], vertexData: inout [Float]
+    ) {
+        let quadraticBezier = QuadraticBezierTesselator(start: start, c: c, end: end, options: options)
+        let quadraticBezierTriangles = quadraticBezier.dumpTriangleStrip()
+
+        shapeIndex.append(quadraticBezierTriangles.count / 3)
+        vertexData.append(contentsOf: quadraticBezierTriangles)
+        colorData.append(contentsOf: veryRandomColor())
+    }
+
     func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
             curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.2, mCuspLimit: 0.0, thickness: 0.05, miterLimit: 1.0, scale: 300
@@ -168,14 +180,16 @@ class ViewController: UIViewController {
 
         func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
                                             Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
-        for _ in 0 ... 100 {
-            addCubicBezier(start: veryRandomVect(), c1: veryRandomVect(), c2: veryRandomVect(), end: veryRandomVect(), options: bezierOptions, colorData: &colorData, vertexData: &vertexData)
+        for _ in 0 ... 4 {
+        addCubicBezier(start: veryRandomVect(), c1: veryRandomVect(), c2: veryRandomVect(), end: veryRandomVect(), options: bezierOptions, colorData: &colorData, vertexData: &vertexData)
+        addQuadraticBezier(start: veryRandomVect(), c: veryRandomVect(), end: veryRandomVect(), options: bezierOptions, colorData: &colorData, vertexData: &vertexData)
         }
+
+
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
                                          length: dataSize,
                                          options: .storageModeShared)
-        
 
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
     }
@@ -188,7 +202,9 @@ class ViewController: UIViewController {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 255.0 / 255.0, green: 255.0 / 255.0, blue: 255.0 / 255.0, alpha: 1.0)
 
-        generateVerts()
+//        if renderCount.isMultiple(of: 12) {
+//            generateVerts()
+//        }
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
@@ -197,8 +213,8 @@ class ViewController: UIViewController {
 
         var currentVertexPosition = 0
         for (index, start) in shapeIndex.enumerated() {
-            renderCommandEncoder.setVertexBuffer(colorBuffer, offset: index*4, index: 1)
-            
+            renderCommandEncoder.setVertexBuffer(colorBuffer, offset: index * 4, index: 1)
+
             renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: start)
             currentVertexPosition += start
         }
@@ -208,6 +224,7 @@ class ViewController: UIViewController {
         // NB: you can pass in a time to present the finished image:
         // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
         commandBuffer.commit()
+        renderCount += 1
     }
 
     @objc func gameloop() {
