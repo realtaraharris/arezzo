@@ -14,11 +14,6 @@ struct VertexOut {
     float4 color;
 };
 
-//struct QuadraticBezierParameters
-//{
-//    float4 color;
-//};
-
 vertex VertexOut basic_vertex(
     constant packed_float3* vertex_array[[buffer(0)]],
     constant float4 *allParams[[buffer(1)]],
@@ -28,8 +23,8 @@ vertex VertexOut basic_vertex(
     VertexOut vo;
 
     const float4 color = allParams[instanceId];
-    float3 vert = vertex_array[vid];
-    vo.position.xyzw = float4(vert, 1.0);
+    const float3 vert = vertex_array[vid];
+    vo.position = float4(vert, 1.0);
     vo.color = color;
     
     return vo;

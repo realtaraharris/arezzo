@@ -148,7 +148,27 @@ class QuadraticBezierTesselator {
     func dumpTriangleStrip() -> [Float] {
         var output: [Float] = []
 
-        if (points.count < 5) { return [] }
+        if points.count == 2 {
+            let _p0 = points[0] // start of previous segment
+            let _p1 = points[1] // end of previous segment, start of current segment
+            let p0 = simd_float2(_p0[0], _p0[1])
+            let p1 = simd_float2(_p1[0], _p1[1])
+
+            toTriangleStripTwoPoints(thickness: thickness, miterLimit: miterLimit, p0: p0, p1: p1, output: &output)
+            return output
+        }
+
+        if points.count == 3 {
+            let _p0 = points[0] // start of previous segment
+//            let _p1 = points[1] // end of previous segment, start of current segment
+            let _p2 = points[2] // end of previous segment, start of current segment
+            let p0 = simd_float2(_p0[0], _p0[1])
+//            let p1 = simd_float2(_p1[0], _p1[1])
+            let p2 = simd_float2(_p2[0], _p2[1])
+
+            toTriangleStripTwoPoints(thickness: thickness, miterLimit: miterLimit, p0: p0, p1: p2, output: &output)
+            return output
+        }
 
         for index in 0 ... points.count - 4 {
             let _p0 = points[index + 0] // start of previous segment
@@ -166,6 +186,111 @@ class QuadraticBezierTesselator {
 
         return output
     }
+}
+
+func toTriangleStripTwoPoints(thickness: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, output: inout [Float]) {
+    // perform naive culling
+//    let area = simd_float2(1.2, 1.2)
+//    if p1.x < -area.x || p1.x > area.x { return }
+//    if p1.y < -area.y || p1.y > area.y { return }
+
+    // determine the direction of each of the 3 segments (previous, current, next)
+    let v0 = normalize(p1 - p0)
+
+    // determine the normal of each of the 3 segments (previous, current, next)
+    let n0 = simd_float2(-v0.y, v0.x)
+
+    // first point
+    // if you want an end cap, this is where you'd emit it
+    let tmp0 = (p0 + thickness * n0)
+    output.append(tmp0.x)
+    output.append(tmp0.y)
+    output.append(0)
+
+    let tmp1 = (p0 - thickness * n0)
+    output.append(tmp1.x)
+    output.append(tmp1.y)
+    output.append(0)
+
+//    let tmp2 = (p1 - thickness * n0)
+//    output.append(tmp2.x)
+//    output.append(tmp2.y)
+//    output.append(0)
+//
+//    let tmp3 = (p1 + thickness * n0)
+//    output.append(tmp3.x)
+//    output.append(tmp3.y)
+//    output.append(0)
+
+    // last point
+    // if you want an end cap, this is where you'd emit it
+    let tmp4 = (p1 + thickness * n0)
+    output.append(tmp4.x)
+    output.append(tmp4.y)
+    output.append(0)
+
+    let tmp5 = (p1 - thickness * n0)
+    output.append(tmp5.x)
+    output.append(tmp5.y)
+    output.append(0)
+}
+
+func toTriangleStripThreePoints(thickness: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, output: inout [Float]) {
+    // perform naive culling
+//    let area = simd_float2(1.2, 1.2)
+//    if p1.x < -area.x || p1.x > area.x { return }
+//    if p1.y < -area.y || p1.y > area.y { return }
+
+    // determine the direction of each of the 3 segments (previous, current, next)
+    let v0 = normalize(p1 - p0)
+    let v1 = normalize(p2 - p1)
+
+    // determine the normal of each of the 3 segments (previous, current, next)
+    let n0 = simd_float2(-v0.y, v0.x)
+    let n1 = simd_float2(-v1.y, v1.x)
+
+    // determine miter lines by averaging the normals of the 2 segments
+//    var miter_a = normalize(n0 + n1) // miter at start of current segment
+//    var miter_b = normalize(n1 + n2) // miter at end of current segment
+
+    // determine the length of the miter by projecting it onto normal and then inverse it
+//    var length_a = thickness / dot(miter_a, n1)
+//    var length_b = thickness / dot(miter_b, n1)
+
+    // first point
+    // if you want an end cap, this is where you'd emit it
+
+    let tmp2 = (p0 + thickness * n0)
+    output.append(tmp2.x)
+    output.append(tmp2.y)
+    output.append(0)
+
+    let tmp0 = (p0 - thickness * n0)
+    output.append(tmp0.x)
+    output.append(tmp0.y)
+    output.append(0)
+
+//    let tmp1 = (p0 - thickness * n0)
+//    output.append(tmp1.x)
+//    output.append(tmp1.y)
+//    output.append(0)
+//
+//    let tmp3 = (p0 - thickness * n1)
+//    output.append(tmp3.x)
+//    output.append(tmp3.y)
+//    output.append(0)
+
+    let tmp5 = (p1 + thickness * n1)
+    output.append(tmp5.x)
+    output.append(tmp5.y)
+    output.append(0)
+
+    // last point
+    // if you want an end cap, this is where you'd emit it
+    let tmp4 = (p1 - thickness * n1)
+    output.append(tmp4.x)
+    output.append(tmp4.y)
+    output.append(0)
 }
 
 // Based on https://github.com/pelson/antigrain/blob/master/agg-2.4/src/agg_curves.cpp
