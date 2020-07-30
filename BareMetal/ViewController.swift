@@ -21,21 +21,62 @@ extension Date {
     }
 }
 
-struct QuadraticBezierParameters {
+func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
+                                    Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
+
+protocol DrawOperation {
+    var type: String { get }
+}
+
+struct CubicBezierParameters: DrawOperation {
+    var type: String
     var start: [Float]
     var end: [Float]
-    var control: [Float]
-    var color: [Float]
-
+    var control1: [Float]
+    var control2: [Float]
     var lineWidth: Float = 0.050
     var timestamp: Int64 = 0
 
-    init(start: [Float], end: [Float], control: [Float], color: [Float], timestamp: Int64) {
+    init(start: [Float], end: [Float], control1: [Float], control2: [Float], timestamp: Int64) {
+        type = "CubicBezier"
+        self.start = start
+        self.end = end
+        self.control1 = control1
+        self.control2 = control2
+        self.timestamp = timestamp
+    }
+}
+
+struct QuadraticBezierParameters: DrawOperation {
+    var type: String
+    var start: [Float]
+    var end: [Float]
+    var control: [Float]
+    var lineWidth: Float = 0.050
+    var timestamp: Int64 = 0
+
+    init(start: [Float], end: [Float], control: [Float], timestamp: Int64) {
+        type = "QuadraticBezier"
         self.start = start
         self.end = end
         self.control = control
-        self.color = color
         self.timestamp = timestamp
+    }
+}
+
+struct PenDown: DrawOperation {
+    var type: String
+    var color: [Float]
+    init(color: [Float]) {
+        type = "PenDown"
+        self.color = color
+    }
+}
+
+struct PenUp: DrawOperation {
+    var type: String
+    init() {
+        type = "PenUp"
     }
 }
 
@@ -59,9 +100,8 @@ class ViewController: UIViewController {
     var renderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
     var shapeIndex: [Int] = []
-    var renderCount: Int = 0
     var vertexCount: Int = 0
-    var qbCount = 0
+    var previousDropOpCount = 0
 
     public var isDrawingEnabled = true
     public var shouldDrawStraight = false
@@ -92,13 +132,19 @@ class ViewController: UIViewController {
     private var timestamps = NSMutableOrderedSet()
     private var lastTimestampDrawn: Int64 = 0
 
-    private var quadraticBeziers: [QuadraticBezierParameters] = [
-        //    QuadraticBezierParameters(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], color: [1.0, 0.0, 0.0, 1.0], timestamp: 1595985214141),
-//    QuadraticBezierParameters(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], color: [1.0, 0.0, 0.0, 1.0], timestamp: 1595985214158),
-//    QuadraticBezierParameters(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], color: [1.0, 0.0, 0.0, 1.0], timestamp: 1595985214240),
-//    QuadraticBezierParameters(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], color: [1.0, 0.0, 0.0, 1.0], timestamp: 1595985214265),
-//    QuadraticBezierParameters(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], color: [1.0, 0.0, 0.0, 1.0], timestamp: 1595985214323),
-//    QuadraticBezierParameters(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], color: [1.0, 0.0, 0.0, 1.0], timestamp: 1595985214348)
+    private var drawOperations: [DrawOperation] = [
+        PenDown(color: [1.0, 1.0, 0.0, 1.0]),
+        QuadraticBezierParameters(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: 1_595_985_214_141),
+        QuadraticBezierParameters(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: 1_595_985_214_158),
+        QuadraticBezierParameters(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: 1_595_985_214_240),
+        QuadraticBezierParameters(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], timestamp: 1_595_985_214_265),
+        QuadraticBezierParameters(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: 1_595_985_214_323),
+        QuadraticBezierParameters(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: 1_595_985_214_348),
+        QuadraticBezierParameters(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
+        PenUp(),
+        PenDown(color: [1.0, 0.0, 0.0, 1.0]),
+        CubicBezierParameters(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_348),
+        PenUp(),
     ]
 
     // For pencil interactions
@@ -156,39 +202,21 @@ class ViewController: UIViewController {
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
 
-    func veryRandomColor() -> [Float] {
+    final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          0.7]
     }
 
-    func addCubicBezier(
-        start: [Float], c1: [Float], c2: [Float], end: [Float], color: [Float], options: BezierTesselationOptions, colorData: inout [Float], vertexData: inout [Float]
-    ) {
-        let cubicBezier = CubicBezierTesselator(start: start, c1: c1, c2: c2, end: end, existingPoints: [], options: options)
-        let cubicBezierTriangles = cubicBezier.dumpTriangleStrip()
-
-        shapeIndex.append(cubicBezierTriangles.count / 3)
-        vertexData.append(contentsOf: cubicBezierTriangles)
+    final func closeShape(thickness: Float, miterLimit: Float, points: [[Float]], vertexData: inout [Float], color: [Float], colorData: inout [Float]) {
+        let triangles = dumpTriangleStrip(thickness: thickness, miterLimit: miterLimit, points: points)
+        shapeIndex.append(triangles.count / 3)
+        vertexData.append(contentsOf: triangles)
         colorData.append(contentsOf: color)
     }
 
-    func addQuadraticBezier(
-        start: [Float], control: [Float], end: [Float], color: [Float], options: BezierTesselationOptions, colorData: inout [Float], vertexData: inout [Float]
-    ) {
-        let quadraticBezier = QuadraticBezierTesselator(start: start, c: control, end: end, options: options)
-        let quadraticBezierTriangles = quadraticBezier.dumpTriangleStrip()
-
-        shapeIndex.append(quadraticBezierTriangles.count / 3)
-        vertexData.append(contentsOf: quadraticBezierTriangles)
-        colorData.append(contentsOf: color)
-    }
-
-    func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
-                                        Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
-
-    func generateVerts() {
+    final func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
             curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, thickness: 0.01, miterLimit: 1.0, scale: 300
         )
@@ -196,13 +224,38 @@ class ViewController: UIViewController {
         var vertexData: [Float] = []
         var colorData: [Float] = []
         shapeIndex.removeAll() // clear this or else render() will loop infinitely
-        colorData.removeAll()
 
-        for qb in quadraticBeziers {
-            addQuadraticBezier(start: qb.start, control: qb.control, end: qb.end, color: qb.color, options: bezierOptions, colorData: &colorData, vertexData: &vertexData)
+        var points: [[Float]] = []
+
+        var openShape: Bool = false
+        var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
+        for op in drawOperations {
+            if op.type == "PenDown" {
+                let penDownOp = op as! PenDown
+                activeColor = penDownOp.color
+                points.removeAll()
+                openShape = true
+            }
+            if op.type == "QuadraticBezier" {
+                let bezierOp = op as! QuadraticBezierParameters
+                tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points, options: bezierOptions)
+            }
+            if op.type == "CubicBezier" {
+                let bezierOp = op as! CubicBezierParameters
+                tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
+            }
+            if op.type == "PenUp" {
+                closeShape(thickness: bezierOptions.thickness, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+                openShape = false
+            }
         }
 
-        if quadraticBeziers.count == 0 || vertexData.count == 0 { return }
+        if openShape {
+            closeShape(thickness: bezierOptions.thickness, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+            openShape = false
+        }
+
+        if drawOperations.count == 0 || vertexData.count == 0 { return }
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
@@ -212,7 +265,7 @@ class ViewController: UIViewController {
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
     }
 
-    func render() {
+    final func render() {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -220,9 +273,9 @@ class ViewController: UIViewController {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 255.0 / 255.0, green: 255.0 / 255.0, blue: 255.0 / 255.0, alpha: 1.0)
 
-        if quadraticBeziers.count != qbCount {
+        if drawOperations.count != previousDropOpCount {
             generateVerts()
-            qbCount = quadraticBeziers.count
+            previousDropOpCount = drawOperations.count
         }
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
@@ -243,7 +296,16 @@ class ViewController: UIViewController {
         // NB: you can pass in a time to present the finished image:
         // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
         commandBuffer.commit()
-        renderCount += 1
+    }
+
+    final func transform(_ x: Float, _ y: Float) -> [Float] {
+        let frameWidth: Float = Float(view.frame.size.width)
+        let frameHeight: Float = Float(view.frame.size.height)
+
+        return [
+            (2.0 * x / frameWidth) - 1.0,
+            (2.0 * -y / frameHeight) + 1.0,
+        ]
     }
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -256,16 +318,8 @@ class ViewController: UIViewController {
         firstPoint = touch.location(in: view)
         let timestamp = getCurrentTimestamp()
         timestamps.add(timestamp)
-    }
 
-    func transform(_ x: Float, _ y: Float) -> [Float] {
-        let frameWidth: Float = Float(view.frame.size.width)
-        let frameHeight: Float = Float(view.frame.size.height)
-
-        return [
-            (2.0 * x / frameWidth) - 1.0,
-            (2.0 * -y / frameHeight) + 1.0,
-        ]
+        drawOperations.append(PenDown(color: veryRandomColor()))
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -289,16 +343,17 @@ class ViewController: UIViewController {
                 return
             }
 
-            let params = QuadraticBezierParameters(start: start, end: end, control: control, color: veryRandomColor(), timestamp: timestamp)
-            quadraticBeziers.append(params)
+            let params = QuadraticBezierParameters(start: start, end: end, control: control, timestamp: timestamp)
+            drawOperations.append(params)
         }
     }
 
-    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {}
+    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
+        drawOperations.append(PenUp())
+    }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {}
 
-    // private
     private func setTouchPoints(for touch: UITouch, view: UIView) {
         previousPoint = touch.previousLocation(in: view)
         previousPreviousPoint = touch.previousLocation(in: view)

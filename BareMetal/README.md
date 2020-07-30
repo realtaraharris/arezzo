@@ -9,6 +9,7 @@ TODO:
 - [x] quadratic bezier tesselator
 - [x] cubic bezier tesselator
 - [x] add touch handlers to store beziers from user input
+- [x] put in multiple beziers into tesselator at once
 - [ ] square end cap bug: caps are not perfectly normal to start/end line segments
 - [ ] unit tests on quadratic, cubic beziers
 - [ ] round line caps
