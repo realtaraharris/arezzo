@@ -23,4 +23,7 @@ TODO:
 - [ ] pan feature
 - [ ] zoom feature
 - [ ] stroke width UI
-- [ ] add more colors to color picker
+- [x] add more colors to color picker
+
+app util idea: color picker that stores colors into CSV for you!
+- you click once, it stores the color, dumps a CSV into the clipboard when you ask it to

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
 		5059F76B24D40C0D004E7247 /* NewFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F76A24D40C0C004E7247 /* NewFile.swift */; };
 		5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F76F24D40F06004E7247 /* AudioPlayer.swift */; };
 		5059F77524D40F06004E7247 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77024D40F06004E7247 /* Helpers.swift */; };
@@ -28,6 +29,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
 		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		5059F76A24D40C0C004E7247 /* NewFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFile.swift; sourceTree = "<group>"; };
 		5059F76F24D40F06004E7247 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 				5095390D24C6224B00A861CB /* AdaptiveBezier.swift */,
 				504EFD9124C7DED5008F9334 /* README.md */,
 				5059F76A24D40C0C004E7247 /* NewFile.swift */,
+				501E676C24D730D10032C7BD /* LargePalette.swift */,
 			);
 			path = BareMetal;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 				50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */,
 				5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */,
 				5059F77624D40F06004E7247 /* Extensions.swift in Sources */,
+				501E676D24D730D10032C7BD /* LargePalette.swift in Sources */,
 				50C2A71224A68667000F3B93 /* Shaders.metal in Sources */,
 				5059F76B24D40C0D004E7247 /* NewFile.swift in Sources */,
 				5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */,

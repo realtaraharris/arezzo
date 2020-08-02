@@ -50,6 +50,21 @@ struct ColorPickerPopover: View {
     var blue: SwiftUI.Color = SwiftUI.Color(red: 0.0, green: 0.0, blue: 1.0, opacity: 1.0)
     var green: SwiftUI.Color = SwiftUI.Color(red: 0.0, green: 1.0, blue: 0.0, opacity: 1.0)
 
+//    let gridX = 4
+//    let gridY = 4
+//
+//    fileprivate func boop(_ rangeX: Range<Int>, _ rangeY: Range<Int>, _ maxX: Int, _ maxY: Int) -> VStack<ForEach<Range<Int>, Int, HStack<ForEach<Range<Int>, Int, ColorSwatch>>>> {
+//        VStack {
+//            ForEach(rangeX, id: \.self) { luck in
+//                HStack {
+//                    ForEach(rangeY, id: \.self) { fuck in
+//                        ColorSwatch(color: Color(red: Double(fuck) / Double(maxX), green: Double(luck) / Double(maxY), blue: 1.0, opacity: 1.0), showPopover: self.$showPopover, selectedColor: self.$selectedColor)
+//                    }
+//                }
+//            }
+//        }
+//    }
+
     var body: some View {
         Button(action: {
             self.showPopover = true
@@ -57,11 +72,15 @@ struct ColorPickerPopover: View {
             Text("Colors")
         }.popover(isPresented: $showPopover) {
             HStack {
-                ColorSwatch(color: self.red, showPopover: self.$showPopover, selectedColor: self.$selectedColor)
-                ColorSwatch(color: self.blue, showPopover: self.$showPopover, selectedColor: self.$selectedColor)
-                ColorSwatch(color: self.green, showPopover: self.$showPopover, selectedColor: self.$selectedColor)
-            }.frame(width: 500, height: 500)
-                .background(SwiftUI.Color.gray)
+                ForEach(largePalette, id: \.self) { column in
+                    VStack {
+                        ForEach(column, id: \.self) { c in
+                            ColorSwatch(color: Color(red: c[0], green: c[1], blue: c[2], opacity: c[3]), showPopover: self.$showPopover, selectedColor: self.$selectedColor)
+                        }
+                    }
+                }
+            }.frame(width: 775, height: 440)
+                .background(SwiftUI.Color.white)
         }
     }
 }
@@ -80,7 +99,7 @@ struct ColorSwatch: View {
     var body: some View {
         Rectangle()
             .fill(color)
-            .frame(width: 60, height: 60)
+            .frame(width: 30, height: 30)
             .onTapGesture {
                 self.selectedColor = self.color
                 self.showPopover = false
@@ -105,7 +124,6 @@ struct ContentView: View {
     @State var currentPage = 0
 
     @State var drawViewEnabled = true
-//    @State private var selectedColor = Color(red: 1.0, green: 0.0, blue: 0.0, opacity: 1.0)
 
     @State private var clearScreen = false
     @State private var undo = false
