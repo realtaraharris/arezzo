@@ -30,23 +30,22 @@ struct BezierTesselationOptions {
 
 /// quadraticBezier
 func recursiveQuadraticBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float, level: Int, points: inout [[Float]]) {
-    // TODO: camelCase these, then move into a settings object
-    let curve_collinearity_epsilon: Float = 1e-30
-    let curve_angle_tolerance_epsilon: Float = 0.01
-    let curve_recursion_limit = 32
-    let m_approximation_scale: Float = 100.0
-    let m_angle_tolerance: Float = 0.0
-    var m_distance_tolerance_square: Float = 0.5
-    //    var curve_distance_epsilon: Float = 1e-30
-    m_distance_tolerance_square = 0.5 / m_approximation_scale
-    m_distance_tolerance_square *= m_distance_tolerance_square
+    // TODO: move into a settings object
+    let curveCollinearityEpsilon: Float = 1e-30
+    let curveAngleToleranceEpsilon: Float = 0.01
+    let curveRecursionLimit = 32
+    let mApproximationScale: Float = 100.0
+    let mAngleTolerance: Float = 0.0
+    var mDistanceToleranceSquare: Float = 0.5
+    //    var curveDistanceEpsilon: Float = 1e-30
+    mDistanceToleranceSquare = 0.5 / mApproximationScale
+    mDistanceToleranceSquare *= mDistanceToleranceSquare
 
-    if level > curve_recursion_limit {
+    if level > curveRecursionLimit {
         return
     }
 
-    // Calculate all the mid-points of the line segments
-    // ----------------------
+    // calculate all the mid-points of the line segments
     let x12 = (x1 + x2) / 2
     let y12 = (y1 + y2) / 2
     let x23 = (x2 + x3) / 2
@@ -58,28 +57,23 @@ func recursiveQuadraticBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Fl
     let dy = y3 - y1
     var d = abs((x2 - x3) * dy - (y2 - y3) * dx)
 
-    if d > curve_collinearity_epsilon {
-        // Regular case
-        // -----------------
-        if d * d <= m_distance_tolerance_square * (dx * dx + dy * dy) {
+    if d > curveCollinearityEpsilon {
+        // regular case
+        if d * d <= mDistanceToleranceSquare * (dx * dx + dy * dy) {
             var da: Float
 
-            // If the curvature doesn't exceed the distance_tolerance value
-            // we tend to finish subdivisions.
-            // ----------------------
-            if m_angle_tolerance < curve_angle_tolerance_epsilon {
+            // if the curvature doesn't exceed the distance_tolerance value we tend to finish subdivisions
+            if mAngleTolerance < curveAngleToleranceEpsilon {
                 points.append([x123, y123])
                 return
             }
 
-            // Angle & Cusp Condition
-            // ----------------------
+            // angle & cusp condition
             da = abs(atan2(y3 - y2, x3 - x2) - atan2(y2 - y1, x2 - x1))
             if da >= Float.pi { da = 2 * Float.pi - da }
 
-            if da < m_angle_tolerance {
-                // Finally we can stop the recursion
-                // ----------------------
+            if da < mAngleTolerance {
+                // finally we can stop the recursion
                 points.append([x123, y123])
                 return
             }
@@ -87,30 +81,28 @@ func recursiveQuadraticBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Fl
     } else {
         var da: Float
 
-        // Collinear case
-        // ------------------
+        // collinear case
         da = dx * dx + dy * dy
         if da == 0 {
             d = calculateSquareDistance(x1: x1, y1: y1, x2: x2, y2: y2)
         } else {
             d = ((x2 - x1) * dx + (y2 - y1) * dy) / da
             if d > 0, d < 1 {
-                // Simple collinear case, 1---2---3
-                // We can leave just two endpoints
+                // simple collinear case: 1---2---3
+                // we can leave just two endpoints
                 return
             }
             if d <= 0 { d = calculateSquareDistance(x1: x2, y1: y2, x2: x1, y2: y1) }
             else if d >= 1 { d = calculateSquareDistance(x1: x2, y1: y2, x2: x3, y2: y3) }
             else { d = calculateSquareDistance(x1: x2, y1: y2, x2: x1 + d * dx, y2: y1 + d * dy) }
         }
-        if d < m_distance_tolerance_square {
+        if d < mDistanceToleranceSquare {
             points.append([x2, y2])
             return
         }
     }
 
-    // Continue subdivision
-    // ----------------------
+    // continue subdivision
     recursiveQuadraticBezier(x1: x1, y1: y1, x2: x12, y2: y12, x3: x123, y3: y123, level: level + 1, points: &points)
     recursiveQuadraticBezier(x1: x123, y1: y123, x2: x23, y2: y23, x3: x3, y3: y3, level: level + 1, points: &points)
 }
@@ -148,7 +140,7 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
 
     let pi = Float.pi
 
-    // Calculate all the mid-points of the line segments
+    // calculate all the mid-points of the line segments
     let x12 = (x1 + x2) / 2
     let y12 = (y1 + y2) / 2
     let x23 = (x2 + x3) / 2
@@ -162,8 +154,8 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
     let x1234 = (x123 + x234) / 2
     let y1234 = (y123 + y234) / 2
 
-    if level > 0 { // Enforce subdivision first time
-        // Try to approximate the full cubic curve by a single straight line
+    if level > 0 { // enforce subdivision first time
+        // try to approximate the full cubic curve by a single straight line
         var dx = x4 - x1
         var dy = y4 - y1
 
@@ -173,16 +165,15 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
         var da1: Float, da2: Float
 
         if d2 > Float.ulpOfOne, d3 > Float.ulpOfOne {
-            // Regular care
+            // regular care
             if (d2 + d3) * (d2 + d3) <= distanceTolerance * (dx * dx + dy * dy) {
-                // If the curvature doesn't exceed the distanceTolerance value
-                // we tend to finish subdivisions.
+                // if the curvature doesn't exceed the distanceTolerance value we tend to finish subdivisions
                 if mAngleTolerance < curveAngleToleranceEpsilon {
                     points.append([x1234, y1234])
                     return
                 }
 
-                // Angle & Cusp Condition
+                // angle & cusp condition
                 let a23 = atan2(y3 - y2, x3 - x2)
                 da1 = (a23 - atan2(y2 - y1, x2 - x1)).magnitude
                 da2 = (atan2(y4 - y3, x4 - x3) - a23).magnitude
@@ -190,7 +181,7 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
                 if da2 >= pi { da2 = 2 * pi - da2 }
 
                 if da1 + da2 < mAngleTolerance {
-                    // Finally we can stop the recursion
+                    // finally we can stop the recursion
                     points.append([x1234, y1234])
                     return
                 }
@@ -216,7 +207,7 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
                         return
                     }
 
-                    // Angle Condition
+                    // angle condition
                     da1 = (atan2(y3 - y2, x3 - x2) - atan2(y2 - y1, x2 - x1)).magnitude
                     if da1 >= pi { da1 = 2 * pi - da1 }
 
@@ -241,7 +232,7 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
                         return
                     }
 
-                    // Angle Condition
+                    // angle condition
                     da1 = (atan2(y4 - y3, x4 - x3) - atan2(y3 - y2, x3 - x2)).magnitude
                     if da1 >= pi { da1 = 2 * pi - da1 }
 
@@ -259,7 +250,7 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
                     }
                 }
             } else {
-                // Collinear case
+                // collinear case
                 dx = x1234 - (x1 + x4) / 2
                 dy = y1234 - (y1 + y4) / 2
                 if dx * dx + dy * dy <= distanceTolerance {
@@ -270,7 +261,7 @@ func recursiveCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float,
         }
     }
 
-    // Continue subdivision
+    // continue subdivision
     recursiveCubicBezier(x1: x1, y1: y1, x2: x12, y2: y12, x3: x123, y3: y123, x4: x1234, y4: y1234, distanceTolerance: distanceTolerance, level: level + 1, points: &points)
     recursiveCubicBezier(x1: x1234, y1: y1234, x2: x234, y2: y234, x3: x34, y3: y34, x4: x4, y4: y4, distanceTolerance: distanceTolerance, level: level + 1, points: &points)
 }

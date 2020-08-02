@@ -6,9 +6,11 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
+import Combine
 import Metal
 import QuartzCore
 import simd // vector_float2, vector_float4
+import SwiftUI
 import UIKit
 
 func getCurrentTimestamp() -> Int64 {
@@ -88,6 +90,59 @@ public extension Float {
     }
 }
 
+class ContentViewDelegate: ObservableObject {
+    var didChange = PassthroughSubject<ContentViewDelegate, Never>()
+    var objectWillChange = PassthroughSubject<ContentViewDelegate, Never>()
+
+    var name: String = "" {
+        didSet {
+            self.didChange.send(self)
+        }
+
+        willSet {
+            self.objectWillChange.send(self)
+        }
+    }
+
+    // TODO: this is gross. is there nicer a way to call functions?
+    var clear: Bool = false {
+        didSet {
+            didChange.send(self)
+            clear = false
+        }
+
+        willSet {
+            objectWillChange.send(self)
+        }
+    }
+
+    var selectedColor: Color = .red {
+        didSet {
+            didChange.send(self)
+        }
+
+        willSet {
+            objectWillChange.send(self)
+        }
+    }
+}
+
+// struct ContentViewEx: View {
+//    @ObservedObject var delegate: ContentViewDelegate
+//
+//    init(delegate: ContentViewDelegate) {
+//        self.delegate = delegate
+//    }
+//
+//    var body: some View {
+//        VStack {
+//            Text(self.delegate.name).padding().background(Color.gray)
+//            TextField("Enter name", text: self.$delegate.name)
+//                .textFieldStyle(RoundedBorderTextFieldStyle())
+//        }.padding().background(Color.green)
+//    }
+// }
+
 class ViewController: UIViewController {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
@@ -102,6 +157,11 @@ class ViewController: UIViewController {
     var shapeIndex: [Int] = []
     var vertexCount: Int = 0
     var previousDropOpCount = 0
+    var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
+
+    private var delegate = ContentViewDelegate()
+    private var contentView: ContentView!
+    private var textChangePublisher: AnyCancellable?
 
     public var isDrawingEnabled = true
     public var shouldDrawStraight = false
@@ -167,7 +227,33 @@ class ViewController: UIViewController {
         metalLayer.pixelFormat = .bgra8Unorm
         metalLayer.framebufferOnly = true
         metalLayer.frame = view.layer.frame
+
+        let screenScale = UIScreen.main.scale
+        metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
+
+        contentView = ContentView(delegate: delegate)
+        let controller = UIHostingController(rootView: contentView)
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        addChild(controller)
+        view.addSubview(controller.view)
+        controller.view.backgroundColor = UIColor.clear
+        controller.didMove(toParent: self)
+
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        controller.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+
+        textChangePublisher = delegate.didChange.sink { delegate in
+            // TODO: this is gross. is there nicer a way to call functions?
+            if delegate.clear {
+                self.drawOperations.removeAll()
+            }
+
+            self.selectedColor = delegate.selectedColor.toColorArray()
+        }
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
@@ -218,7 +304,7 @@ class ViewController: UIViewController {
 
     final func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
-            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, thickness: 0.01, miterLimit: 1.0, scale: 300
+            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, thickness: 0.01, miterLimit: 1.0, scale: 100
         )
 
         var vertexData: [Float] = []
@@ -319,7 +405,7 @@ class ViewController: UIViewController {
         let timestamp = getCurrentTimestamp()
         timestamps.add(timestamp)
 
-        drawOperations.append(PenDown(color: veryRandomColor()))
+        drawOperations.append(PenDown(color: self.selectedColor)) // veryRandomColor()))
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
