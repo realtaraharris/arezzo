@@ -28,9 +28,10 @@ func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), t
 
 protocol DrawOperation {
     var type: String { get }
+    var timestamp: Int64 { get }
 }
 
-struct CubicBezierParameters: DrawOperation {
+struct CubicBezier: DrawOperation {
     var type: String
     var start: [Float]
     var end: [Float]
@@ -49,7 +50,7 @@ struct CubicBezierParameters: DrawOperation {
     }
 }
 
-struct QuadraticBezierParameters: DrawOperation {
+struct QuadraticBezier: DrawOperation {
     var type: String
     var start: [Float]
     var end: [Float]
@@ -69,16 +70,20 @@ struct QuadraticBezierParameters: DrawOperation {
 struct PenDown: DrawOperation {
     var type: String
     var color: [Float]
-    init(color: [Float]) {
+    var timestamp: Int64 = 0
+    init(color: [Float], timestamp: Int64) {
         type = "PenDown"
         self.color = color
+        self.timestamp = timestamp
     }
 }
 
 struct PenUp: DrawOperation {
     var type: String
-    init() {
+    var timestamp: Int64 = 0
+    init(timestamp: Int64) {
         type = "PenUp"
+        self.timestamp = timestamp
     }
 }
 
@@ -126,22 +131,6 @@ class ContentViewDelegate: ObservableObject {
         }
     }
 }
-
-// struct ContentViewEx: View {
-//    @ObservedObject var delegate: ContentViewDelegate
-//
-//    init(delegate: ContentViewDelegate) {
-//        self.delegate = delegate
-//    }
-//
-//    var body: some View {
-//        VStack {
-//            Text(self.delegate.name).padding().background(Color.gray)
-//            TextField("Enter name", text: self.$delegate.name)
-//                .textFieldStyle(RoundedBorderTextFieldStyle())
-//        }.padding().background(Color.green)
-//    }
-// }
 
 class ViewController: UIViewController {
     var device: MTLDevice!
@@ -193,18 +182,18 @@ class ViewController: UIViewController {
     private var lastTimestampDrawn: Int64 = 0
 
     private var drawOperations: [DrawOperation] = [
-        //        PenDown(color: [1.0, 1.0, 0.0, 1.0]),
-//        QuadraticBezierParameters(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: 1_595_985_214_141),
-//        QuadraticBezierParameters(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: 1_595_985_214_158),
-//        QuadraticBezierParameters(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: 1_595_985_214_240),
-//        QuadraticBezierParameters(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], timestamp: 1_595_985_214_265),
-//        QuadraticBezierParameters(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: 1_595_985_214_323),
-//        QuadraticBezierParameters(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: 1_595_985_214_348),
-//        QuadraticBezierParameters(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
-//        PenUp(),
-//        PenDown(color: [1.0, 0.0, 0.0, 1.0]),
-//        CubicBezierParameters(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_348),
-//        PenUp(),
+//        PenDown(color: [1.0, 1.0, 0.0, 1.0], timestamp: 1_595_985_214_141),
+//        QuadraticBezier(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: 1_595_985_214_141),
+//        QuadraticBezier(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: 1_595_985_214_158),
+//        QuadraticBezier(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: 1_595_985_214_240),
+//        QuadraticBezier(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], timestamp: 1_595_985_214_265),
+//        QuadraticBezier(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: 1_595_985_214_323),
+//        QuadraticBezier(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: 1_595_985_214_348),
+//        QuadraticBezier(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
+//        PenUp(timestamp: 1_595_985_214_349),
+//        PenDown(color: [1.0, 0.0, 0.0, 1.0], timestamp: 1_595_985_214_351),
+//        CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
+//        PenUp(timestamp: 1_595_985_214_395),
     ]
 
     // For pencil interactions
@@ -323,11 +312,11 @@ class ViewController: UIViewController {
                 openShape = true
             }
             if op.type == "QuadraticBezier" {
-                let bezierOp = op as! QuadraticBezierParameters
+                let bezierOp = op as! QuadraticBezier
                 tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points, options: bezierOptions)
             }
             if op.type == "CubicBezier" {
-                let bezierOp = op as! CubicBezierParameters
+                let bezierOp = op as! CubicBezier
                 tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
             }
             if op.type == "PenUp" {
@@ -405,7 +394,7 @@ class ViewController: UIViewController {
         let timestamp = getCurrentTimestamp()
         timestamps.add(timestamp)
 
-        drawOperations.append(PenDown(color: selectedColor)) // veryRandomColor()))
+        drawOperations.append(PenDown(color: selectedColor, timestamp: timestamp)) // veryRandomColor()))
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -415,6 +404,7 @@ class ViewController: UIViewController {
         }
 
         let timestamp = getCurrentTimestamp()
+        timestamps.add(timestamp)
 
         updateTouchPoints(for: touch, in: view)
 
@@ -429,13 +419,16 @@ class ViewController: UIViewController {
                 return
             }
 
-            let params = QuadraticBezierParameters(start: start, end: end, control: control, timestamp: timestamp)
+            let params = QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp)
             drawOperations.append(params)
         }
     }
 
     override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
-        drawOperations.append(PenUp())
+        let timestamp = getCurrentTimestamp()
+        timestamps.add(timestamp)
+
+        drawOperations.append(PenUp(timestamp: timestamp))
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {}
