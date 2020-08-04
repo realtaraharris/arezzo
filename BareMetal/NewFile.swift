@@ -128,17 +128,11 @@ struct ContentView: View {
     @State private var clearScreen = false
     @State private var undo = false
     @State private var redo = false
-    @State private var play = false
-    @State private var recording = false
 
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 10) {
-//                Text("\(self.delegate.name)")
                 Button("Clear") {
-//                    print("self.delegate.name: \(self.delegate.name)")
-//                    self.delegate.name += "x"
-
                     self.delegate.clear = true
                 }
                 Button("Undo") {
@@ -147,14 +141,18 @@ struct ContentView: View {
                 Button("Redo") {
                     self.redo = true
                 }
-                self.recording ? Button("Stop") {
-                    self.recording = false
+
+                self.delegate.recording ? Button("Stop Recording") {
+                    self.delegate.recording = false
                 } : Button("Record") {
-                    self.recording = true
+                    self.delegate.recording = true
                 }
-                Button("Play") {
-                    self.play = true
+                self.delegate.playing ? Button("Stop Playing") {
+                    self.delegate.playing = false
+                } : Button("Play") {
+                    self.delegate.playing = true
                 }
+
                 ColorPickerPopover(selectedColor: self.$delegate.selectedColor).background(Color.clear)
 //                SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
 

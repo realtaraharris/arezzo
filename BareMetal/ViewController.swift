@@ -99,13 +99,23 @@ class ContentViewDelegate: ObservableObject {
     var didChange = PassthroughSubject<ContentViewDelegate, Never>()
     var objectWillChange = PassthroughSubject<ContentViewDelegate, Never>()
 
-    var name: String = "" {
+    var playing: Bool = false {
         didSet {
-            self.didChange.send(self)
+            didChange.send(self)
         }
 
         willSet {
-            self.objectWillChange.send(self)
+            objectWillChange.send(self)
+        }
+    }
+
+    var recording: Bool = false {
+        didSet {
+            didChange.send(self)
+        }
+
+        willSet {
+            objectWillChange.send(self)
         }
     }
 
@@ -121,7 +131,7 @@ class ContentViewDelegate: ObservableObject {
         }
     }
 
-    var selectedColor: Color = .red {
+    var selectedColor: Color = Color(red: 1.0, green: 0.0, blue: 0.0, opacity: 1.0) {
         didSet {
             didChange.send(self)
         }
@@ -147,6 +157,8 @@ class ViewController: UIViewController {
     var vertexCount: Int = 0
     var previousDropOpCount = 0
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
+    var playing: Bool = false
+    var recording: Bool = false
 
     private var delegate = ContentViewDelegate()
     private var contentView: ContentView!
@@ -178,23 +190,11 @@ class ViewController: UIViewController {
     private var previousPreviousPoint: CGPoint = .zero
     private var playbackStartTimestamp: Int64 = Date().toMilliseconds()
     private var playbackEndTimestamp: Int64 = Date().toMilliseconds()
-    private var timestamps = NSMutableOrderedSet()
+//    private var timestamps = NSMutableOrderedSet()
+    private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
 
-    private var drawOperations: [DrawOperation] = [
-//        PenDown(color: [1.0, 1.0, 0.0, 1.0], timestamp: 1_595_985_214_141),
-//        QuadraticBezier(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: 1_595_985_214_141),
-//        QuadraticBezier(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: 1_595_985_214_158),
-//        QuadraticBezier(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: 1_595_985_214_240),
-//        QuadraticBezier(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], timestamp: 1_595_985_214_265),
-//        QuadraticBezier(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: 1_595_985_214_323),
-//        QuadraticBezier(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: 1_595_985_214_348),
-//        QuadraticBezier(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
-//        PenUp(timestamp: 1_595_985_214_349),
-//        PenDown(color: [1.0, 0.0, 0.0, 1.0], timestamp: 1_595_985_214_351),
-//        CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
-//        PenUp(timestamp: 1_595_985_214_395),
-    ]
+    private var drawOperations: [DrawOperation]
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -202,6 +202,23 @@ class ViewController: UIViewController {
 
     required init?(coder aDecoder: NSCoder) {
         metalLayer = CAMetalLayer()
+
+//        let speedScale: Int64 = 100000
+//        let firstTimestamp = getCurrentTimestamp()
+        drawOperations = [
+            //            PenDown(color: [1.0, 1.0, 0.0, 1.0], timestamp: firstTimestamp),
+//            QuadraticBezier(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: firstTimestamp + 1 * speedScale),
+//            QuadraticBezier(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: firstTimestamp + 2 * speedScale),
+//            QuadraticBezier(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: firstTimestamp + 3 * speedScale),
+//            QuadraticBezier(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], timestamp: firstTimestamp + 1 * speedScale),
+//            QuadraticBezier(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: firstTimestamp + 4 * speedScale),
+//            QuadraticBezier(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: firstTimestamp + 5 * speedScale),
+//            QuadraticBezier(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
+//            PenUp(timestamp: firstTimestamp + 6 * speedScale),
+            //        PenDown(color: [1.0, 0.0, 0.0, 1.0], timestamp: 1_595_985_214_351),
+            //        CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
+            //        PenUp(timestamp: 1_595_985_214_395),
+        ]
 
         super.init(coder: aDecoder)
     }
@@ -238,7 +255,24 @@ class ViewController: UIViewController {
         textChangePublisher = delegate.didChange.sink { delegate in
             // TODO: this is gross. is there nicer a way to call functions?
             if delegate.clear {
-                self.drawOperations.removeAll()
+                self.drawOperations.removeAll(keepingCapacity: false)
+                self.timestamps.removeAll(keepingCapacity: false)
+            }
+
+            if delegate.playing {
+                self.startPlaying()
+            }
+
+            if !delegate.playing {
+                self.stopPlaying()
+            }
+
+            if delegate.recording {
+                self.startRecording()
+            }
+
+            if !delegate.recording {
+                self.stopRecording()
             }
 
             self.selectedColor = delegate.selectedColor.toColorArray()
@@ -271,7 +305,7 @@ class ViewController: UIViewController {
 
         commandQueue = device.makeCommandQueue() // this is expensive to create, so we save a reference to it
 
-        generateVerts()
+//        generateVerts()
 
         timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
@@ -291,6 +325,56 @@ class ViewController: UIViewController {
         colorData.append(contentsOf: color)
     }
 
+    public func startPlaying() {
+        print("in startPlaying")
+        playing = true
+
+        var timestampIterator = timestamps.makeIterator()
+        let baselineTime = DispatchTime.now()
+        let nextTime = timestampIterator.next()
+        if nextTime == nil { return }
+        var previousTimestamp: Int64 = nextTime!
+
+        func getCurrentTimestamp() -> (timestamp: Int64, delta: Int64, pst: Int64, ok: Bool) {
+            let nextval = timestampIterator.next()
+            if nextval == nil { return (0, 0, 0, false) }
+            let currentTimestamp = nextval!
+
+            let delta: Int64 = currentTimestamp - previousTimestamp
+            let pst = previousTimestamp
+            previousTimestamp = currentTimestamp
+
+            return (currentTimestamp, delta, pst, true)
+        }
+
+        DispatchQueue.global(qos: .userInteractive).async {
+            while self.playing {
+                let (timestamp, delta, _, ok) = getCurrentTimestamp()
+                if !ok {
+                    DispatchQueue.main.async {
+                        self.delegate.playing = false
+                    }
+                    break
+                }
+                let sleepBy = UInt32(delta * 1000)
+                usleep(sleepBy)
+                self.playbackEndTimestamp = timestamp
+            }
+        }
+    }
+
+    public func stopPlaying() {
+        playing = false
+    }
+
+    public func startRecording() {
+        recording = true
+    }
+
+    public func stopRecording() {
+        recording = false
+    }
+
     final func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
             curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, thickness: 0.01, miterLimit: 1.0, scale: 100
@@ -305,6 +389,8 @@ class ViewController: UIViewController {
         var openShape: Bool = false
         var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
         for op in drawOperations {
+            if playing, op.timestamp > playbackEndTimestamp { continue }
+
             if op.type == "PenDown" {
                 let penDownOp = op as! PenDown
                 activeColor = penDownOp.color
@@ -348,10 +434,10 @@ class ViewController: UIViewController {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 255.0 / 255.0, green: 255.0 / 255.0, blue: 255.0 / 255.0, alpha: 1.0)
 
-        if drawOperations.count != previousDropOpCount {
-            generateVerts()
-            previousDropOpCount = drawOperations.count
-        }
+//        if drawOperations.count != previousDropOpCount {
+        generateVerts()
+//            previousDropOpCount = drawOperations.count
+//        }
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
@@ -389,11 +475,13 @@ class ViewController: UIViewController {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
 
+        if touch.location(in: view).y < 70 { return }
+
         setTouchPoints(for: touch, view: view)
         firstPoint = touch.location(in: view)
-        let timestamp = getCurrentTimestamp()
-        timestamps.add(timestamp)
 
+        let timestamp = getCurrentTimestamp()
+        timestamps.append(timestamp)
         drawOperations.append(PenDown(color: selectedColor, timestamp: timestamp)) // veryRandomColor()))
     }
 
@@ -403,8 +491,7 @@ class ViewController: UIViewController {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
 
-        let timestamp = getCurrentTimestamp()
-        timestamps.add(timestamp)
+        if touch.location(in: view).y < 70 { return }
 
         updateTouchPoints(for: touch, in: view)
 
@@ -419,15 +506,19 @@ class ViewController: UIViewController {
                 return
             }
 
+            let timestamp = getCurrentTimestamp()
+            timestamps.append(timestamp)
             let params = QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp)
             drawOperations.append(params)
         }
     }
 
-    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
-        let timestamp = getCurrentTimestamp()
-        timestamps.add(timestamp)
+    override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
+        guard isDrawingEnabled, let touch = touches.first else { return }
+        if touch.location(in: view).y < 70 { return }
 
+        let timestamp = getCurrentTimestamp()
+        timestamps.append(timestamp)
         drawOperations.append(PenUp(timestamp: timestamp))
     }
 
@@ -450,9 +541,10 @@ class ViewController: UIViewController {
     }
 
     private func getMidPoints() -> (CGPoint, CGPoint) {
-        let mid1: CGPoint = calculateMidPoint(previousPoint, p2: previousPreviousPoint)
-        let mid2: CGPoint = calculateMidPoint(currentPoint, p2: previousPoint)
-        return (mid1, mid2)
+        (
+            calculateMidPoint(previousPoint, p2: previousPreviousPoint),
+            calculateMidPoint(currentPoint, p2: previousPoint)
+        )
     }
 
     @objc func gameloop() {

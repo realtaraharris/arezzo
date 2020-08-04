@@ -18,6 +18,7 @@
 		5060DB9524C273FE00940927 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9424C273FE00940927 /* ViewController.swift */; };
 		5060DB9724C2740000940927 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9624C2740000940927 /* Assets.xcassets */; };
 		5060DB9A24C2740000940927 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9824C2740000940927 /* Main.storyboard */; };
+		5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5077578B24D8D7E0000C3D42 /* OrderedSet.swift */; };
 		5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5095390D24C6224B00A861CB /* AdaptiveBezier.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
@@ -45,6 +46,7 @@
 		5060DB9B24C2740000940927 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5060DB9C24C2740000940927 /* BareMetal_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal_app.entitlements; sourceTree = "<group>"; };
 		5060DBA024C2742600940927 /* BareMetal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal.entitlements; sourceTree = "<group>"; };
+		5077578B24D8D7E0000C3D42 /* OrderedSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedSet.swift; sourceTree = "<group>"; };
 		5095390D24C6224B00A861CB /* AdaptiveBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveBezier.swift; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* BareMetal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
 				50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */,
 				50C2A70124A67F87000F3B93 /* ViewController.swift */,
+				5077578B24D8D7E0000C3D42 /* OrderedSet.swift */,
 				50C2A70B24A67F8A000F3B93 /* Info.plist */,
 				50C2A71124A68667000F3B93 /* Shaders.metal */,
 				5095390D24C6224B00A861CB /* AdaptiveBezier.swift */,
@@ -267,6 +270,7 @@
 				5059F77524D40F06004E7247 /* Helpers.swift in Sources */,
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
+				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
 				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
 				5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */,
 			);
