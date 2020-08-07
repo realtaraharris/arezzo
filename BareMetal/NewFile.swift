@@ -114,6 +114,25 @@ extension View {
     }
 }
 
+struct GeometryGetter: View {
+    @Binding var rect: CGRect
+
+    var body: some View {
+        GeometryReader { geometry in
+            self.makeView(geometry: geometry)
+        }
+    }
+
+    func makeView(geometry: GeometryProxy) -> some View {
+        DispatchQueue.main.async {
+            self.rect = geometry.frame(in: .global)
+            print("rect: \(self.rect)")
+        }
+
+        return Rectangle().fill(Color.clear)
+    }
+}
+
 struct ContentView: View {
     @ObservedObject var delegate: ContentViewDelegate
 
@@ -129,40 +148,38 @@ struct ContentView: View {
     @State private var undo = false
     @State private var redo = false
 
+    @State private var rect: CGRect = CGRect()
+
     var body: some View {
-        VStack {
-            HStack(alignment: .top, spacing: 10) {
-                Button("Clear") {
-                    self.delegate.clear = true
-                }
-                Button("Undo") {
-                    self.undo = true
-                }
-                Button("Redo") {
-                    self.redo = true
-                }
-
-                self.delegate.recording ? Button("Stop Recording") {
-                    self.delegate.recording = false
-                } : Button("Record") {
-                    self.delegate.recording = true
-                }
-                self.delegate.playing ? Button("Stop Playing") {
-                    self.delegate.playing = false
-                } : Button("Play") {
-                    self.delegate.playing = true
-                }
-
-                ColorPickerPopover(selectedColor: self.$delegate.selectedColor).background(Color.clear)
-//                SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
-
-                // GeometryReader { geometry -> Text in
-                //     let frame = geometry.frame(in: CoordinateSpace.local)
-                //     return Text(verbatim: "width: \(frame.size.width)")
-                // }
+        ZStack {
+            VStack {
                 ToolPalette()
+                HStack(alignment: .bottom, spacing: 10) {
+                    Button("Clear") {
+                        self.delegate.clear = true
+                    }
+                    Button("Undo") {
+                        self.undo = true
+                    }
+                    Button("Redo") {
+                        self.redo = true
+                    }
+
+                    self.delegate.recording ? Button("Stop Recording") {
+                        self.delegate.recording = false
+                    } : Button("Record") {
+                        self.delegate.recording = true
+                    }
+                    self.delegate.playing ? Button("Stop Playing") {
+                        self.delegate.playing = false
+                    } : Button("Play") {
+                        self.delegate.playing = true
+                    }
+
+                    ColorPickerPopover(selectedColor: self.$delegate.selectedColor).background(Color.clear)
+                    // SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
+                }.background(GeometryGetter(rect: $rect))
             }
-            Spacer()
         }
     }
 }
