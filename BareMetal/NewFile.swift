@@ -44,43 +44,37 @@ extension Color {
 struct ColorPickerPopover: View {
     @State private var showPopover: Bool = false
     @Binding var selectedColor: SwiftUI.Color
+    @Binding var uiRects: [String: CGRect]
 
     /* this is necessary because the description field of the resulting Color object will be a string like 'red' if you initialize with Color(.red), and the extension above will return zero for each component */
     var red: SwiftUI.Color = SwiftUI.Color(red: 1.0, green: 0.0, blue: 0.0, opacity: 1.0)
     var blue: SwiftUI.Color = SwiftUI.Color(red: 0.0, green: 0.0, blue: 1.0, opacity: 1.0)
     var green: SwiftUI.Color = SwiftUI.Color(red: 0.0, green: 1.0, blue: 0.0, opacity: 1.0)
 
-//    let gridX = 4
-//    let gridY = 4
-//
-//    fileprivate func boop(_ rangeX: Range<Int>, _ rangeY: Range<Int>, _ maxX: Int, _ maxY: Int) -> VStack<ForEach<Range<Int>, Int, HStack<ForEach<Range<Int>, Int, ColorSwatch>>>> {
-//        VStack {
-//            ForEach(rangeX, id: \.self) { luck in
-//                HStack {
-//                    ForEach(rangeY, id: \.self) { fuck in
-//                        ColorSwatch(color: Color(red: Double(fuck) / Double(maxX), green: Double(luck) / Double(maxY), blue: 1.0, opacity: 1.0), showPopover: self.$showPopover, selectedColor: self.$selectedColor)
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     var body: some View {
-        Button(action: {
-            self.showPopover = true
-        }) {
-            Text("Colors")
-        }.popover(isPresented: $showPopover) {
-            HStack {
-                ForEach(largePalette, id: \.self) { column in
-                    VStack {
-                        ForEach(column, id: \.self) { c in
-                            ColorSwatch(color: Color(red: c[0], green: c[1], blue: c[2], opacity: c[3]), showPopover: self.$showPopover, selectedColor: self.$selectedColor)
+        HStack {
+            Button(action: {
+                self.showPopover = true
+            }
+            ) {
+                Text("Colors")
+            }
+            .popover(isPresented: $showPopover) {
+                HStack {
+                    ForEach(largePalette, id: \.self) { column in
+                        VStack {
+                            ForEach(column, id: \.self) { c in
+                                ColorSwatch(color: Color(red: c[0], green: c[1], blue: c[2], opacity: c[3]), showPopover: self.$showPopover, selectedColor: self.$selectedColor)
+                            }
                         }
                     }
                 }
-            }.frame(width: 775, height: 440)
-                .background(SwiftUI.Color.white)
+                .padding(.init(top: 10, leading: 10, bottom: 10, trailing: 10))
+                .background(GeometryGetter(rects: self.$uiRects, key: "colorPicker"))
+                .onDisappear(perform: {
+                    self.uiRects.removeValue(forKey: "colorPicker")
+                })
+            }
         }
     }
 }
@@ -115,7 +109,8 @@ extension View {
 }
 
 struct GeometryGetter: View {
-    @Binding var rect: CGRect
+    @Binding var rects: [String: CGRect]
+    let key: String
 
     var body: some View {
         GeometryReader { geometry in
@@ -125,8 +120,7 @@ struct GeometryGetter: View {
 
     func makeView(geometry: GeometryProxy) -> some View {
         DispatchQueue.main.async {
-            self.rect = geometry.frame(in: .global)
-            print("rect: \(self.rect)")
+            self.rects[self.key] = geometry.frame(in: .global)
         }
 
         return Rectangle().fill(Color.clear)
@@ -147,8 +141,6 @@ struct ContentView: View {
     @State private var clearScreen = false
     @State private var undo = false
     @State private var redo = false
-
-    @State private var rect: CGRect = CGRect()
 
     var body: some View {
         ZStack {
@@ -176,9 +168,9 @@ struct ContentView: View {
                         self.delegate.playing = true
                     }
 
-                    ColorPickerPopover(selectedColor: self.$delegate.selectedColor).background(Color.clear)
+                    ColorPickerPopover(selectedColor: self.$delegate.selectedColor, uiRects: $delegate.uiRects)
                     // SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
-                }.background(GeometryGetter(rect: $rect))
+                }.background(GeometryGetter(rects: $delegate.uiRects, key: "main"))
             }
         }
     }

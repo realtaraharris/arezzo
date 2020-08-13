@@ -13,10 +13,13 @@ TODO:
 - [x] red-green-blue color picker
 - [x] figure out UIKit-SwiftUI interop
 - [x] clear screen feature
+- [x] clicks on SwiftUI elements bleed through to the underlying drawing touch handlers
+    - [x] how do you declare an associative array in Swift? each view needs a unique key
+    - [x] need a way to make blue SwiftUI rects disappear when popover shuts
+
 - [ ] playback
 - [ ] undo feature
 
-- [ ] clicks on SwiftUI elements bleed through to the underlying drawing touch handlers
 - [ ] square end cap bug: caps are not perfectly normal to start/end line segments
 - [ ] unit tests on quadratic, cubic beziers
 

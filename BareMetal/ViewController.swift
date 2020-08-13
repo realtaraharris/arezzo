@@ -140,6 +140,16 @@ class ContentViewDelegate: ObservableObject {
             objectWillChange.send(self)
         }
     }
+
+    var uiRects: [String: CGRect] = [:] {
+        didSet {
+            didChange.send(self)
+        }
+
+        willSet {
+            objectWillChange.send(self)
+        }
+    }
 }
 
 class ViewController: UIViewController {
@@ -159,9 +169,9 @@ class ViewController: UIViewController {
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
     var playing: Bool = false
     var recording: Bool = false
+    let debugShapeLayer = CAShapeLayer()
 
     private var delegate = ContentViewDelegate()
-    private var contentView: ContentView!
     private var textChangePublisher: AnyCancellable?
 
     public var isDrawingEnabled = true
@@ -193,6 +203,7 @@ class ViewController: UIViewController {
 //    private var timestamps = NSMutableOrderedSet()
     private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
+    private var uiRects: [String: CGRect] = [:]
 
     private var drawOperations: [DrawOperation]
 
@@ -238,8 +249,7 @@ class ViewController: UIViewController {
         metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
 
-        contentView = ContentView(delegate: delegate)
-        let controller = UIHostingController(rootView: contentView)
+        let controller = UIHostingController(rootView: ContentView(delegate: delegate))
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         addChild(controller)
         view.addSubview(controller.view)
@@ -274,6 +284,8 @@ class ViewController: UIViewController {
             if !delegate.recording {
                 self.stopRecording()
             }
+
+            self.uiRects = delegate.uiRects
 
             self.selectedColor = delegate.selectedColor.toColorArray()
         }
@@ -426,7 +438,37 @@ class ViewController: UIViewController {
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
     }
 
+    func debugViewClick(_ rect: CGRect?, _ path: inout UIBezierPath) {
+        if rect == nil { return }
+
+        path.move(to: CGPoint(x: rect!.origin.x, y: rect!.origin.y))
+        path.addLine(to: CGPoint(x: rect!.origin.x + rect!.width, y: rect!.origin.y))
+        path.addLine(to: CGPoint(x: rect!.origin.x + rect!.width, y: rect!.origin.y + rect!.height))
+        path.addLine(to: CGPoint(x: rect!.origin.x, y: rect!.origin.y + rect!.height))
+        path.close()
+    }
+
     final func render() {
+//        var path = UIBezierPath()
+//
+//        let colorPickerRect = uiRects["colorPicker"]
+//        debugViewClick(colorPickerRect, &path)
+//
+//        let mainRect = uiRects["main"]
+//        debugViewClick(mainRect, &path)
+//
+//        let oldRef = debugShapeLayer
+//        debugShapeLayer.path = path.cgPath
+//        debugShapeLayer.strokeColor = UIColor.blue.cgColor
+//        debugShapeLayer.fillColor = UIColor.clear.cgColor
+//        debugShapeLayer.lineWidth = 3
+//
+//        // don't add a sublayer unless we don't have one
+//        if view.layer.sublayers!.count == 2 {
+//            view.layer.addSublayer(debugShapeLayer)
+//        }
+//        view.layer.replaceSublayer(oldRef, with: debugShapeLayer)
+
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -469,8 +511,23 @@ class ViewController: UIViewController {
         ]
     }
 
+    func checkTouch(_ touch: UITouch) -> Bool {
+        let x = touch.location(in: view).x
+        let y = touch.location(in: view).y
+
+        for (key, value) in self.uiRects {
+            if (x > value.minX && x < value.maxX) && (y > value.minY && y < value.maxY) {
+                print("found hit in \(key)")
+                return true
+            }
+        }
+        return false
+    }
+
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard isDrawingEnabled, let touch = touches.first else { return }
+        if checkTouch(touch) { return }
+
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
@@ -487,11 +544,11 @@ class ViewController: UIViewController {
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard isDrawingEnabled, let touch = touches.first else { return }
+        if checkTouch(touch) { return }
+
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
-
-        if touch.location(in: view).y < 70 { return }
 
         updateTouchPoints(for: touch, in: view)
 
@@ -515,14 +572,17 @@ class ViewController: UIViewController {
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard isDrawingEnabled, let touch = touches.first else { return }
-        if touch.location(in: view).y < 70 { return }
+        if checkTouch(touch) { return }
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
         drawOperations.append(PenUp(timestamp: timestamp))
     }
 
-    override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {}
+    override open func touchesCancelled(_ touches: Set<UITouch>, with _: UIEvent?) {
+        guard isDrawingEnabled, let touch = touches.first else { return }
+        if checkTouch(touch) { return }
+    }
 
     private func setTouchPoints(for touch: UITouch, view: UIView) {
         previousPoint = touch.previousLocation(in: view)
