@@ -16,8 +16,11 @@ TODO:
 - [x] clicks on SwiftUI elements bleed through to the underlying drawing touch handlers
     - [x] how do you declare an associative array in Swift? each view needs a unique key
     - [x] need a way to make blue SwiftUI rects disappear when popover shuts
+- [x] stroke width UI
+- [x] add more colors to color picker
+- [x] playback
 
-- [ ] playback
+- [ ] handle screen rotation correctly
 - [ ] undo feature
 
 - [ ] square end cap bug: caps are not perfectly normal to start/end line segments
@@ -27,8 +30,6 @@ TODO:
 - [ ] quadtree structure to store beziers
 - [ ] pan feature
 - [ ] zoom feature
-- [ ] stroke width UI
-- [x] add more colors to color picker
 
 app util idea: color picker that stores colors into CSV for you!
 - you click once, it stores the color, dumps a CSV into the clipboard when you ask it to

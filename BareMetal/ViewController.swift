@@ -13,6 +13,8 @@ import simd // vector_float2, vector_float4
 import SwiftUI
 import UIKit
 
+let DEFAULT_STROKE_THICKNESS: Float = 0.01
+
 func getCurrentTimestamp() -> Int64 {
     Date().toMilliseconds()
 }
@@ -25,67 +27,6 @@ extension Date {
 
 func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
                                     Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
-
-protocol DrawOperation {
-    var type: String { get }
-    var timestamp: Int64 { get }
-}
-
-struct CubicBezier: DrawOperation {
-    var type: String
-    var start: [Float]
-    var end: [Float]
-    var control1: [Float]
-    var control2: [Float]
-    var lineWidth: Float = 0.050
-    var timestamp: Int64 = 0
-
-    init(start: [Float], end: [Float], control1: [Float], control2: [Float], timestamp: Int64) {
-        type = "CubicBezier"
-        self.start = start
-        self.end = end
-        self.control1 = control1
-        self.control2 = control2
-        self.timestamp = timestamp
-    }
-}
-
-struct QuadraticBezier: DrawOperation {
-    var type: String
-    var start: [Float]
-    var end: [Float]
-    var control: [Float]
-    var lineWidth: Float = 0.050
-    var timestamp: Int64 = 0
-
-    init(start: [Float], end: [Float], control: [Float], timestamp: Int64) {
-        type = "QuadraticBezier"
-        self.start = start
-        self.end = end
-        self.control = control
-        self.timestamp = timestamp
-    }
-}
-
-struct PenDown: DrawOperation {
-    var type: String
-    var color: [Float]
-    var timestamp: Int64 = 0
-    init(color: [Float], timestamp: Int64) {
-        type = "PenDown"
-        self.color = color
-        self.timestamp = timestamp
-    }
-}
-
-struct PenUp: DrawOperation {
-    var type: String
-    var timestamp: Int64 = 0
-    init(timestamp: Int64) {
-        type = "PenUp"
-        self.timestamp = timestamp
-    }
-}
 
 public extension Float {
     static func r(n: Float, tol: Float) -> Float {
@@ -141,6 +82,16 @@ class ContentViewDelegate: ObservableObject {
         }
     }
 
+    var strokeWidth: Float = DEFAULT_STROKE_THICKNESS {
+        didSet {
+            didChange.send(self)
+        }
+
+        willSet {
+            objectWillChange.send(self)
+        }
+    }
+
     var uiRects: [String: CGRect] = [:] {
         didSet {
             didChange.send(self)
@@ -157,6 +108,7 @@ class ViewController: UIViewController {
     var metalLayer: CAMetalLayer
     var vertexBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
+    var modelViewMatrixBuffer: MTLBuffer!
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
     var vertexColorBuffer: MTLBuffer!
@@ -167,6 +119,7 @@ class ViewController: UIViewController {
     var vertexCount: Int = 0
     var previousDropOpCount = 0
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
+    var strokeWidth: Float = DEFAULT_STROKE_THICKNESS
     var playing: Bool = false
     var recording: Bool = false
     let debugShapeLayer = CAShapeLayer()
@@ -200,7 +153,6 @@ class ViewController: UIViewController {
     private var previousPreviousPoint: CGPoint = .zero
     private var playbackStartTimestamp: Int64 = Date().toMilliseconds()
     private var playbackEndTimestamp: Int64 = Date().toMilliseconds()
-//    private var timestamps = NSMutableOrderedSet()
     private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
@@ -214,10 +166,11 @@ class ViewController: UIViewController {
     required init?(coder aDecoder: NSCoder) {
         metalLayer = CAMetalLayer()
 
-//        let speedScale: Int64 = 100000
+//        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
         drawOperations = [
-            //            PenDown(color: [1.0, 1.0, 0.0, 1.0], timestamp: firstTimestamp),
+//            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: firstTimestamp),
+//            Line(start: [-0.68938684, -1], end: [-0.68938684, 0.14252508], timestamp: 0),
 //            QuadraticBezier(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: firstTimestamp + 1 * speedScale),
 //            QuadraticBezier(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: firstTimestamp + 2 * speedScale),
 //            QuadraticBezier(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: firstTimestamp + 3 * speedScale),
@@ -226,9 +179,9 @@ class ViewController: UIViewController {
 //            QuadraticBezier(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: firstTimestamp + 5 * speedScale),
 //            QuadraticBezier(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
 //            PenUp(timestamp: firstTimestamp + 6 * speedScale),
-            //        PenDown(color: [1.0, 0.0, 0.0, 1.0], timestamp: 1_595_985_214_351),
-            //        CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
-            //        PenUp(timestamp: 1_595_985_214_395),
+//            PenDown(color: [1.0, 0.0, 0.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 1_595_985_214_351),
+//            CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
+//            PenUp(timestamp: 1_595_985_214_395),
         ]
 
         super.init(coder: aDecoder)
@@ -249,7 +202,7 @@ class ViewController: UIViewController {
         metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
 
-        let controller = UIHostingController(rootView: ContentView(delegate: delegate))
+        let controller = UIHostingController(rootView: Toolbar(delegate: delegate))
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         addChild(controller)
         view.addSubview(controller.view)
@@ -288,6 +241,7 @@ class ViewController: UIViewController {
             self.uiRects = delegate.uiRects
 
             self.selectedColor = delegate.selectedColor.toColorArray()
+            self.strokeWidth = delegate.strokeWidth
         }
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
@@ -317,8 +271,6 @@ class ViewController: UIViewController {
 
         commandQueue = device.makeCommandQueue() // this is expensive to create, so we save a reference to it
 
-//        generateVerts()
-
         timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
@@ -338,7 +290,8 @@ class ViewController: UIViewController {
     }
 
     public func startPlaying() {
-        print("in startPlaying")
+        if playing { return }
+
         playing = true
 
         var timestampIterator = timestamps.makeIterator()
@@ -389,7 +342,7 @@ class ViewController: UIViewController {
 
     final func generateVerts() {
         let bezierOptions = BezierTesselationOptions(
-            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, thickness: 0.01, miterLimit: 1.0, scale: 100
+            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
         )
 
         var vertexData: [Float] = []
@@ -400,14 +353,22 @@ class ViewController: UIViewController {
 
         var openShape: Bool = false
         var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
+        var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
+
         for op in drawOperations {
             if playing, op.timestamp > playbackEndTimestamp { continue }
 
             if op.type == "PenDown" {
                 let penDownOp = op as! PenDown
                 activeColor = penDownOp.color
+                activeLineWidth = penDownOp.lineWidth
                 points.removeAll()
                 openShape = true
+            }
+            if op.type == "Line" {
+                let lineOp = op as! Line
+                points.append(lineOp.start)
+                points.append(lineOp.end)
             }
             if op.type == "QuadraticBezier" {
                 let bezierOp = op as! QuadraticBezier
@@ -418,13 +379,13 @@ class ViewController: UIViewController {
                 tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
             }
             if op.type == "PenUp" {
-                closeShape(thickness: bezierOptions.thickness, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+                closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
                 openShape = false
             }
         }
 
         if openShape {
-            closeShape(thickness: bezierOptions.thickness, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+            closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
             openShape = false
         }
 
@@ -436,10 +397,33 @@ class ViewController: UIViewController {
                                          options: .storageModeShared)
 
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
+
+//        modelViewMatrixBuffer = device.makeBuffer(
+//            bytes: [
+//                0.0, 0.0, 0.0, 0.0,
+//                0.0, 0.0, 0.0, 0.0,
+//                0.0, 0.0, 0.0, 0.0,
+//                0.0, 0.0, 0.0, 0.0,
+//            ],
+//            length: 4 * 4 * 4,
+//            options: .storageModeShared
+//        )
     }
 
-    func debugViewClick(_ rect: CGRect?, _ path: inout UIBezierPath) {
+    func addDebugPath(_ rect: CGRect?, _ path: inout UIBezierPath) {
         if rect == nil { return }
+
+//        drawOperations.append(PenDown(color: [0.0, 0.0, 0.0, 1.0], timestamp: 0))
+//        drawOperations.append(Line(start: transform(Float(rect!.origin.x), Float(rect!.origin.y)),
+//                                   end: transform(Float(rect!.origin.x + rect!.width), Float(rect!.origin.y)),
+//                                   timestamp: 0))
+//        drawOperations.append(PenUp(timestamp: 0))
+//
+//        drawOperations.append(PenDown(color: [0.0, 0.0, 0.0, 1.0], timestamp: 0))
+//        drawOperations.append(Line(start: transform(Float(rect!.origin.x + rect!.width), Float(rect!.origin.y)),
+//                                   end: transform(Float(rect!.origin.x + rect!.width), Float(rect!.origin.y + rect!.height)),
+//                                   timestamp: 0))
+//        drawOperations.append(PenUp(timestamp: 0))
 
         path.move(to: CGPoint(x: rect!.origin.x, y: rect!.origin.y))
         path.addLine(to: CGPoint(x: rect!.origin.x + rect!.width, y: rect!.origin.y))
@@ -451,11 +435,9 @@ class ViewController: UIViewController {
     final func render() {
 //        var path = UIBezierPath()
 //
-//        let colorPickerRect = uiRects["colorPicker"]
-//        debugViewClick(colorPickerRect, &path)
-//
-//        let mainRect = uiRects["main"]
-//        debugViewClick(mainRect, &path)
+//        for (_, value) in uiRects {
+//            addDebugPath(value, &path)
+//        }
 //
 //        let oldRef = debugShapeLayer
 //        debugShapeLayer.path = path.cgPath
@@ -486,6 +468,7 @@ class ViewController: UIViewController {
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
         renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
+//        renderCommandEncoder.setVertexBuffer(modelViewMatrixBuffer, offset: 0, index: 2)
 
         var currentVertexPosition = 0
         for (index, start) in shapeIndex.enumerated() {
@@ -515,8 +498,8 @@ class ViewController: UIViewController {
         let x = touch.location(in: view).x
         let y = touch.location(in: view).y
 
-        for (key, value) in self.uiRects {
-            if (x > value.minX && x < value.maxX) && (y > value.minY && y < value.maxY) {
+        for (key, value) in uiRects {
+            if x > value.minX, x < value.maxX, y > value.minY, y < value.maxY {
                 print("found hit in \(key)")
                 return true
             }
@@ -532,14 +515,14 @@ class ViewController: UIViewController {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
 
-        if touch.location(in: view).y < 70 { return }
-
         setTouchPoints(for: touch, view: view)
         firstPoint = touch.location(in: view)
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        drawOperations.append(PenDown(color: selectedColor, timestamp: timestamp)) // veryRandomColor()))
+        drawOperations.append(PenDown(color: selectedColor,
+                                      lineWidth: strokeWidth,
+                                      timestamp: timestamp))
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {

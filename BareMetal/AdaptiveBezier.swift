@@ -14,15 +14,13 @@ struct BezierTesselationOptions {
     var curveAngleToleranceEpsilon: Float
     var mAngleTolerance: Float
     var mCuspLimit: Float
-    var thickness: Float
     var miterLimit: Float
     var scale: Float
 
-    init(curveAngleToleranceEpsilon: Float = 0.01, mAngleTolerance: Float = 0.01, mCuspLimit: Float = 0.0, thickness: Float = 0.025, miterLimit: Float = -1.0, scale: Float = 150) {
+    init(curveAngleToleranceEpsilon: Float = 0.01, mAngleTolerance: Float = 0.01, mCuspLimit: Float = 0.0, miterLimit: Float = -1.0, scale: Float = 150) {
         self.curveAngleToleranceEpsilon = curveAngleToleranceEpsilon
         self.mAngleTolerance = mAngleTolerance
         self.mCuspLimit = mCuspLimit
-        self.thickness = thickness
         self.miterLimit = miterLimit
         self.scale = scale
     }
