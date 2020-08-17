@@ -61,12 +61,14 @@ struct QuadraticBezier: DrawOperation {
 
 struct Pan: DrawOperation {
     var type: String
-    var offset: [Float]
+    var start: [Float]
+    var end: [Float]
     var timestamp: Int64
 
-    init(offset: [Float], timestamp: Int64) {
+    init(start: [Float], end: [Float], timestamp: Int64) {
         type = "Pan"
-        self.offset = offset
+        self.start = start
+        self.end = end
         self.timestamp = timestamp
     }
 }

@@ -35,6 +35,12 @@ struct ToolbarItems: View {
             Button("Undo") {}
             Button("Redo") {}
 
+            self.delegate.mode == "pan" ? Button("Draw") {
+                self.delegate.mode = "draw"
+            } : Button("Pan") {
+                self.delegate.mode = "pan"
+            }
+
             self.delegate.recording ? Button("Stop Recording") {
                 self.delegate.recording = false
             } : Button("Record") {

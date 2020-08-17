@@ -36,6 +36,33 @@ public extension Float {
     }
 }
 
+struct Matrix4x4 {
+    var X: SIMD4<Float>
+    var Y: SIMD4<Float>
+    var Z: SIMD4<Float>
+    var W: SIMD4<Float>
+
+    init() {
+        X = SIMD4<Float>(x: 1, y: 0, z: 0, w: 0)
+        Y = SIMD4<Float>(x: 0, y: 1, z: 0, w: 0)
+        Z = SIMD4<Float>(x: 0, y: 0, z: 1, w: 0)
+        W = SIMD4<Float>(x: 0, y: 0, z: 0, w: 1)
+    }
+
+    static func translate(x: Float, y: Float) -> Matrix4x4 {
+        var mat: Matrix4x4 = Matrix4x4()
+
+        mat.W.x = x
+        mat.W.y = y
+
+        return mat
+    }
+}
+
+struct Uniforms {
+    let modelViewMatrix: Matrix4x4
+}
+
 class ContentViewDelegate: ObservableObject {
     var didChange = PassthroughSubject<ContentViewDelegate, Never>()
     var objectWillChange = PassthroughSubject<ContentViewDelegate, Never>()
@@ -92,6 +119,16 @@ class ContentViewDelegate: ObservableObject {
         }
     }
 
+    var mode: String = "draw" {
+        didSet {
+            didChange.send(self)
+        }
+
+        willSet {
+            objectWillChange.send(self)
+        }
+    }
+
     var uiRects: [String: CGRect] = [:] {
         didSet {
             didChange.send(self)
@@ -108,7 +145,7 @@ class ViewController: UIViewController {
     var metalLayer: CAMetalLayer
     var vertexBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
-    var modelViewMatrixBuffer: MTLBuffer!
+    var uniformBuffer: MTLBuffer!
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
     var vertexColorBuffer: MTLBuffer!
@@ -122,6 +159,7 @@ class ViewController: UIViewController {
     var strokeWidth: Float = DEFAULT_STROKE_THICKNESS
     var playing: Bool = false
     var recording: Bool = false
+    var mode: String = "draw"
     let debugShapeLayer = CAShapeLayer()
 
     private var delegate = ContentViewDelegate()
@@ -156,6 +194,7 @@ class ViewController: UIViewController {
     private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
+    private var translation: [Float] = [0.0, 0.0]
 
     private var drawOperations: [DrawOperation]
 
@@ -169,7 +208,7 @@ class ViewController: UIViewController {
 //        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
         drawOperations = [
-//            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: firstTimestamp),
+            //                        PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: firstTimestamp),
 //            Line(start: [-0.68938684, -1], end: [-0.68938684, 0.14252508], timestamp: 0),
 //            QuadraticBezier(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: firstTimestamp + 1 * speedScale),
 //            QuadraticBezier(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: firstTimestamp + 2 * speedScale),
@@ -238,6 +277,7 @@ class ViewController: UIViewController {
                 self.stopRecording()
             }
 
+            self.mode = delegate.mode
             self.uiRects = delegate.uiRects
 
             self.selectedColor = delegate.selectedColor.toColorArray()
@@ -355,8 +395,20 @@ class ViewController: UIViewController {
         var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
         var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
 
+        var translation: [Float] = [0.0, 0.0]
+
         for op in drawOperations {
             if playing, op.timestamp > playbackEndTimestamp { continue }
+
+            if op.type == "Pan" {
+                let panOp = op as! Pan
+
+                let deltaX = panOp.end[0] - panOp.start[0]
+                let deltaY = panOp.end[1] - panOp.start[1]
+
+                translation[0] += deltaX
+                translation[1] += deltaY
+            }
 
             if op.type == "PenDown" {
                 let penDownOp = op as! PenDown
@@ -398,16 +450,16 @@ class ViewController: UIViewController {
 
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
 
-//        modelViewMatrixBuffer = device.makeBuffer(
-//            bytes: [
-//                0.0, 0.0, 0.0, 0.0,
-//                0.0, 0.0, 0.0, 0.0,
-//                0.0, 0.0, 0.0, 0.0,
-//                0.0, 0.0, 0.0, 0.0,
-//            ],
-//            length: 4 * 4 * 4,
-//            options: .storageModeShared
-//        )
+        let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: translation[0], y: translation[1])
+        let uniform = Uniforms(modelViewMatrix: modelViewMatrix)
+        let uniforms = [uniform]
+        uniformBuffer = device.makeBuffer(
+            length: MemoryLayout<Uniforms>.size,
+            options: []
+        )
+        memcpy(uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
+
+        self.translation = translation
     }
 
     func addDebugPath(_ rect: CGRect?, _ path: inout UIBezierPath) {
@@ -468,7 +520,7 @@ class ViewController: UIViewController {
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
         renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
-//        renderCommandEncoder.setVertexBuffer(modelViewMatrixBuffer, offset: 0, index: 2)
+        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
         var currentVertexPosition = 0
         for (index, start) in shapeIndex.enumerated() {
@@ -500,7 +552,7 @@ class ViewController: UIViewController {
 
         for (key, value) in uiRects {
             if x > value.minX, x < value.maxX, y > value.minY, y < value.maxY {
-                print("found hit in \(key)")
+//                print("found hit in \(key)")
                 return true
             }
         }
@@ -534,22 +586,45 @@ class ViewController: UIViewController {
         }
 
         updateTouchPoints(for: touch, in: view)
+        let timestamp = getCurrentTimestamp()
+        timestamps.append(timestamp)
 
-        if shouldDrawStraight {
-        } else {
+//        if shouldDrawStraight {
+//        } else {
+
+        if mode == "draw" {
             let midPoints = getMidPoints()
-            let start = transform(Float(midPoints.0.x), Float(midPoints.0.y))
-            let control = transform(Float(previousPoint.x), Float(previousPoint.y))
-            let end = transform(Float(midPoints.1.x), Float(midPoints.1.y))
+            var start = transform(Float(midPoints.0.x), Float(midPoints.0.y))
+            var control = transform(Float(previousPoint.x), Float(previousPoint.y))
+            var end = transform(Float(midPoints.1.x), Float(midPoints.1.y))
+
+//            print("before translation:", start, control, end)
+//            print("translation:", translation)
+
+            start[0] -= translation[0]
+            start[1] -= translation[1]
+
+            control[0] -= translation[0]
+            control[1] -= translation[1]
+
+            end[0] -= translation[0]
+            end[1] -= translation[1]
+
+//            print("after translation:", start, control, end)
 
             if start[0] == control[0], start[1] == control[1] {
                 return
             }
 
-            let timestamp = getCurrentTimestamp()
-            timestamps.append(timestamp)
             let params = QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp)
             drawOperations.append(params)
+        } else if mode == "pan" {
+            let midPoints = getMidPoints()
+            let start = transform(Float(midPoints.0.x), Float(midPoints.0.y))
+            let end = transform(Float(midPoints.1.x), Float(midPoints.1.y))
+            drawOperations.append(Pan(start: start, end: end, timestamp: timestamp))
+        } else {
+            print("invalid mode: \(mode)")
         }
     }
 

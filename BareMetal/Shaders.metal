@@ -14,14 +14,14 @@ struct VertexOut {
     float4 color;
 };
 
-//struct Uniforms {
-//    float4x4 modelViewMatrix;
-//};
+struct Uniforms {
+    float4x4 modelViewMatrix;
+};
 
 vertex VertexOut basic_vertex(
     constant packed_float3* vertex_array[[buffer(0)]],
     constant float4 *allParams[[buffer(1)]],
-//    constant Uniforms &uniforms[[buffer(2)]],
+    constant Uniforms &uniforms[[buffer(2)]],
     unsigned int vid[[vertex_id]],
     const uint instanceId [[instance_id]]
 ) {
@@ -29,8 +29,7 @@ vertex VertexOut basic_vertex(
 
     const float4 color = allParams[instanceId];
     const float3 vert = vertex_array[vid];
-//    vo.position = uniforms.modelViewMatrix * float4(vert, 1.0);
-    vo.position = float4(vert, 1.0);
+    vo.position = uniforms.modelViewMatrix * float4(vert.x, vert.y, vert.z, 1);
     vo.color = color;
     
     return vo;
