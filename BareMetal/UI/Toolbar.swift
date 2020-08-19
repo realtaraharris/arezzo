@@ -15,8 +15,8 @@ struct VerticalSlider: View {
     var body: some View {
         Slider(
             value: $value,
-            in: 0.005 ... 0.1,
-            step: 0.001
+            in: 1.0 ... 10.0,
+            step: 0.5
         )
         .frame(width: sliderHeight, height: 30)
         .rotationEffect(.degrees(-90.0), anchor: .center)

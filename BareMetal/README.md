@@ -30,6 +30,10 @@ TODO:
 - [ ] quadtree structure to store beziers
 - [ ] pan feature
 - [ ] zoom feature
+- [ ] identify hook on pen missing, use it to push a `PenUp`
+
+- [ ] allow viewer to pan away from where the playback panning position is, without stopping playback (Erin asked for this one) 
+- [ ] allow user to change background color, consider eliminating lightest and darkest colors from palette
 
 app util idea: color picker that stores colors into CSV for you!
 - you click once, it stores the color, dumps a CSV into the clipboard when you ask it to

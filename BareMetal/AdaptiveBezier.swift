@@ -17,99 +17,13 @@ struct BezierTesselationOptions {
     var miterLimit: Float
     var scale: Float
 
-    init(curveAngleToleranceEpsilon: Float = 0.01, mAngleTolerance: Float = 0.01, mCuspLimit: Float = 0.0, miterLimit: Float = -1.0, scale: Float = 150) {
+    init(curveAngleToleranceEpsilon: Float = 0.01, mAngleTolerance: Float = 0.01, mCuspLimit: Float = 0.0, miterLimit: Float = -1.0, scale: Float = 0.15) {
         self.curveAngleToleranceEpsilon = curveAngleToleranceEpsilon
         self.mAngleTolerance = mAngleTolerance
         self.mCuspLimit = mCuspLimit
         self.miterLimit = miterLimit
         self.scale = scale
     }
-}
-
-/// quadraticBezier
-func recursiveQuadraticBezier(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float, level: Int, points: inout [[Float]]) {
-    // TODO: move into a settings object
-    let curveCollinearityEpsilon: Float = 1e-30
-    let curveAngleToleranceEpsilon: Float = 0.01
-    let curveRecursionLimit = 32
-    let mApproximationScale: Float = 100.0
-    let mAngleTolerance: Float = 0.0
-    var mDistanceToleranceSquare: Float = 0.5
-    //    var curveDistanceEpsilon: Float = 1e-30
-    mDistanceToleranceSquare = 0.5 / mApproximationScale
-    mDistanceToleranceSquare *= mDistanceToleranceSquare
-
-    if level > curveRecursionLimit {
-        return
-    }
-
-    // calculate all the mid-points of the line segments
-    let x12 = (x1 + x2) / 2
-    let y12 = (y1 + y2) / 2
-    let x23 = (x2 + x3) / 2
-    let y23 = (y2 + y3) / 2
-    let x123 = (x12 + x23) / 2
-    let y123 = (y12 + y23) / 2
-
-    let dx = x3 - x1
-    let dy = y3 - y1
-    var d = abs((x2 - x3) * dy - (y2 - y3) * dx)
-
-    if d > curveCollinearityEpsilon {
-        // regular case
-        if d * d <= mDistanceToleranceSquare * (dx * dx + dy * dy) {
-            var da: Float
-
-            // if the curvature doesn't exceed the distance_tolerance value we tend to finish subdivisions
-            if mAngleTolerance < curveAngleToleranceEpsilon {
-                points.append([x123, y123])
-                return
-            }
-
-            // angle & cusp condition
-            da = abs(atan2(y3 - y2, x3 - x2) - atan2(y2 - y1, x2 - x1))
-            if da >= Float.pi { da = 2 * Float.pi - da }
-
-            if da < mAngleTolerance {
-                // finally we can stop the recursion
-                points.append([x123, y123])
-                return
-            }
-        }
-    } else {
-        var da: Float
-
-        // collinear case
-        da = dx * dx + dy * dy
-        if da == 0 {
-            d = calculateSquareDistance(x1: x1, y1: y1, x2: x2, y2: y2)
-        } else {
-            d = ((x2 - x1) * dx + (y2 - y1) * dy) / da
-            if d > 0, d < 1 {
-                // simple collinear case: 1---2---3
-                // we can leave just two endpoints
-                return
-            }
-            if d <= 0 { d = calculateSquareDistance(x1: x2, y1: y2, x2: x1, y2: y1) }
-            else if d >= 1 { d = calculateSquareDistance(x1: x2, y1: y2, x2: x3, y2: y3) }
-            else { d = calculateSquareDistance(x1: x2, y1: y2, x2: x1 + d * dx, y2: y1 + d * dy) }
-        }
-        if d < mDistanceToleranceSquare {
-            points.append([x2, y2])
-            return
-        }
-    }
-
-    // continue subdivision
-    recursiveQuadraticBezier(x1: x1, y1: y1, x2: x12, y2: y12, x3: x123, y3: y123, level: level + 1, points: &points)
-    recursiveQuadraticBezier(x1: x123, y1: y123, x2: x23, y2: y23, x3: x3, y3: y3, level: level + 1, points: &points)
-}
-
-func tesselateQuadraticBezier(start: [Float], control: [Float], end: [Float], points: inout [[Float]], options _: BezierTesselationOptions) {
-    // TODO: dig further in here to solve at least one more path drawing bug
-    // points.append([start[0], start[1]])
-    recursiveQuadraticBezier(x1: start[0], y1: start[1], x2: control[0], y2: control[1], x3: end[0], y3: end[1], level: 0, points: &points)
-    points.append([end[0], end[1]])
 }
 
 /// cubicBezier
@@ -119,6 +33,7 @@ func tesselateCubicBezier(
     let PATH_DISTANCE_EPSILON: Float = 1.0
     var distanceTolerance = PATH_DISTANCE_EPSILON / options.scale
     distanceTolerance *= distanceTolerance
+    print("distanceTolerance: \(distanceTolerance)")
 
     // TODO: dig further in here to solve at least one more path drawing bug
     // points.append(start)
@@ -275,7 +190,10 @@ func calculateSquareDistance(x1: Float, y1: Float, x2: Float, y2: Float) -> Floa
 func dumpTriangleStrip(thickness: Float, miterLimit: Float, points: [[Float]]) -> [Float] {
     var output: [Float] = []
 
-    if points.count < 2 { return [] }
+    if points.count < 2 {
+//        print("no points!")
+        return []
+    }
 
     if points.count == 2 {
         let _p0 = points[0] // start of previous segment
@@ -364,11 +282,6 @@ func toTriangleStripTwoPoints(thickness: Float, miterLimit _: Float, p0: simd_fl
 }
 
 func toTriangleStripThreePoints(thickness: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, output: inout [Float]) {
-    // perform naive culling
-//    let area = simd_float2(1.2, 1.2)
-//    if p1.x < -area.x || p1.x > area.x { return }
-//    if p1.y < -area.y || p1.y > area.y { return }
-
     // determine the direction of each of the 3 segments (previous, current, next)
     let v0 = normalize(p1 - p0)
     let v1 = normalize(p2 - p1)
@@ -427,13 +340,6 @@ func toTriangleStripThreePoints(thickness: Float, miterLimit _: Float, p0: simd_
  :param miterLimit 1.0: always miter, -1.0: never miter, 0.75: default
  */
 func toTriangleStrip(isFirst: Bool, isLast: Bool, thickness: Float, miterLimit: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, p3: simd_float2, output: inout [Float]) {
-    // perform naive culling
-    let area = simd_float2(1.2, 1.2)
-    if p1.x < -area.x || p1.x > area.x { return }
-    if p1.y < -area.y || p1.y > area.y { return }
-    if p2.x < -area.x || p2.x > area.x { return }
-    if p2.y < -area.y || p2.y > area.y { return }
-
     // determine the direction of each of the 3 segments (previous, current, next)
     let v0 = normalize(p1 - p0)
     let v1 = normalize(p2 - p1)

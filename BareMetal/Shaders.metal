@@ -15,6 +15,8 @@ struct VertexOut {
 };
 
 struct Uniforms {
+    float width;
+    float height;
     float4x4 modelViewMatrix;
 };
 
@@ -29,7 +31,14 @@ vertex VertexOut basic_vertex(
 
     const float4 color = allParams[instanceId];
     const float3 vert = vertex_array[vid];
-    vo.position = uniforms.modelViewMatrix * float4(vert.x, vert.y, vert.z, 1);
+    const float4 clipPosition(
+        (2.0f * vert.x / uniforms.width) - 2.0,
+        (-2.0f * vert.y / uniforms.height) + 2.0f,
+        0.0f,
+        1.0f
+    );
+
+    vo.position = uniforms.modelViewMatrix * clipPosition;
     vo.color = color;
     
     return vo;
