@@ -1,5 +1,5 @@
 //
-//  Extensions.swift
+//  AudioExtensions.swift
 //  Arezzo
 //
 //  Created by Max Harris on 6/5/20.

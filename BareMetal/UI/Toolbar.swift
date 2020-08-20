@@ -55,7 +55,7 @@ struct ToolbarItems: View {
             VerticalSlider(value: $delegate.strokeWidth, sliderHeight: 80)
 
             ColorPickerPopover(selectedColor: $delegate.selectedColor, uiRects: $delegate.uiRects)
-            // SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
+            SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
         }
     }
 }

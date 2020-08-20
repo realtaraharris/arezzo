@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  AudioRecorder.swift
 //  Arezzo
 //
 //  Created by Max Harris on 6/4/20.
@@ -104,7 +104,10 @@ struct SoundControl: View {
             VStack {
                 RecordingsList(audioRecorder: audioRecorder)
                 if audioRecorder.recording == false {
-                    Button(action: { print(self.audioRecorder.startRecording()) }) {
+                    Button(action: {
+                        print("STARTED RECORDING")
+                        print(self.audioRecorder.startRecording())
+                    }) {
                         Image(systemName: "circle.fill")
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -114,7 +117,10 @@ struct SoundControl: View {
                             .padding(.bottom, 40)
                     }
                 } else {
-                    Button(action: { self.audioRecorder.stopRecording() }) {
+                    Button(action: {
+                        print("STOPPED RECORDING")
+                        self.audioRecorder.stopRecording()
+                    }) {
                         Image(systemName: "stop.fill")
                             .resizable()
                             .aspectRatio(contentMode: .fill)

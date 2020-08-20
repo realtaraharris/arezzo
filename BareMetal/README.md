@@ -19,6 +19,10 @@ TODO:
 - [x] stroke width UI
 - [x] add more colors to color picker
 - [x] playback
+- [x] pan feature
+
+- [ ] audio recording
+- [ ] audio playback
 
 - [ ] handle screen rotation correctly
 - [ ] undo feature
@@ -28,7 +32,6 @@ TODO:
 
 - [ ] round line caps
 - [ ] quadtree structure to store beziers
-- [ ] pan feature
 - [ ] zoom feature
 - [ ] identify hook on pen missing, use it to push a `PenUp`
 

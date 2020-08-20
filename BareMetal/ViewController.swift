@@ -15,133 +15,6 @@ import UIKit
 
 let DEFAULT_STROKE_THICKNESS: Float = 5
 
-func getCurrentTimestamp() -> Int64 {
-    Date().toMilliseconds()
-}
-
-extension Date {
-    func toMilliseconds() -> Int64 {
-        Int64(timeIntervalSince1970 * 1000)
-    }
-}
-
-func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
-                                    Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
-
-public extension Float {
-    static func r(n: Float, tol: Float) -> Float {
-        let low = n - tol
-        let high = n + tol
-        return tol == 0 || low > high ? n : Float.random(in: low ..< high)
-    }
-}
-
-struct Matrix4x4 {
-    var X: SIMD4<Float>
-    var Y: SIMD4<Float>
-    var Z: SIMD4<Float>
-    var W: SIMD4<Float>
-
-    init() {
-        X = SIMD4<Float>(x: 1, y: 0, z: 0, w: 0)
-        Y = SIMD4<Float>(x: 0, y: 1, z: 0, w: 0)
-        Z = SIMD4<Float>(x: 0, y: 0, z: 1, w: 0)
-        W = SIMD4<Float>(x: 0, y: 0, z: 0, w: 1)
-    }
-
-    static func translate(x: Float, y: Float) -> Matrix4x4 {
-        var mat: Matrix4x4 = Matrix4x4()
-
-        mat.W.x = x
-        mat.W.y = y
-
-        return mat
-    }
-}
-
-struct Uniforms {
-    let width: Float
-    let height: Float
-    let modelViewMatrix: Matrix4x4
-}
-
-class ContentViewDelegate: ObservableObject {
-    var didChange = PassthroughSubject<ContentViewDelegate, Never>()
-    var objectWillChange = PassthroughSubject<ContentViewDelegate, Never>()
-
-    var playing: Bool = false {
-        didSet {
-            didChange.send(self)
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-
-    var recording: Bool = false {
-        didSet {
-            didChange.send(self)
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-
-    // TODO: this is gross. is there nicer a way to call functions?
-    var clear: Bool = false {
-        didSet {
-            didChange.send(self)
-            clear = false
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-
-    var selectedColor: Color = Color(red: 1.0, green: 0.0, blue: 0.0, opacity: 1.0) {
-        didSet {
-            didChange.send(self)
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-
-    var strokeWidth: Float = DEFAULT_STROKE_THICKNESS {
-        didSet {
-            didChange.send(self)
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-
-    var mode: String = "draw" {
-        didSet {
-            didChange.send(self)
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-
-    var uiRects: [String: CGRect] = [:] {
-        didSet {
-            didChange.send(self)
-        }
-
-        willSet {
-            objectWillChange.send(self)
-        }
-    }
-}
-
 class ViewController: UIViewController {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
@@ -210,7 +83,7 @@ class ViewController: UIViewController {
 //        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
         drawOperations = [
-            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
+//            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
 //            Line(start: [200, 10], end: [300, 300], timestamp: 0),
 //            Line(start: [20, 200], end: [600, 90], timestamp: 0),
 //            QuadraticBezier(start: [0, 200], end: [1200, 200], control: [600, 0], timestamp: 0),
@@ -223,7 +96,7 @@ class ViewController: UIViewController {
 //            QuadraticBezier(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: firstTimestamp + 4 * speedScale),
 //            QuadraticBezier(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: firstTimestamp + 5 * speedScale),
 //            QuadraticBezier(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
-            PenUp(timestamp: 0),
+//            PenUp(timestamp: 0),
 //            PenDown(color: [1.0, 0.0, 0.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 1_595_985_214_351),
 //            CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
 //            PenUp(timestamp: 1_595_985_214_395),
@@ -494,23 +367,23 @@ class ViewController: UIViewController {
     }
 
     final func render() {
-//        var path = UIBezierPath()
-//
-//        for (_, value) in uiRects {
-//            addDebugPath(value, &path)
-//        }
-//
-//        let oldRef = debugShapeLayer
-//        debugShapeLayer.path = path.cgPath
-//        debugShapeLayer.strokeColor = UIColor.blue.cgColor
-//        debugShapeLayer.fillColor = UIColor.clear.cgColor
-//        debugShapeLayer.lineWidth = 3
-//
-//        // don't add a sublayer unless we don't have one
-//        if view.layer.sublayers!.count == 2 {
-//            view.layer.addSublayer(debugShapeLayer)
-//        }
-//        view.layer.replaceSublayer(oldRef, with: debugShapeLayer)
+        var path = UIBezierPath()
+
+        for (_, value) in uiRects {
+            addDebugPath(value, &path)
+        }
+
+        let oldRef = debugShapeLayer
+        debugShapeLayer.path = path.cgPath
+        debugShapeLayer.strokeColor = UIColor.blue.cgColor
+        debugShapeLayer.fillColor = UIColor.clear.cgColor
+        debugShapeLayer.lineWidth = 3
+
+        // don't add a sublayer unless we don't have one
+        if view.layer.sublayers!.count == 2 {
+            view.layer.addSublayer(debugShapeLayer)
+        }
+        view.layer.replaceSublayer(oldRef, with: debugShapeLayer)
 
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 

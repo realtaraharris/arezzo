@@ -9,14 +9,14 @@
 /* Begin PBXBuildFile section */
 		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
 		5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F76F24D40F06004E7247 /* AudioPlayer.swift */; };
-		5059F77524D40F06004E7247 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77024D40F06004E7247 /* Helpers.swift */; };
-		5059F77624D40F06004E7247 /* AudioExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77124D40F06004E7247 /* AudioExtensions.swift */; };
 		5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77224D40F06004E7247 /* RecordingDataModel.swift */; };
 		5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77324D40F06004E7247 /* AudioRecorder.swift */; };
 		5060DB9324C273FE00940927 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9224C273FE00940927 /* AppDelegate.swift */; };
 		5060DB9524C273FE00940927 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9424C273FE00940927 /* ViewController.swift */; };
 		5060DB9724C2740000940927 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9624C2740000940927 /* Assets.xcassets */; };
 		5060DB9A24C2740000940927 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9824C2740000940927 /* Main.storyboard */; };
+		5076C46724EDEB5C00BE021B /* AudioExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5076C46624EDEB5C00BE021B /* AudioExtensions.swift */; };
+		5076C46924EDEB7000BE021B /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5076C46824EDEB7000BE021B /* Helpers.swift */; };
 		5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5077578B24D8D7E0000C3D42 /* OrderedSet.swift */; };
 		5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5095390D24C6224B00A861CB /* AdaptiveBezier.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
@@ -27,6 +27,8 @@
 		50C2A70A24A67F8A000F3B93 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50C2A70824A67F8A000F3B93 /* LaunchScreen.storyboard */; };
 		50C2A71224A68667000F3B93 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A71124A68667000F3B93 /* Shaders.metal */; };
 		50C4F4E824EB8321009F0E01 /* QuadraticBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4F4E724EB8321009F0E01 /* QuadraticBezier.swift */; };
+		50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */; };
+		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
 		50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 		50FF3A6D24E621E100D985FD /* GeometryGetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6C24E621E100D985FD /* GeometryGetter.swift */; };
 		50FF3A6F24E6221E00D985FD /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6E24E6221E00D985FD /* Toolbar.swift */; };
@@ -39,8 +41,6 @@
 		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
 		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		5059F76F24D40F06004E7247 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
-		5059F77024D40F06004E7247 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
-		5059F77124D40F06004E7247 /* AudioExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioExtensions.swift; sourceTree = "<group>"; };
 		5059F77224D40F06004E7247 /* RecordingDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingDataModel.swift; sourceTree = "<group>"; };
 		5059F77324D40F06004E7247 /* AudioRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		5060DB9024C273FE00940927 /* BareMetal.app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -51,6 +51,8 @@
 		5060DB9B24C2740000940927 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5060DB9C24C2740000940927 /* BareMetal_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal_app.entitlements; sourceTree = "<group>"; };
 		5060DBA024C2742600940927 /* BareMetal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal.entitlements; sourceTree = "<group>"; };
+		5076C46624EDEB5C00BE021B /* AudioExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioExtensions.swift; sourceTree = "<group>"; };
+		5076C46824EDEB7000BE021B /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		5077578B24D8D7E0000C3D42 /* OrderedSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedSet.swift; sourceTree = "<group>"; };
 		5095390D24C6224B00A861CB /* AdaptiveBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveBezier.swift; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* BareMetal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +65,8 @@
 		50C2A70B24A67F8A000F3B93 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50C2A71124A68667000F3B93 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		50C4F4E724EB8321009F0E01 /* QuadraticBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadraticBezier.swift; sourceTree = "<group>"; };
+		50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewDelegate.swift; sourceTree = "<group>"; };
+		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
 		50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperation.swift; sourceTree = "<group>"; };
 		50FF3A6C24E621E100D985FD /* GeometryGetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryGetter.swift; sourceTree = "<group>"; };
 		50FF3A6E24E6221E00D985FD /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
@@ -103,8 +107,8 @@
 			isa = PBXGroup;
 			children = (
 				5059F76F24D40F06004E7247 /* AudioPlayer.swift */,
-				5059F77024D40F06004E7247 /* Helpers.swift */,
-				5059F77124D40F06004E7247 /* AudioExtensions.swift */,
+				5076C46824EDEB7000BE021B /* Helpers.swift */,
+				5076C46624EDEB5C00BE021B /* AudioExtensions.swift */,
 				5059F77224D40F06004E7247 /* RecordingDataModel.swift */,
 				5059F77324D40F06004E7247 /* AudioRecorder.swift */,
 			);
@@ -152,6 +156,8 @@
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
 				50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */,
 				50C2A70124A67F87000F3B93 /* ViewController.swift */,
+				50CCCB9B24EE245E0085F134 /* Utillities.swift */,
+				50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */,
 				5077578B24D8D7E0000C3D42 /* OrderedSet.swift */,
 				50C2A70B24A67F8A000F3B93 /* Info.plist */,
 				50C2A71124A68667000F3B93 /* Shaders.metal */,
@@ -288,21 +294,23 @@
 			files = (
 				50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */,
 				5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */,
-				5059F77624D40F06004E7247 /* AudioExtensions.swift in Sources */,
 				501E676D24D730D10032C7BD /* LargePalette.swift in Sources */,
+				5076C46924EDEB7000BE021B /* Helpers.swift in Sources */,
 				50C2A71224A68667000F3B93 /* Shaders.metal in Sources */,
 				50FF3A7324E622E000D985FD /* ColorPickerPopover.swift in Sources */,
 				50C4F4E824EB8321009F0E01 /* QuadraticBezier.swift in Sources */,
 				50FF3A7524E6231500D985FD /* UIExtensions.swift in Sources */,
 				5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */,
 				50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */,
-				5059F77524D40F06004E7247 /* Helpers.swift in Sources */,
+				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,
+				5076C46724EDEB5C00BE021B /* AudioExtensions.swift in Sources */,
 				50FF3A6F24E6221E00D985FD /* Toolbar.swift in Sources */,
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
 				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
 				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
 				50FF3A7124E6227F00D985FD /* ColorSwatch.swift in Sources */,
+				50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */,
 				5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */,
 				50FF3A6D24E621E100D985FD /* GeometryGetter.swift in Sources */,
 			);
