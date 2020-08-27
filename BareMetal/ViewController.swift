@@ -38,6 +38,8 @@ class ViewController: UIViewController {
     let debugShapeLayer = CAShapeLayer()
 
     private var delegate = ContentViewDelegate()
+    private var audioRec = AudioRecorder()
+    private var audioPla = AudioPlayer()
     private var textChangePublisher: AnyCancellable?
 
     public var isDrawingEnabled = true
@@ -70,7 +72,6 @@ class ViewController: UIViewController {
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: [Float] = [0.0, 0.0]
-
     private var drawOperations: [DrawOperation]
 
     // For pencil interactions
@@ -83,7 +84,7 @@ class ViewController: UIViewController {
 //        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
         drawOperations = [
-//            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
+            //            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
 //            Line(start: [200, 10], end: [300, 300], timestamp: 0),
 //            Line(start: [20, 200], end: [600, 90], timestamp: 0),
 //            QuadraticBezier(start: [0, 200], end: [1200, 200], control: [600, 0], timestamp: 0),
@@ -122,7 +123,7 @@ class ViewController: UIViewController {
         metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
 
-        let controller = UIHostingController(rootView: Toolbar(delegate: delegate))
+        let controller = UIHostingController(rootView: Toolbar(delegate: delegate, audioRec: audioRec, audioPla: audioPla))
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         addChild(controller)
         view.addSubview(controller.view)
@@ -135,34 +136,52 @@ class ViewController: UIViewController {
         controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
+        var previousDelegate: ContentViewDelegate = ContentViewDelegate()
+
         textChangePublisher = delegate.didChange.sink { delegate in
-            // TODO: this is gross. is there nicer a way to call functions?
-            if delegate.clear {
-                self.drawOperations.removeAll(keepingCapacity: false)
-                self.timestamps.removeAll(keepingCapacity: false)
+//            print("new value: \(delegate.recording); old value: \(previousDelegate.recording)")
+            if delegate.clear != previousDelegate.clear {
+                if delegate.clear {
+                    self.drawOperations.removeAll(keepingCapacity: false)
+                    self.timestamps.removeAll(keepingCapacity: false)
+                }
             }
 
-            if delegate.playing {
-                self.startPlaying()
+            if delegate.playing != previousDelegate.playing {
+                if delegate.playing {
+                    self.startPlaying()
+                } else {
+                    self.stopPlaying()
+                }
             }
 
-            if !delegate.playing {
-                self.stopPlaying()
+            if delegate.recording != previousDelegate.recording {
+                if delegate.recording {
+                    print("startRecording()")
+                    self.startRecording()
+                } else {
+                    print("stopRecording()")
+                    self.stopRecording()
+                }
             }
 
-            if delegate.recording {
-                self.startRecording()
+            if delegate.mode != previousDelegate.mode {
+                self.mode = delegate.mode
             }
 
-            if !delegate.recording {
-                self.stopRecording()
+            if delegate.uiRects != previousDelegate.uiRects {
+                self.uiRects = delegate.uiRects
             }
 
-            self.mode = delegate.mode
-            self.uiRects = delegate.uiRects
+            if delegate.selectedColor != previousDelegate.selectedColor {
+                self.selectedColor = delegate.selectedColor.toColorArray()
+            }
 
-            self.selectedColor = delegate.selectedColor.toColorArray()
-            self.strokeWidth = delegate.strokeWidth
+            if delegate.strokeWidth != previousDelegate.strokeWidth {
+                self.strokeWidth = delegate.strokeWidth
+            }
+
+            previousDelegate = delegate.copy()
         }
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
@@ -216,7 +235,6 @@ class ViewController: UIViewController {
         playing = true
 
         var timestampIterator = timestamps.makeIterator()
-        let baselineTime = DispatchTime.now()
         let nextTime = timestampIterator.next()
         if nextTime == nil { return }
         var previousTimestamp: Int64 = nextTime!
@@ -255,10 +273,12 @@ class ViewController: UIViewController {
 
     public func startRecording() {
         recording = true
+        timestamps.append(getCurrentTimestamp())
     }
 
     public func stopRecording() {
         recording = false
+        timestamps.append(getCurrentTimestamp())
     }
 
     final func generateVerts() {
@@ -443,7 +463,11 @@ class ViewController: UIViewController {
         return false
     }
 
+    // MARK: - input event handlers
+
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
+        if !recording { return }
+
         guard isDrawingEnabled, let touch = touches.first else { return }
         if checkTouch(touch) { return }
 
@@ -462,6 +486,8 @@ class ViewController: UIViewController {
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
+        if !recording { return }
+
         guard isDrawingEnabled, let touch = touches.first else { return }
         if checkTouch(touch) { return }
 
@@ -508,6 +534,8 @@ class ViewController: UIViewController {
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
+        if !recording { return }
+
         guard isDrawingEnabled, let touch = touches.first else { return }
         if checkTouch(touch) { return }
 
@@ -517,9 +545,13 @@ class ViewController: UIViewController {
     }
 
     override open func touchesCancelled(_ touches: Set<UITouch>, with _: UIEvent?) {
+        if !recording { return }
+
         guard isDrawingEnabled, let touch = touches.first else { return }
         if checkTouch(touch) { return }
     }
+
+    // MARK: - utility functions
 
     private func setTouchPoints(for touch: UITouch, view: UIView) {
         previousPoint = touch.previousLocation(in: view)

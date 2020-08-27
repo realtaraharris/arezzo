@@ -26,6 +26,10 @@ struct VerticalSlider: View {
 
 struct ToolbarItems: View {
     @ObservedObject var delegate: ContentViewDelegate
+    @ObservedObject var audioRec: AudioRecorder
+    @ObservedObject var audioPla: AudioPlayer
+
+    @State private var url: URL = URL(string: "https://maxharris.org/")!
 
     var body: some View {
         HStack(spacing: 10) {
@@ -43,28 +47,34 @@ struct ToolbarItems: View {
 
             self.delegate.recording ? Button("Stop Recording") {
                 self.delegate.recording = false
+                self.audioRec.stopRecording()
             } : Button("Record") {
                 self.delegate.recording = true
+                self.url = self.audioRec.startRecording()
             }
             self.delegate.playing ? Button("Stop Playing") {
                 self.delegate.playing = false
+                self.audioPla.stopPlayback()
             } : Button("Play") {
                 self.delegate.playing = true
+                self.audioPla.startPlayback(audio: self.url)
             }
 
             VerticalSlider(value: $delegate.strokeWidth, sliderHeight: 80)
-
             ColorPickerPopover(selectedColor: $delegate.selectedColor, uiRects: $delegate.uiRects)
-            SoundControl(audioRecorder: AudioRecorder()).background(Color.clear)
         }
     }
 }
 
 struct Toolbar: View {
     @ObservedObject var delegate: ContentViewDelegate
+    @ObservedObject var audioRec: AudioRecorder
+    @ObservedObject var audioPla: AudioPlayer
 
-    init(delegate: ContentViewDelegate) {
+    init(delegate: ContentViewDelegate, audioRec: AudioRecorder, audioPla: AudioPlayer) {
         self.delegate = delegate
+        self.audioRec = audioRec
+        self.audioPla = audioPla
     }
 
     @State private var currentPosition: CGSize = .zero
@@ -107,13 +117,13 @@ struct Toolbar: View {
         return AnyView(
             ZStack {
                 Rectangle()
-                    .frame(width: 420 * scale, height: 100 * scale)
+                    .frame(width: 520 * scale, height: 100 * scale)
                     .foregroundColor(Color.white)
                     .background(GeometryGetter(rects: $delegate.uiRects, key: "tool"))
                     .shadow(color: Color(red: 0.9, green: 0.9, blue: 0.9, opacity: 1.0), radius: 10)
                     .drawingGroup()
                     .gesture(circleDragGesture)
-                ToolbarItems(delegate: self.delegate)
+                ToolbarItems(delegate: self.delegate, audioRec: self.audioRec, audioPla: self.audioPla)
             }.offset(x: self.currentPosition.width, y: self.currentPosition.height)
         )
     }

@@ -29,8 +29,17 @@ class AudioRecorder: NSObject, ObservableObject {
         }
     }
 
-    func startRecording() {
+//
+
+    func startRecording() -> URL {
+        let timestamp = getCurrentTimestamp()
+        print("starting setup for recording: \(timestamp)")
+
         let recordingSession = AVAudioSession.sharedInstance()
+
+        print("recordingSession.availableCategories:", recordingSession.availableCategories)
+        print("recordingSession.availableModes:", recordingSession.availableModes)
+        print("recordingSession.availableInputs:", recordingSession.availableInputs ?? [])
 
         do {
             try recordingSession.setCategory(.playAndRecord, mode: .default)
@@ -51,12 +60,17 @@ class AudioRecorder: NSObject, ObservableObject {
 
         do {
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+
+            let timestamp2 = getCurrentTimestamp()
+            print("starting at: \(timestamp2)")
             audioRecorder.record()
 
             recording = true
         } catch {
             print("Could not start recording")
         }
+
+        return audioFilename
     }
 
     func stopRecording() {

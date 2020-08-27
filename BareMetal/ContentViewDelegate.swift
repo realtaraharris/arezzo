@@ -6,8 +6,8 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
-import Foundation
 import Combine
+import Foundation
 import SwiftUI
 
 class ContentViewDelegate: ObservableObject {
@@ -84,5 +84,34 @@ class ContentViewDelegate: ObservableObject {
         willSet {
             objectWillChange.send(self)
         }
+    }
+
+    init(
+        playing: Bool = false,
+        recording: Bool = false,
+        clear: Bool = false,
+        selectedColor: Color = Color.red,
+        strokeWidth: Float = DEFAULT_STROKE_THICKNESS,
+        mode _: String = "draw",
+        uiRect _: [String: CGRect] = [:]
+    ) {
+        self.playing = playing
+        self.recording = recording
+        self.clear = clear
+        self.selectedColor = selectedColor
+        self.strokeWidth = strokeWidth
+    }
+
+    func copy() -> ContentViewDelegate {
+        let copy = ContentViewDelegate(
+            playing: playing,
+            recording: recording,
+            clear: clear,
+            selectedColor: selectedColor,
+            strokeWidth: strokeWidth,
+            mode: mode,
+            uiRect: uiRects
+        )
+        return copy
     }
 }
