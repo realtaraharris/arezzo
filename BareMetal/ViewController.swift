@@ -36,6 +36,12 @@ class ViewController: UIViewController {
     var recording: Bool = false
     var mode: String = "draw"
     let debugShapeLayer = CAShapeLayer()
+    
+    var cluesLabel: UILabel!
+    var answersLabel: UILabel!
+    var currentAnswer: UITextField!
+    var recordButton: UIButton!
+    var letterButtons = [UIButton]()
 
     private var delegate = ContentViewDelegate()
     private var audioRec = AudioRecorder()
@@ -73,6 +79,7 @@ class ViewController: UIViewController {
     private var uiRects: [String: CGRect] = [:]
     private var translation: [Float] = [0.0, 0.0]
     private var drawOperations: [DrawOperation]
+    private var newToolbar: ToolbarEx
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -102,6 +109,8 @@ class ViewController: UIViewController {
 //            CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
 //            PenUp(timestamp: 1_595_985_214_395),
         ]
+
+        self.newToolbar = ToolbarEx()
 
         super.init(coder: aDecoder)
     }
@@ -135,7 +144,30 @@ class ViewController: UIViewController {
         controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        
 
+        view.addSubview(newToolbar.view)
+                    
+                
+        //        view = UIView()
+        //        view.backgroundColor = .white
+
+//                scoreLabel = UILabel()
+//                scoreLabel.translatesAutoresizingMaskIntoConstraints = false
+//                scoreLabel.textAlignment = .right
+//                scoreLabel.text = "Score: 0"
+//                view.addSubview(scoreLabel)
+//
+//        let recordButton = UIButton(type: .system)
+//        recordButton.translatesAutoresizingMaskIntoConstraints = false
+////        recordButton.backgroundColor = UIColor.blue
+//        recordButton.setTitle("foo", for: .normal)
+//
+//        view.addSubview(recordButton)
+
+
+        
+        
         var previousDelegate: ContentViewDelegate = ContentViewDelegate()
 
         textChangePublisher = delegate.didChange.sink { delegate in
@@ -214,6 +246,10 @@ class ViewController: UIViewController {
         timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
+    
+//    override func loadView() {
+//
+//    }
 
     final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
