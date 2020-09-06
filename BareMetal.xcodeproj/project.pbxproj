@@ -30,6 +30,7 @@
 		50C4F4E824EB8321009F0E01 /* QuadraticBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4F4E724EB8321009F0E01 /* QuadraticBezier.swift */; };
 		50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */; };
 		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
+		50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 		50FF3A6D24E621E100D985FD /* GeometryGetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6C24E621E100D985FD /* GeometryGetter.swift */; };
 		50FF3A6F24E6221E00D985FD /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6E24E6221E00D985FD /* Toolbar.swift */; };
@@ -69,6 +70,7 @@
 		50C4F4E724EB8321009F0E01 /* QuadraticBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadraticBezier.swift; sourceTree = "<group>"; };
 		50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewDelegate.swift; sourceTree = "<group>"; };
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
+		50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperationCollector.swift; sourceTree = "<group>"; };
 		50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperation.swift; sourceTree = "<group>"; };
 		50FF3A6C24E621E100D985FD /* GeometryGetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryGetter.swift; sourceTree = "<group>"; };
 		50FF3A6E24E6221E00D985FD /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
@@ -169,6 +171,7 @@
 				504EFD9124C7DED5008F9334 /* README.md */,
 				501E676C24D730D10032C7BD /* LargePalette.swift */,
 				50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */,
+				50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */,
 			);
 			path = BareMetal;
 			sourceTree = "<group>";
@@ -311,6 +314,7 @@
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
 				5047171224F0B056004B0B91 /* Helpers.swift in Sources */,
+				50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */,
 				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
 				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
 				50FF3A7124E6227F00D985FD /* ColorSwatch.swift in Sources */,

@@ -15,7 +15,7 @@ import UIKit
 
 let DEFAULT_STROKE_THICKNESS: Float = 5
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
     var vertexBuffer: MTLBuffer!
@@ -36,7 +36,7 @@ class ViewController: UIViewController {
     var recording: Bool = false
     var mode: String = "draw"
     let debugShapeLayer = CAShapeLayer()
-    
+
     var cluesLabel: UILabel!
     var answersLabel: UILabel!
     var currentAnswer: UITextField!
@@ -78,7 +78,7 @@ class ViewController: UIViewController {
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: [Float] = [0.0, 0.0]
-    private var drawOperations: [DrawOperation]
+    private var drawOperationCollector: DrawOperationCollector
     private var newToolbar: ToolbarEx
 
     // For pencil interactions
@@ -90,8 +90,9 @@ class ViewController: UIViewController {
 
 //        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
-        drawOperations = [
-            //            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
+        drawOperationCollector = DrawOperationCollector()
+//        drawOperations = [
+        //            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
 //            Line(start: [200, 10], end: [300, 300], timestamp: 0),
 //            Line(start: [20, 200], end: [600, 90], timestamp: 0),
 //            QuadraticBezier(start: [0, 200], end: [1200, 200], control: [600, 0], timestamp: 0),
@@ -108,9 +109,9 @@ class ViewController: UIViewController {
 //            PenDown(color: [1.0, 0.0, 0.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 1_595_985_214_351),
 //            CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
 //            PenUp(timestamp: 1_595_985_214_395),
-        ]
+//        ]
 
-        self.newToolbar = ToolbarEx()
+        newToolbar = ToolbarEx()
 
         super.init(coder: aDecoder)
     }
@@ -132,89 +133,70 @@ class ViewController: UIViewController {
         metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
 
-        let controller = UIHostingController(rootView: Toolbar(delegate: delegate, audioRec: audioRec, audioPla: audioPla))
-        controller.view.translatesAutoresizingMaskIntoConstraints = false
-        addChild(controller)
-        view.addSubview(controller.view)
-        controller.view.backgroundColor = UIColor.clear
-        controller.didMove(toParent: self)
-
-        controller.view.translatesAutoresizingMaskIntoConstraints = false
-        controller.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-        controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-        controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        
-
+        newToolbar.delegate = self
         view.addSubview(newToolbar.view)
-                    
-                
-        //        view = UIView()
-        //        view.backgroundColor = .white
 
-//                scoreLabel = UILabel()
-//                scoreLabel.translatesAutoresizingMaskIntoConstraints = false
-//                scoreLabel.textAlignment = .right
-//                scoreLabel.text = "Score: 0"
-//                view.addSubview(scoreLabel)
-//
-//        let recordButton = UIButton(type: .system)
-//        recordButton.translatesAutoresizingMaskIntoConstraints = false
-////        recordButton.backgroundColor = UIColor.blue
-//        recordButton.setTitle("foo", for: .normal)
-//
-//        view.addSubview(recordButton)
+        /*
+                 let controller = UIHostingController(rootView: Toolbar(delegate: delegate, audioRec: audioRec, audioPla: audioPla))
+                 controller.view.translatesAutoresizingMaskIntoConstraints = false
+                 addChild(controller)
+                 view.addSubview(controller.view)
+                 controller.view.backgroundColor = UIColor.clear
+                 controller.didMove(toParent: self)
 
+                 controller.view.translatesAutoresizingMaskIntoConstraints = false
+                 controller.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+                 controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+                 controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+                 controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-        
-        
-        var previousDelegate: ContentViewDelegate = ContentViewDelegate()
+                 var previousDelegate: ContentViewDelegate = ContentViewDelegate()
 
-        textChangePublisher = delegate.didChange.sink { delegate in
-//            print("new value: \(delegate.recording); old value: \(previousDelegate.recording)")
-            if delegate.clear != previousDelegate.clear {
-                if delegate.clear {
-                    self.drawOperations.removeAll(keepingCapacity: false)
-                    self.timestamps.removeAll(keepingCapacity: false)
-                }
-            }
+                 textChangePublisher = delegate.didChange.sink { delegate in
+                     if delegate.clear != previousDelegate.clear {
+         //                         if delegate.clear {
+         //                             self.drawOperations.removeAll(keepingCapacity: false)
+         //                             self.timestamps.removeAll(keepingCapacity: false)
+         //                         }
+                     }
 
-            if delegate.playing != previousDelegate.playing {
-                if delegate.playing {
-                    self.startPlaying()
-                } else {
-                    self.stopPlaying()
-                }
-            }
+                     if delegate.playing != previousDelegate.playing {
+                         if delegate.playing {
+                             self.startPlaying()
+                         } else {
+                             self.stopPlaying()
+                         }
+                     }
 
-            if delegate.recording != previousDelegate.recording {
-                if delegate.recording {
-                    print("startRecording()")
-                    self.startRecording()
-                } else {
-                    print("stopRecording()")
-                    self.stopRecording()
-                }
-            }
+                     if delegate.recording != previousDelegate.recording {
+                         if delegate.recording {
+                             print("startRecording()")
+                             self.startRecording()
+                         } else {
+                             print("stopRecording()")
+                             self.stopRecording()
+                         }
+                     }
 
-            if delegate.mode != previousDelegate.mode {
-                self.mode = delegate.mode
-            }
+                     if delegate.mode != previousDelegate.mode {
+                         self.mode = delegate.mode
+                     }
 
-            if delegate.uiRects != previousDelegate.uiRects {
-                self.uiRects = delegate.uiRects
-            }
+                     if delegate.uiRects != previousDelegate.uiRects {
+                         self.uiRects = delegate.uiRects
+                     }
 
-            if delegate.selectedColor != previousDelegate.selectedColor {
-                self.selectedColor = delegate.selectedColor.toColorArray()
-            }
+                     if delegate.selectedColor != previousDelegate.selectedColor {
+                         self.selectedColor = delegate.selectedColor.toColorArray()
+                     }
 
-            if delegate.strokeWidth != previousDelegate.strokeWidth {
-                self.strokeWidth = delegate.strokeWidth
-            }
+                     if delegate.strokeWidth != previousDelegate.strokeWidth {
+                         self.strokeWidth = delegate.strokeWidth
+                     }
 
-            previousDelegate = delegate.copy()
-        }
+                     previousDelegate = delegate.copy()
+                 }
+                 */
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
@@ -246,10 +228,6 @@ class ViewController: UIViewController {
         timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
-    
-//    override func loadView() {
-//
-//    }
 
     final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
@@ -308,11 +286,13 @@ class ViewController: UIViewController {
     }
 
     public func startRecording() {
+        print("start reording")
         recording = true
         timestamps.append(getCurrentTimestamp())
     }
 
     public func stopRecording() {
+        print("stop reording")
         recording = false
         timestamps.append(getCurrentTimestamp())
     }
@@ -334,7 +314,7 @@ class ViewController: UIViewController {
 
         var translation: [Float] = [0, 0]
 
-        for op in drawOperations {
+        for op in drawOperationCollector.drawOperations {
             if playing, op.timestamp > playbackEndTimestamp { continue }
 
             if op.type == "Pan" {
@@ -378,7 +358,7 @@ class ViewController: UIViewController {
             openShape = false
         }
 
-        if drawOperations.count == 0 || vertexData.count == 0 { return }
+        if drawOperationCollector.drawOperations.count == 0 || vertexData.count == 0 { return }
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
@@ -400,47 +380,7 @@ class ViewController: UIViewController {
         memcpy(uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
     }
 
-    func addDebugPath(_ rect: CGRect?, _ path: inout UIBezierPath) {
-        if rect == nil { return }
-
-//        drawOperations.append(PenDown(color: [0.0, 0.0, 0.0, 1.0], timestamp: 0))
-//        drawOperations.append(Line(start: transform(Float(rect!.origin.x), Float(rect!.origin.y)),
-//                                   end: transform(Float(rect!.origin.x + rect!.width), Float(rect!.origin.y)),
-//                                   timestamp: 0))
-//        drawOperations.append(PenUp(timestamp: 0))
-//
-//        drawOperations.append(PenDown(color: [0.0, 0.0, 0.0, 1.0], timestamp: 0))
-//        drawOperations.append(Line(start: transform(Float(rect!.origin.x + rect!.width), Float(rect!.origin.y)),
-//                                   end: transform(Float(rect!.origin.x + rect!.width), Float(rect!.origin.y + rect!.height)),
-//                                   timestamp: 0))
-//        drawOperations.append(PenUp(timestamp: 0))
-
-        path.move(to: CGPoint(x: rect!.origin.x, y: rect!.origin.y))
-        path.addLine(to: CGPoint(x: rect!.origin.x + rect!.width, y: rect!.origin.y))
-        path.addLine(to: CGPoint(x: rect!.origin.x + rect!.width, y: rect!.origin.y + rect!.height))
-        path.addLine(to: CGPoint(x: rect!.origin.x, y: rect!.origin.y + rect!.height))
-        path.close()
-    }
-
     final func render() {
-        var path = UIBezierPath()
-
-        for (_, value) in uiRects {
-            addDebugPath(value, &path)
-        }
-
-        let oldRef = debugShapeLayer
-        debugShapeLayer.path = path.cgPath
-        debugShapeLayer.strokeColor = UIColor.blue.cgColor
-        debugShapeLayer.fillColor = UIColor.clear.cgColor
-        debugShapeLayer.lineWidth = 3
-
-        // don't add a sublayer unless we don't have one
-        if view.layer.sublayers!.count == 2 {
-            view.layer.addSublayer(debugShapeLayer)
-        }
-        view.layer.replaceSublayer(oldRef, with: debugShapeLayer)
-
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -448,10 +388,7 @@ class ViewController: UIViewController {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-//        if drawOperations.count != previousDropOpCount {
         generateVerts()
-//            previousDropOpCount = drawOperations.count
-//        }
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
@@ -486,26 +423,12 @@ class ViewController: UIViewController {
         ]
     }
 
-    func checkTouch(_ touch: UITouch) -> Bool {
-        let x = touch.location(in: view).x
-        let y = touch.location(in: view).y
-
-        for (_, value) in uiRects {
-            if x > value.minX, x < value.maxX, y > value.minY, y < value.maxY {
-//                print("found hit in \(key)")
-                return true
-            }
-        }
-        return false
-    }
-
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
         if !recording { return }
 
         guard isDrawingEnabled, let touch = touches.first else { return }
-        if checkTouch(touch) { return }
 
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
@@ -516,16 +439,16 @@ class ViewController: UIViewController {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        drawOperations.append(PenDown(color: selectedColor,
-                                      lineWidth: strokeWidth,
-                                      timestamp: timestamp))
+        drawOperationCollector.beginProvisionalOps()
+        drawOperationCollector.addOp(PenDown(color: selectedColor,
+                                             lineWidth: strokeWidth,
+                                             timestamp: timestamp))
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
         if !recording { return }
 
         guard isDrawingEnabled, let touch = touches.first else { return }
-        if checkTouch(touch) { return }
 
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
@@ -558,12 +481,12 @@ class ViewController: UIViewController {
             }
 
             let params = QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp)
-            drawOperations.append(params)
+            drawOperationCollector.addOp(params)
         } else if mode == "pan" {
             let midPoints = getMidPoints()
             let start = [Float(midPoints.0.x), Float(midPoints.0.y)]
             let end = [Float(midPoints.1.x), Float(midPoints.1.y)]
-            drawOperations.append(Pan(start: start, end: end, timestamp: timestamp))
+            drawOperationCollector.addOp(Pan(start: start, end: end, timestamp: timestamp))
         } else {
             print("invalid mode: \(mode)")
         }
@@ -572,19 +495,22 @@ class ViewController: UIViewController {
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
         if !recording { return }
 
-        guard isDrawingEnabled, let touch = touches.first else { return }
-        if checkTouch(touch) { return }
+        guard isDrawingEnabled, let _ = touches.first else { return }
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        drawOperations.append(PenUp(timestamp: timestamp))
+        drawOperationCollector.addOp(PenUp(timestamp: timestamp))
+        drawOperationCollector.commitProvisionalOps()
     }
 
     override open func touchesCancelled(_ touches: Set<UITouch>, with _: UIEvent?) {
+        print("touches cancelled!")
+
+        drawOperationCollector.cancelProvisionalOps()
+
         if !recording { return }
 
-        guard isDrawingEnabled, let touch = touches.first else { return }
-        if checkTouch(touch) { return }
+        guard isDrawingEnabled, let _ = touches.first else { return }
     }
 
     // MARK: - utility functions

@@ -11,7 +11,6 @@ import SwiftUI
 struct ColorPickerPopover: View {
     @State private var showPopover: Bool = false
     @Binding var selectedColor: SwiftUI.Color
-    @Binding var uiRects: [String: CGRect]
 
     var body: some View {
         HStack {
@@ -32,10 +31,6 @@ struct ColorPickerPopover: View {
                     }
                 }
                 .padding(.init(top: 10, leading: 10, bottom: 10, trailing: 10))
-                .background(GeometryGetter(rects: self.$uiRects, key: "colorPicker"))
-                .onDisappear(perform: {
-                    self.uiRects.removeValue(forKey: "colorPicker")
-                })
             }
         }
     }

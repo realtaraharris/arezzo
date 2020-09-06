@@ -61,7 +61,7 @@ struct ToolbarItems: View {
             }
 
             VerticalSlider(value: $delegate.strokeWidth, sliderHeight: 80)
-            ColorPickerPopover(selectedColor: $delegate.selectedColor, uiRects: $delegate.uiRects)
+            ColorPickerPopover(selectedColor: $delegate.selectedColor)
         }
     }
 }
@@ -119,7 +119,6 @@ struct Toolbar: View {
                 Rectangle()
                     .frame(width: 520 * scale, height: 100 * scale)
                     .foregroundColor(Color.white)
-                    .background(GeometryGetter(rects: $delegate.uiRects, key: "tool"))
                     .shadow(color: Color(red: 0.9, green: 0.9, blue: 0.9, opacity: 1.0), radius: 10)
                     .drawingGroup()
                     .gesture(circleDragGesture)
