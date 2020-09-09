@@ -15,6 +15,13 @@ import UIKit
 
 let DEFAULT_STROKE_THICKNESS: Float = 5
 
+struct CachedFrame {
+    var vertexData: [Float]
+    var colorData: [Float]
+    var shapeIndex: [Int]
+    var translation: [Float]
+}
+
 class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
@@ -36,6 +43,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var recording: Bool = false
     var mode: String = "draw"
     let debugShapeLayer = CAShapeLayer()
+    var cachedItems: [Int64: CachedFrame] = [:]
 
     var cluesLabel: UILabel!
     var answersLabel: UILabel!
@@ -72,14 +80,19 @@ class ViewController: UIViewController, ToolbarDelegate {
     public var currentPoint: CGPoint = .zero
     private var previousPoint: CGPoint = .zero
     private var previousPreviousPoint: CGPoint = .zero
-    private var playbackStartTimestamp: Int64 = Date().toMilliseconds()
+    private var playbackStartTimestamp: Int64 = 0 // Date().toMilliseconds()
     private var playbackEndTimestamp: Int64 = Date().toMilliseconds()
     private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: [Float] = [0.0, 0.0]
     private var drawOperationCollector: DrawOperationCollector
-    private var newToolbar: ToolbarEx
+//    private var newToolbar: ToolbarEx
+    private var id: Int64 = 0
+
+    private var points: [[Float]] = []
+    private var vertexData: [Float] = []
+    private var colorData: [Float] = []
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -111,7 +124,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 //            PenUp(timestamp: 1_595_985_214_395),
 //        ]
 
-        newToolbar = ToolbarEx()
+//        newToolbar = ToolbarEx()
 
         super.init(coder: aDecoder)
     }
@@ -133,70 +146,52 @@ class ViewController: UIViewController, ToolbarDelegate {
         metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
 
-        newToolbar.delegate = self
-        view.addSubview(newToolbar.view)
+        // newToolbar.delegate = self
+        // view.addSubview(newToolbar.view)
 
-        /*
-                 let controller = UIHostingController(rootView: Toolbar(delegate: delegate, audioRec: audioRec, audioPla: audioPla))
-                 controller.view.translatesAutoresizingMaskIntoConstraints = false
-                 addChild(controller)
-                 view.addSubview(controller.view)
-                 controller.view.backgroundColor = UIColor.clear
-                 controller.didMove(toParent: self)
+        let controller = UIHostingController(rootView: Toolbar(delegate: delegate, audioRec: audioRec, audioPla: audioPla))
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        addChild(controller)
+        view.addSubview(controller.view)
+        controller.view.backgroundColor = UIColor.clear
+        controller.didMove(toParent: self)
 
-                 controller.view.translatesAutoresizingMaskIntoConstraints = false
-                 controller.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-                 controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-                 controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-                 controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        controller.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-                 var previousDelegate: ContentViewDelegate = ContentViewDelegate()
+        var previousDelegate: ContentViewDelegate = ContentViewDelegate()
+        textChangePublisher = delegate.didChange.sink { delegate in
+            // if delegate.clear {
+            //     self.drawOperations.removeAll(keepingCapacity: false)
+            //     self.timestamps.removeAll(keepingCapacity: false)
+            // }
 
-                 textChangePublisher = delegate.didChange.sink { delegate in
-                     if delegate.clear != previousDelegate.clear {
-         //                         if delegate.clear {
-         //                             self.drawOperations.removeAll(keepingCapacity: false)
-         //                             self.timestamps.removeAll(keepingCapacity: false)
-         //                         }
-                     }
+            if delegate.playing != previousDelegate.playing {
+                if delegate.playing {
+                    self.startPlaying()
+                } else {
+                    self.stopPlaying()
+                }
+            }
 
-                     if delegate.playing != previousDelegate.playing {
-                         if delegate.playing {
-                             self.startPlaying()
-                         } else {
-                             self.stopPlaying()
-                         }
-                     }
+            if delegate.recording != previousDelegate.recording {
+                if delegate.recording {
+                    self.startRecording()
+                } else {
+                    self.stopRecording()
+                }
+            }
 
-                     if delegate.recording != previousDelegate.recording {
-                         if delegate.recording {
-                             print("startRecording()")
-                             self.startRecording()
-                         } else {
-                             print("stopRecording()")
-                             self.stopRecording()
-                         }
-                     }
+            self.mode = delegate.mode
+            self.selectedColor = delegate.selectedColor.toColorArray()
 
-                     if delegate.mode != previousDelegate.mode {
-                         self.mode = delegate.mode
-                     }
+            self.strokeWidth = delegate.strokeWidth
 
-                     if delegate.uiRects != previousDelegate.uiRects {
-                         self.uiRects = delegate.uiRects
-                     }
-
-                     if delegate.selectedColor != previousDelegate.selectedColor {
-                         self.selectedColor = delegate.selectedColor.toColorArray()
-                     }
-
-                     if delegate.strokeWidth != previousDelegate.strokeWidth {
-                         self.strokeWidth = delegate.strokeWidth
-                     }
-
-                     previousDelegate = delegate.copy()
-                 }
-                 */
+            previousDelegate = delegate.copy()
+        }
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
@@ -286,76 +281,84 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func startRecording() {
-        print("start reording")
+        print("in startRecording")
         recording = true
         timestamps.append(getCurrentTimestamp())
     }
 
     public func stopRecording() {
-        print("stop reording")
+        print("in stopRecording")
         recording = false
         timestamps.append(getCurrentTimestamp())
     }
 
     final func generateVerts() {
-        let bezierOptions = BezierTesselationOptions(
-            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
-        )
-
-        var vertexData: [Float] = []
-        var colorData: [Float] = []
-        shapeIndex.removeAll() // clear this or else render() will loop infinitely
-
-        var points: [[Float]] = []
-
-        var openShape: Bool = false
-        var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
-        var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
-
         var translation: [Float] = [0, 0]
 
-        for op in drawOperationCollector.drawOperations {
-            if playing, op.timestamp > playbackEndTimestamp { continue }
+        if cachedItems[playbackEndTimestamp] == nil {
+            vertexData.removeAll(keepingCapacity: true)
+            colorData.removeAll(keepingCapacity: true)
+            shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
 
-            if op.type == "Pan" {
-                let panOp = op as! Pan
+            let bezierOptions = BezierTesselationOptions(
+                curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
+            )
 
-                let deltaX = panOp.end[0] - panOp.start[0]
-                let deltaY = panOp.end[1] - panOp.start[1]
+            var openShape: Bool = false
+            var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
+            var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
 
-                translation[0] += deltaX
-                translation[1] += deltaY
+            for op in drawOperationCollector.drawOperations {
+                if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
+
+                if op.type == "Pan" {
+                    let panOp = op as! Pan
+
+                    let deltaX = panOp.end[0] - panOp.start[0]
+                    let deltaY = panOp.end[1] - panOp.start[1]
+
+                    translation[0] += deltaX
+                    translation[1] += deltaY
+                }
+
+                if op.type == "PenDown" {
+                    let penDownOp = op as! PenDown
+                    activeColor = penDownOp.color
+                    activeLineWidth = penDownOp.lineWidth
+                    points.removeAll(keepingCapacity: true)
+                    openShape = true
+                }
+                if op.type == "Line" {
+                    let lineOp = op as! Line
+                    points.append(lineOp.start)
+                    points.append(lineOp.end)
+                }
+                if op.type == "QuadraticBezier" {
+                    let bezierOp = op as! QuadraticBezier
+                    tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
+                }
+                if op.type == "CubicBezier" {
+                    let bezierOp = op as! CubicBezier
+                    tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
+                }
+                if op.type == "PenUp" {
+                    closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+                    openShape = false
+                }
             }
 
-            if op.type == "PenDown" {
-                let penDownOp = op as! PenDown
-                activeColor = penDownOp.color
-                activeLineWidth = penDownOp.lineWidth
-                points.removeAll()
-                openShape = true
-            }
-            if op.type == "Line" {
-                let lineOp = op as! Line
-                points.append(lineOp.start)
-                points.append(lineOp.end)
-            }
-            if op.type == "QuadraticBezier" {
-                let bezierOp = op as! QuadraticBezier
-                tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
-            }
-            if op.type == "CubicBezier" {
-                let bezierOp = op as! CubicBezier
-                tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
-            }
-            if op.type == "PenUp" {
+            if openShape {
                 closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
                 openShape = false
             }
-        }
 
-        if openShape {
-            closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-            openShape = false
+            cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
+        } else {
+            guard let ci = cachedItems[playbackEndTimestamp] else { return }
+            vertexData = ci.vertexData
+            colorData = ci.colorData
+            shapeIndex = ci.shapeIndex
+            translation = ci.translation
         }
 
         if drawOperationCollector.drawOperations.count == 0 || vertexData.count == 0 { return }
@@ -423,6 +426,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         ]
     }
 
+    func getNextId() -> Int64 {
+        let id = self.id
+        self.id += 1
+        return id
+    }
+
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -439,10 +448,12 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
+        playbackEndTimestamp = timestamp
         drawOperationCollector.beginProvisionalOps()
         drawOperationCollector.addOp(PenDown(color: selectedColor,
                                              lineWidth: strokeWidth,
-                                             timestamp: timestamp))
+                                             timestamp: timestamp,
+                                             id: getNextId()))
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -457,6 +468,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         updateTouchPoints(for: touch, in: view)
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
+        playbackEndTimestamp = timestamp
 
 //        if shouldDrawStraight {
 //        } else {
@@ -480,13 +492,13 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-            let params = QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp)
-            drawOperationCollector.addOp(params)
+//            let params =
+            drawOperationCollector.addOp(QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp, id: getNextId()))
         } else if mode == "pan" {
             let midPoints = getMidPoints()
             let start = [Float(midPoints.0.x), Float(midPoints.0.y)]
             let end = [Float(midPoints.1.x), Float(midPoints.1.y)]
-            drawOperationCollector.addOp(Pan(start: start, end: end, timestamp: timestamp))
+            drawOperationCollector.addOp(Pan(start: start, end: end, timestamp: timestamp, id: getNextId()))
         } else {
             print("invalid mode: \(mode)")
         }
@@ -499,7 +511,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        drawOperationCollector.addOp(PenUp(timestamp: timestamp))
+        playbackEndTimestamp = timestamp
+        drawOperationCollector.addOp(PenUp(timestamp: timestamp, id: getNextId()))
         drawOperationCollector.commitProvisionalOps()
     }
 
