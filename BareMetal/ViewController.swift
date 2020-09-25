@@ -29,6 +29,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var colorBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
     var indexBuffer: MTLBuffer!
+    var pointBuffer: MTLBuffer!
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
     var vertexColorBuffer: MTLBuffer!
@@ -204,23 +205,24 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let vertexDesc = MTLVertexDescriptor()
 
-//        vertexDesc.attributes[0].format = MTLVertexFormat.float2
-//        vertexDesc.attributes[0].offset = 0
-//        vertexDesc.attributes[0].bufferIndex = 0
-
         vertexDesc.attributes[0].format = MTLVertexFormat.float2
         vertexDesc.attributes[0].offset = 0
         vertexDesc.attributes[0].bufferIndex = 0
 
-        vertexDesc.attributes[1].format = MTLVertexFormat.float2
-        vertexDesc.attributes[1].offset = MemoryLayout<SIMD2<Float>>.stride
-        vertexDesc.attributes[1].bufferIndex = 0
+//        vertexDesc.attributes[1].format = MTLVertexFormat.float4
+//        vertexDesc.attributes[1].offset = 0
+//        vertexDesc.attributes[1].bufferIndex = 1
+//
+//        vertexDesc.attributes[2].format = MTLVertexFormat.float2
+//        vertexDesc.attributes[2].offset = 0
+//        vertexDesc.attributes[2].bufferIndex = 2
+
 
         vertexDesc.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
-        vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride
+        vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride * 4
 
-//        vertexDesc.layouts[3].stepFunction = MTLVertexStepFunction.perInstance
-//        vertexDesc.layouts[3].stride = MemoryLayout<Float>.stride * 4
+//        vertexDesc.layouts[1].stepFunction = MTLVertexStepFunction.perInstance
+//        vertexDesc.layouts[1].stride = MemoryLayout<Float>.stride * 4
 
         pipelineStateDescriptor.vertexDescriptor = vertexDesc
 
@@ -395,7 +397,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             1.0, 0.5,
             0.0, 0.5,
         ]
-        let indexData = [3, 2, 1, 3, 0]
+        let indexData: [UInt32] = [3, 2, 1, 3, 0]
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
@@ -404,12 +406,26 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         colorData = [
             0.0, 1.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
         ]
+
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
 
 //        print("vertexData in generateVerts(): \(vertexData)")
 
         indexBuffer = device.makeBuffer(bytes: indexData, length: indexData.count * MemoryLayout.size(ofValue: indexData[0]), options: .storageModeShared)
+
+        let pointData: [Float] = [
+          1.0, 2.0,
+          3.0, 4.0,
+          5.0, 6.0,
+        ]
+
+        pointBuffer = device.makeBuffer(
+          bytes: pointData,
+          length: pointData.count * MemoryLayout.size(ofValue: pointData[0]),
+          options: .storageModeShared
+        )
 
         self.translation = translation
 
@@ -433,23 +449,32 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
         generateVerts()
-
-        // TODO: move this into generateVerts?
-        let pointData = [0.0, 0.0, 1.0, 1.0]
-        let pointBuffer = device.makeBuffer(bytes: pointData,
-                                            length: pointData.count,
-                                            options: .storageModeShared)
+//
+//        // TODO: move this into generateVerts?
+//        let pointData = [0.0, 0.0, 1.0, 1.0]
+//        let pointBuffer = device.makeBuffer(bytes: pointData,
+//                                            length: pointData.count,
+//                                            options: .storageModeShared)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
 
-        renderCommandEncoder.setVertexBuffer(pointBuffer, offset: 0, index: 0)
-        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 1)
-        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 2)
-        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 3)
+        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
+        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
+        renderCommandEncoder.setVertexBuffer(pointBuffer, offset: 0, index: 3)
 
-        renderCommandEncoder.drawIndexedPrimitives(type: .triangleStrip, indexCount: 5, indexType: MTLIndexType.uint32, indexBuffer: indexBuffer, indexBufferOffset: 0)
+        renderCommandEncoder.drawIndexedPrimitives(
+          type: .triangleStrip,
+          indexCount: 5,
+          indexType: MTLIndexType.uint32,
+          indexBuffer: indexBuffer,
+          indexBufferOffset: 0,
+          // the number of instances should be even and one less than the
+          // number of points
+          instanceCount: (pointBuffer.length + 1) / 2
+        )
 
 //        var currentVertexPosition = 0
 //        for (index, start) in shapeIndex.enumerated() {
