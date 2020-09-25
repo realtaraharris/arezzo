@@ -28,6 +28,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var vertexBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
+    var indexBuffer: MTLBuffer!
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
     var vertexColorBuffer: MTLBuffer!
@@ -93,6 +94,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var points: [[Float]] = []
     private var vertexData: [Float] = []
     private var colorData: [Float] = []
+    private var indexData: [Float] = []
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -201,14 +203,24 @@ class ViewController: UIViewController, ToolbarDelegate {
         pipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
 
         let vertexDesc = MTLVertexDescriptor()
-        vertexDesc.attributes[0].format = MTLVertexFormat.float3
+
+//        vertexDesc.attributes[0].format = MTLVertexFormat.float2
+//        vertexDesc.attributes[0].offset = 0
+//        vertexDesc.attributes[0].bufferIndex = 0
+
+        vertexDesc.attributes[0].format = MTLVertexFormat.float2
         vertexDesc.attributes[0].offset = 0
         vertexDesc.attributes[0].bufferIndex = 0
-        vertexDesc.attributes[1].format = MTLVertexFormat.float4
-        vertexDesc.attributes[1].offset = 0
+
+        vertexDesc.attributes[1].format = MTLVertexFormat.float2
+        vertexDesc.attributes[1].offset = MemoryLayout<SIMD2<Float>>.stride
         vertexDesc.attributes[1].bufferIndex = 0
+
         vertexDesc.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
-        vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride * 8
+        vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride
+
+//        vertexDesc.layouts[3].stepFunction = MTLVertexStepFunction.perInstance
+//        vertexDesc.layouts[3].stride = MemoryLayout<Float>.stride * 4
 
         pipelineStateDescriptor.vertexDescriptor = vertexDesc
 
@@ -224,6 +236,17 @@ class ViewController: UIViewController, ToolbarDelegate {
         timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
 
+    func triggerProgrammaticCapture() {
+        let captureManager = MTLCaptureManager.shared()
+        let captureDescriptor = MTLCaptureDescriptor()
+        captureDescriptor.captureObject = device
+        do {
+            try captureManager.startCapture(with: captureDescriptor)
+        } catch {
+            fatalError("error when trying to capture: \(error)")
+        }
+    }
+
     final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
@@ -231,11 +254,11 @@ class ViewController: UIViewController, ToolbarDelegate {
          0.7]
     }
 
-    final func closeShape(thickness: Float, miterLimit: Float, points: [[Float]], vertexData: inout [Float], color: [Float], colorData: inout [Float]) {
-        let triangles = dumpTriangleStrip(thickness: thickness, miterLimit: miterLimit, points: points)
-        shapeIndex.append(triangles.count / 3)
-        vertexData.append(contentsOf: triangles)
-        colorData.append(contentsOf: color)
+    final func closeShape(thickness _: Float, miterLimit _: Float, points _: [[Float]], vertexData _: inout [Float], color _: [Float], colorData _: inout [Float]) {
+//        let triangles = dumpTriangleStrip(thickness: thickness, miterLimit: miterLimit, points: points)
+//        shapeIndex.append(triangles.count / 3)
+//        vertexData.append(contentsOf: triangles)
+//        colorData.append(contentsOf: color)
     }
 
     public func startPlaying() {
@@ -295,80 +318,98 @@ class ViewController: UIViewController, ToolbarDelegate {
     final func generateVerts() {
         var translation: [Float] = [0, 0]
 
-        if cachedItems[playbackEndTimestamp] == nil {
-            vertexData.removeAll(keepingCapacity: true)
-            colorData.removeAll(keepingCapacity: true)
-            shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
+        /*
+         if cachedItems[playbackEndTimestamp] == nil {
+             vertexData.removeAll(keepingCapacity: true)
+             colorData.removeAll(keepingCapacity: true)
+             shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
 
-            let bezierOptions = BezierTesselationOptions(
-                curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
-            )
+             let bezierOptions = BezierTesselationOptions(
+                 curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
+             )
 
-            var openShape: Bool = false
-            var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
-            var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
+             var openShape: Bool = false
+             var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
+             var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
 
-            for op in drawOperationCollector.drawOperations {
-                if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
+             for op in drawOperationCollector.drawOperations {
+                 if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
 
-                if op.type == "Pan" {
-                    let panOp = op as! Pan
+                 if op.type == "Pan" {
+                     let panOp = op as! Pan
 
-                    let deltaX = panOp.end[0] - panOp.start[0]
-                    let deltaY = panOp.end[1] - panOp.start[1]
+                     let deltaX = panOp.end[0] - panOp.start[0]
+                     let deltaY = panOp.end[1] - panOp.start[1]
 
-                    translation[0] += deltaX
-                    translation[1] += deltaY
-                }
+                     translation[0] += deltaX
+                     translation[1] += deltaY
+                 }
 
-                if op.type == "PenDown" {
-                    let penDownOp = op as! PenDown
-                    activeColor = penDownOp.color
-                    activeLineWidth = penDownOp.lineWidth
-                    points.removeAll(keepingCapacity: true)
-                    openShape = true
-                }
-                if op.type == "Line" {
-                    let lineOp = op as! Line
-                    points.append(lineOp.start)
-                    points.append(lineOp.end)
-                }
-                if op.type == "QuadraticBezier" {
-                    let bezierOp = op as! QuadraticBezier
-                    tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
-                }
-                if op.type == "CubicBezier" {
-                    let bezierOp = op as! CubicBezier
-                    tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
-                }
-                if op.type == "PenUp" {
-                    closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-                    openShape = false
-                }
-            }
+                 if op.type == "PenDown" {
+                     let penDownOp = op as! PenDown
+                     activeColor = penDownOp.color
+                     activeLineWidth = penDownOp.lineWidth
+                     points.removeAll(keepingCapacity: true)
+                     openShape = true
+                 }
+                 if op.type == "Line" {
+                     let lineOp = op as! Line
+                     points.append(lineOp.start)
+                     points.append(lineOp.end)
+                 }
+                 if op.type == "QuadraticBezier" {
+                     let bezierOp = op as! QuadraticBezier
+                     tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
+                 }
+                 if op.type == "CubicBezier" {
+                     let bezierOp = op as! CubicBezier
+                     tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
+                 }
+                 if op.type == "PenUp" {
+                     closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+                     openShape = false
+                 }
+             }
 
-            if openShape {
-                closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-                openShape = false
-            }
+             if openShape {
+                 closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+                 openShape = false
+             }
 
-            cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
-        } else {
-            guard let ci = cachedItems[playbackEndTimestamp] else { return }
-            vertexData = ci.vertexData
-            colorData = ci.colorData
-            shapeIndex = ci.shapeIndex
-            translation = ci.translation
-        }
+             cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
+         } else {
+             guard let ci = cachedItems[playbackEndTimestamp] else { return }
+             vertexData = ci.vertexData
+             colorData = ci.colorData
+             shapeIndex = ci.shapeIndex
+             translation = ci.translation
+         } */
 
-        if drawOperationCollector.drawOperations.count == 0 || vertexData.count == 0 { return }
+//        if drawOperationCollector.drawOperations.count == 0 || vertexData.count == 0 { return }
+
+//        translation = [0.0, 0.1]
+
+        vertexData = [
+            0.0, -0.5,
+            1.0, -0.5,
+            1.0, 0.5,
+            0.0, 0.5,
+        ]
+        let indexData = [3, 2, 1, 3, 0]
 
         let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
         vertexBuffer = device.makeBuffer(bytes: vertexData,
                                          length: dataSize,
                                          options: .storageModeShared)
 
+        colorData = [
+            0.0, 1.0, 0.0, 1.0,
+        ]
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
+
+//        print("vertexData in generateVerts(): \(vertexData)")
+
+        indexBuffer = device.makeBuffer(bytes: indexData, length: indexData.count * MemoryLayout.size(ofValue: indexData[0]), options: .storageModeShared)
 
         self.translation = translation
 
@@ -393,25 +434,38 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         generateVerts()
 
+        // TODO: move this into generateVerts?
+        let pointData = [0.0, 0.0, 1.0, 1.0]
+        let pointBuffer = device.makeBuffer(bytes: pointData,
+                                            length: pointData.count,
+                                            options: .storageModeShared)
+
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
-        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
-        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
-        var currentVertexPosition = 0
-        for (index, start) in shapeIndex.enumerated() {
-            renderCommandEncoder.setVertexBufferOffset(index * 4 * 4, index: 1) // 4 floats per index, 4 bytes per float
-            renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: start)
-            currentVertexPosition += start
-        }
+        renderCommandEncoder.setVertexBuffer(pointBuffer, offset: 0, index: 0)
+        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 1)
+        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 2)
+        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 3)
+
+        renderCommandEncoder.drawIndexedPrimitives(type: .triangleStrip, indexCount: 5, indexType: MTLIndexType.uint32, indexBuffer: indexBuffer, indexBufferOffset: 0)
+
+//        var currentVertexPosition = 0
+//        for (index, start) in shapeIndex.enumerated() {
+//            renderCommandEncoder.setVertexBufferOffset(index * 4 * 4, index: 1) // 4 floats per index, 4 bytes per float
+//            renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: start)
+//            currentVertexPosition += start
+//        }
 
         renderCommandEncoder.endEncoding()
         commandBuffer.present(drawable)
         // NB: you can pass in a time to present the finished image:
         // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
         commandBuffer.commit()
+
+        let captureManager = MTLCaptureManager.shared()
+        captureManager.stopCapture()
     }
 
     final func transform(_ point: [Float]) -> [Float] {
@@ -505,6 +559,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
+        triggerProgrammaticCapture()
+
         if !recording { return }
 
         guard isDrawingEnabled, let _ = touches.first else { return }

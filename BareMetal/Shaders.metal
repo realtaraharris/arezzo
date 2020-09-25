@@ -20,27 +20,43 @@ struct Uniforms {
     float4x4 modelViewMatrix;
 };
 
+struct Beep {
+//    float2 position [[attribute(0)]];
+    float2 pointA [[attribute(0)]];
+    float2 pointB [[attribute(1)]];
+};
+
 vertex VertexOut basic_vertex(
-    constant packed_float3* vertex_array[[buffer(0)]],
+    Beep points [[stage_in]],
+    constant packed_float2* vertex_array[[buffer(0)]],
     constant float4 *allParams[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
+//    constant Beep &points[[buffer(3)]],
     unsigned int vid[[vertex_id]],
     const uint instanceId [[instance_id]]
 ) {
     VertexOut vo;
+    
+    const float lineWidth = 0.2; // TODO: move into uniforms
 
     const float4 color = allParams[instanceId];
-    const float3 vert = vertex_array[vid];
+    const float2 vert = vertex_array[vid];
     const float4 clipPosition(
         (2.0f * vert.x / uniforms.width) - 2.0,
         (-2.0f * vert.y / uniforms.height) + 2.0f,
         0.0f,
         1.0f
     );
-
-    vo.position = uniforms.modelViewMatrix * clipPosition;
-    vo.color = color;
     
+    float2 xBasis = points.pointB - points.pointA;
+    float2 yBasis = normalize(float2(-xBasis.y, xBasis.x));
+//    float2 point = points.pointA + xBasis * points.position.x + yBasis * lineWidth * points.position.y;
+    float2 point = points.pointA + xBasis * vert.x + yBasis * lineWidth * vert.y;
+//    vo.position = /* clipPosition * */ float4(point.x, point.y, 0.0, 1.0);
+//    vo.position = float4(vert.x, vert.y, 0.0, 1.0);
+//    vo.position = uniforms.modelViewMatrix * clipPosition;
+    vo.color = color;
+
     return vo;
 }
 
