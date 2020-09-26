@@ -217,7 +217,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 //        vertexDesc.attributes[2].offset = 0
 //        vertexDesc.attributes[2].bufferIndex = 2
 
-
         vertexDesc.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
         vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride * 4
 
@@ -248,6 +247,18 @@ class ViewController: UIViewController, ToolbarDelegate {
             fatalError("error when trying to capture: \(error)")
         }
     }
+
+//    func circleGeometry(resolution) {
+//      let position = [[0, 0]]
+//      for (wedge = 0; wedge <= resolution; wedge++) {
+//        let theta = (2 * Math.PI * wedge) / resolution
+//        position.append([0.5 * Math.cos(theta), 0.5 * Math.sin(theta)])
+//      }
+//      return {
+//        buffer: regl.buffer(position),
+//        count: position.length
+//      }
+//    }
 
     final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
@@ -320,76 +331,105 @@ class ViewController: UIViewController, ToolbarDelegate {
     final func generateVerts() {
         var translation: [Float] = [0, 0]
 
-        /*
-         if cachedItems[playbackEndTimestamp] == nil {
-             vertexData.removeAll(keepingCapacity: true)
-             colorData.removeAll(keepingCapacity: true)
-             shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
+        var pointData: [Float] = [
+            -0.5, -0.1,
+//            0.5, 0.1,
+//            0.9, 0.7
+        ]
+        colorData = [
+            1.0, 0.0, 0.0, 1.0,
+//            0.0, 1.0, 0.0, 1.0,
+//            0.0, 0.0, 1.0, 1.0
+        ]
 
-             let bezierOptions = BezierTesselationOptions(
-                 curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
-             )
+//         if cachedItems[playbackEndTimestamp] == nil {
+//             vertexData.removeAll(keepingCapacity: true)
+//             colorData.removeAll(keepingCapacity: true)
+//             shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
 
-             var openShape: Bool = false
-             var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
-             var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
+        let bezierOptions = BezierTesselationOptions(
+            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
+        )
 
-             for op in drawOperationCollector.drawOperations {
-                 if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
+        var openShape: Bool = false
+        var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
+        var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
 
-                 if op.type == "Pan" {
-                     let panOp = op as! Pan
+        for op in drawOperationCollector.drawOperations {
+            if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
 
-                     let deltaX = panOp.end[0] - panOp.start[0]
-                     let deltaY = panOp.end[1] - panOp.start[1]
+            if op.type == "Pan" {
+                let panOp = op as! Pan
 
-                     translation[0] += deltaX
-                     translation[1] += deltaY
-                 }
+                let deltaX = panOp.end[0] - panOp.start[0]
+                let deltaY = panOp.end[1] - panOp.start[1]
 
-                 if op.type == "PenDown" {
-                     let penDownOp = op as! PenDown
-                     activeColor = penDownOp.color
-                     activeLineWidth = penDownOp.lineWidth
-                     points.removeAll(keepingCapacity: true)
-                     openShape = true
-                 }
-                 if op.type == "Line" {
-                     let lineOp = op as! Line
-                     points.append(lineOp.start)
-                     points.append(lineOp.end)
-                 }
-                 if op.type == "QuadraticBezier" {
-                     let bezierOp = op as! QuadraticBezier
-                     tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
-                 }
-                 if op.type == "CubicBezier" {
-                     let bezierOp = op as! CubicBezier
-                     tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
-                 }
-                 if op.type == "PenUp" {
-                     closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-                     openShape = false
-                 }
-             }
+                translation[0] += deltaX
+                translation[1] += deltaY
+            }
 
-             if openShape {
-                 closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-                 openShape = false
-             }
+            if op.type == "PenDown" {
+                let penDownOp = op as! PenDown
+                activeColor = penDownOp.color
+                activeLineWidth = penDownOp.lineWidth
+                points.removeAll(keepingCapacity: true)
+                openShape = true
+            }
+            if op.type == "Line" {
+                let lineOp = op as! Line
+                pointData.append(contentsOf: lineOp.start)
+                pointData.append(contentsOf: lineOp.end)
 
-             cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
-         } else {
-             guard let ci = cachedItems[playbackEndTimestamp] else { return }
-             vertexData = ci.vertexData
-             colorData = ci.colorData
-             shapeIndex = ci.shapeIndex
-             translation = ci.translation
-         } */
+                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+            }
+            if op.type == "QuadraticBezier" {
+                let bezierOp = op as! QuadraticBezier
+
+                var points: [[Float]] = [[]]
+                tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
+
+                pointData.append(contentsOf: points[0])
+                pointData.append(contentsOf: points[1])
+
+                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+            }
+            if op.type == "CubicBezier" {
+                let bezierOp = op as! CubicBezier
+
+                var points: [[Float]] = [[]]
+//                     tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
+
+                pointData.append(contentsOf: bezierOp.start)
+                pointData.append(contentsOf: bezierOp.end)
+
+                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+            }
+            if op.type == "PenUp" {
+//                     closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+//                     openShape = false
+            }
+        }
+
+//             if openShape {
+//                 closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
+//                 openShape = false
+//             }
+
+//             cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
+//         } else {
+//             guard let ci = cachedItems[playbackEndTimestamp] else { return }
+//             vertexData = ci.vertexData
+//             colorData = ci.colorData
+//             shapeIndex = ci.shapeIndex
+//             translation = ci.translation
+//         }
 
 //        if drawOperationCollector.drawOperations.count == 0 || vertexData.count == 0 { return }
 
-//        translation = [0.0, 0.1]
+        if colorData.count == 0 { return }
 
         vertexData = [
             0.0, -0.5,
@@ -404,27 +444,13 @@ class ViewController: UIViewController, ToolbarDelegate {
                                          length: dataSize,
                                          options: .storageModeShared)
 
-        colorData = [
-            0.0, 1.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 1.0,
-        ]
-
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
-
-//        print("vertexData in generateVerts(): \(vertexData)")
-
         indexBuffer = device.makeBuffer(bytes: indexData, length: indexData.count * MemoryLayout.size(ofValue: indexData[0]), options: .storageModeShared)
 
-        let pointData: [Float] = [
-          1.0, 2.0,
-          3.0, 4.0,
-          5.0, 6.0,
-        ]
-
         pointBuffer = device.makeBuffer(
-          bytes: pointData,
-          length: pointData.count * MemoryLayout.size(ofValue: pointData[0]),
-          options: .storageModeShared
+            bytes: pointData,
+            length: pointData.count * MemoryLayout.size(ofValue: pointData[0]),
+            options: .storageModeShared
         )
 
         self.translation = translation
@@ -449,12 +475,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
         generateVerts()
-//
-//        // TODO: move this into generateVerts?
-//        let pointData = [0.0, 0.0, 1.0, 1.0]
-//        let pointBuffer = device.makeBuffer(bytes: pointData,
-//                                            length: pointData.count,
-//                                            options: .storageModeShared)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
@@ -466,14 +486,14 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderCommandEncoder.setVertexBuffer(pointBuffer, offset: 0, index: 3)
 
         renderCommandEncoder.drawIndexedPrimitives(
-          type: .triangleStrip,
-          indexCount: 5,
-          indexType: MTLIndexType.uint32,
-          indexBuffer: indexBuffer,
-          indexBufferOffset: 0,
-          // the number of instances should be even and one less than the
-          // number of points
-          instanceCount: (pointBuffer.length + 1) / 2
+            type: .triangleStrip,
+            indexCount: 5,
+            indexType: MTLIndexType.uint32,
+            indexBuffer: indexBuffer,
+            indexBufferOffset: 0,
+            // the number of instances should be even and one less than the
+            // number of points
+            instanceCount: (pointBuffer.length + 1) / 2
         )
 
 //        var currentVertexPosition = 0
@@ -584,7 +604,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
-        triggerProgrammaticCapture()
+//        triggerProgrammaticCapture()
 
         if !recording { return }
 

@@ -1,5 +1,8 @@
 #  README
 
+### do this before committing if you can
+`swiftformat **/* --swiftversion 5.1.3`
+
 TODO:
 
 - [x] fix degenerate triangles
