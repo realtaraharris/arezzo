@@ -33,6 +33,9 @@ class ViewController: UIViewController, ToolbarDelegate {
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
     var vertexColorBuffer: MTLBuffer!
+
+    var pointBuffers: [MTLBuffer] = []
+
     var commandQueue: MTLCommandQueue!
     var renderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
@@ -93,7 +96,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var id: Int64 = 0
 
     private var points: [[Float]] = []
-    private var vertexData: [Float] = []
     private var colorData: [Float] = []
     private var indexData: [Float] = []
 
@@ -107,8 +109,13 @@ class ViewController: UIViewController, ToolbarDelegate {
 //        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
         drawOperationCollector = DrawOperationCollector()
+//        drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0, id: 0))
+//        drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: 0, id: 1))
+//        drawOperationCollector.addOp(Point(point: [316.145, 420.13748], timestamp: 0, id: 2))
+//        drawOperationCollector.addOp(Point(point: [841.316, 592.8283], timestamp: 0, id: 3))
+//        drawOperationCollector.addOp(PenUp(timestamp: 0, id: 4))
 //        drawOperations = [
-        //            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
+//            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
 //            Line(start: [200, 10], end: [300, 300], timestamp: 0),
 //            Line(start: [20, 200], end: [600, 90], timestamp: 0),
 //            QuadraticBezier(start: [0, 200], end: [1200, 200], control: [600, 0], timestamp: 0),
@@ -209,19 +216,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         vertexDesc.attributes[0].offset = 0
         vertexDesc.attributes[0].bufferIndex = 0
 
-//        vertexDesc.attributes[1].format = MTLVertexFormat.float4
-//        vertexDesc.attributes[1].offset = 0
-//        vertexDesc.attributes[1].bufferIndex = 1
-//
-//        vertexDesc.attributes[2].format = MTLVertexFormat.float2
-//        vertexDesc.attributes[2].offset = 0
-//        vertexDesc.attributes[2].bufferIndex = 2
-
         vertexDesc.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
         vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride * 4
-
-//        vertexDesc.layouts[1].stepFunction = MTLVertexStepFunction.perInstance
-//        vertexDesc.layouts[1].stride = MemoryLayout<Float>.stride * 4
 
         pipelineStateDescriptor.vertexDescriptor = vertexDesc
 
@@ -265,13 +261,6 @@ class ViewController: UIViewController, ToolbarDelegate {
          Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          0.7]
-    }
-
-    final func closeShape(thickness _: Float, miterLimit _: Float, points _: [[Float]], vertexData _: inout [Float], color _: [Float], colorData _: inout [Float]) {
-//        let triangles = dumpTriangleStrip(thickness: thickness, miterLimit: miterLimit, points: points)
-//        shapeIndex.append(triangles.count / 3)
-//        vertexData.append(contentsOf: triangles)
-//        colorData.append(contentsOf: color)
     }
 
     public func startPlaying() {
@@ -331,30 +320,24 @@ class ViewController: UIViewController, ToolbarDelegate {
     final func generateVerts() {
         var translation: [Float] = [0, 0]
 
-        var pointData: [Float] = [
-            -0.5, -0.1,
-//            0.5, 0.1,
-//            0.9, 0.7
-        ]
-        colorData = [
-            1.0, 0.0, 0.0, 1.0,
-//            0.0, 1.0, 0.0, 1.0,
-//            0.0, 0.0, 1.0, 1.0
-        ]
+        var pointData: [Float] = []
+        colorData = []
 
 //         if cachedItems[playbackEndTimestamp] == nil {
 //             vertexData.removeAll(keepingCapacity: true)
 //             colorData.removeAll(keepingCapacity: true)
 //             shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
 
-        let bezierOptions = BezierTesselationOptions(
-            curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100
-        )
+        pointBuffers.removeAll(keepingCapacity: false)
+
+        // let bezierOptions = BezierTesselationOptions(curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100)
 
         var openShape: Bool = false
         var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
         var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
 
+        var partialPoints: [Float] = []
+        var partialColors: [Float] = []
         for op in drawOperationCollector.drawOperations {
             if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
 
@@ -372,16 +355,15 @@ class ViewController: UIViewController, ToolbarDelegate {
                 let penDownOp = op as! PenDown
                 activeColor = penDownOp.color
                 activeLineWidth = penDownOp.lineWidth
-                points.removeAll(keepingCapacity: true)
                 openShape = true
             }
             if op.type == "Line" {
                 let lineOp = op as! Line
-                pointData.append(contentsOf: lineOp.start)
-                pointData.append(contentsOf: lineOp.end)
+                partialPoints.append(contentsOf: lineOp.start)
+                partialPoints.append(contentsOf: lineOp.end)
 
-                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
             }
             if op.type == "QuadraticBezier" {
                 let bezierOp = op as! QuadraticBezier
@@ -389,34 +371,58 @@ class ViewController: UIViewController, ToolbarDelegate {
                 var points: [[Float]] = [[]]
                 tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
 
-                pointData.append(contentsOf: points[0])
-                pointData.append(contentsOf: points[1])
+                partialPoints.append(contentsOf: points[0])
+                partialPoints.append(contentsOf: points[1])
 
-                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
             }
             if op.type == "CubicBezier" {
                 let bezierOp = op as! CubicBezier
 
-                var points: [[Float]] = [[]]
-//                     tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
+                // var _: [[Float]] = [[]]
+                // tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
 
-                pointData.append(contentsOf: bezierOp.start)
-                pointData.append(contentsOf: bezierOp.end)
+                partialPoints.append(contentsOf: bezierOp.start)
+                partialPoints.append(contentsOf: bezierOp.end)
 
-                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-                colorData.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
             }
-            if op.type == "PenUp" {
-//                     closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-//                     openShape = false
+
+            if op.type == "Point" {
+                let pointOp = op as! Point
+                partialPoints.append(contentsOf: pointOp.point)
+                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
+            }
+            if op.type == "PenUp", partialPoints.count > 0 {
+                pointData.append(contentsOf: partialPoints)
+                colorData.append(contentsOf: partialColors)
+
+                let pb = device.makeBuffer(
+                    bytes: pointData,
+                    length: pointData.count * 4, //  MemoryLayout.size(ofValue: pointData[0]) = 4
+                    options: .storageModeShared
+                )!
+                pointBuffers.append(pb)
+
+                partialPoints.removeAll()
+                partialColors.removeAll()
+
+                pointData.removeAll()
+                colorData.removeAll()
+                openShape = false
+            }
+
+            if openShape, partialPoints.count > 0 {
+                let pb = device.makeBuffer(
+                    bytes: partialPoints,
+                    length: partialPoints.count * 4, //  MemoryLayout.size(ofValue: pointData[0]) = 4
+                    options: .storageModeShared
+                )!
+                pointBuffers.append(pb)
             }
         }
-
-//             if openShape {
-//                 closeShape(thickness: activeLineWidth, miterLimit: bezierOptions.miterLimit, points: points, vertexData: &vertexData, color: activeColor, colorData: &colorData)
-//                 openShape = false
-//             }
 
 //             cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
 //         } else {
@@ -427,31 +433,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 //             translation = ci.translation
 //         }
 
-//        if drawOperationCollector.drawOperations.count == 0 || vertexData.count == 0 { return }
-
-        if colorData.count == 0 { return }
-
-        vertexData = [
-            0.0, -0.5,
-            1.0, -0.5,
-            1.0, 0.5,
-            0.0, 0.5,
-        ]
-        let indexData: [UInt32] = [3, 2, 1, 3, 0]
-
-        let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
-        vertexBuffer = device.makeBuffer(bytes: vertexData,
-                                         length: dataSize,
-                                         options: .storageModeShared)
-
-        colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: colorData[0]), options: .storageModeShared)
-        indexBuffer = device.makeBuffer(bytes: indexData, length: indexData.count * MemoryLayout.size(ofValue: indexData[0]), options: .storageModeShared)
-
-        pointBuffer = device.makeBuffer(
-            bytes: pointData,
-            length: pointData.count * MemoryLayout.size(ofValue: pointData[0]),
-            options: .storageModeShared
-        )
+        colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: 4), options: .storageModeShared)
 
         self.translation = translation
 
@@ -474,6 +456,20 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
+        let vertexData: [Float] = [
+            0.0, -0.5,
+            1.0, -0.5,
+            1.0, 0.5,
+            0.0, 0.5,
+        ]
+        let indexData: [UInt32] = [3, 2, 1, 3, 0]
+        indexBuffer = device.makeBuffer(bytes: indexData, length: indexData.count * MemoryLayout.size(ofValue: indexData[0]), options: .storageModeShared)
+
+        let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
+        vertexBuffer = device.makeBuffer(bytes: vertexData,
+                                         length: dataSize,
+                                         options: .storageModeShared)
+
         generateVerts()
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
@@ -483,24 +479,27 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
         renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
-        renderCommandEncoder.setVertexBuffer(pointBuffer, offset: 0, index: 3)
 
-        renderCommandEncoder.drawIndexedPrimitives(
-            type: .triangleStrip,
-            indexCount: 5,
-            indexType: MTLIndexType.uint32,
-            indexBuffer: indexBuffer,
-            indexBufferOffset: 0,
-            // the number of instances should be even and one less than the
-            // number of points
-            instanceCount: (pointBuffer.length + 1) / 2
-        )
-
-//        var currentVertexPosition = 0
-//        for (index, start) in shapeIndex.enumerated() {
-//            renderCommandEncoder.setVertexBufferOffset(index * 4 * 4, index: 1) // 4 floats per index, 4 bytes per float
-//            renderCommandEncoder.drawPrimitives(type: .triangleStrip, vertexStart: currentVertexPosition, vertexCount: start)
-//            currentVertexPosition += start
+        // 24 points -> 2 line segment instances
+        // 16 points -> 1 line segment instance
+        // 8 points -> 0  line segment instances
+        // 24 / 8 - 1 = 2
+        // 16 / 8 - 1 = 1
+        // 8 / 8 - 1 = 0
+//        if (pointBuffers.count > 0) {
+        for index in 0 ..< pointBuffers.count {
+            renderCommandEncoder.setVertexBuffer(pointBuffers[index], offset: 0, index: 3)
+            renderCommandEncoder.drawIndexedPrimitives(
+                type: .triangleStrip,
+                indexCount: 5,
+                indexType: MTLIndexType.uint32,
+                indexBuffer: indexBuffer,
+                indexBufferOffset: 0,
+                // the number of instances should be even and one less than
+                // the number of points
+                instanceCount: (pointBuffers[index].length / 8) - 1
+            )
+        }
 //        }
 
         renderCommandEncoder.endEncoding()
@@ -591,8 +590,11 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-//            let params =
-            drawOperationCollector.addOp(QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp, id: getNextId()))
+            /// CRITICAL here
+            let currentPointEx = touch.location(in: view)
+//            print("currentPointEx:", currentPointEx.x, currentPointEx.y)
+            drawOperationCollector.addOp(Point(point: [Float(currentPointEx.x), Float(currentPointEx.y)], timestamp: timestamp, id: getNextId()))
+//            drawOperationCollector.addOp(QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp, id: getNextId()))
         } else if mode == "pan" {
             let midPoints = getMidPoints()
             let start = [Float(midPoints.0.x), Float(midPoints.0.y)]

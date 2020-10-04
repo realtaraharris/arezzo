@@ -36,7 +36,7 @@ vertex VertexOut basic_vertex(
     constant packed_float2* vertex_array[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
-    constant float2 *points[[buffer(3)]],
+    constant packed_float2 *points[[buffer(3)]],
     unsigned int vid[[vertex_id]],
     const uint instanceId [[instance_id]]
 ) {
@@ -44,7 +44,8 @@ vertex VertexOut basic_vertex(
     
     const float lineWidth = 5.0; // TODO: move into uniforms
 
-    const float4 color = colors[instanceId];
+    const float4 color = float4(0.0, 1.0, 0.0, 1.0);
+    // colors[instanceId];
     const float2 position = vertex_array[vid];
 
     float2 pointA = points[instanceId];

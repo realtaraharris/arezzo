@@ -82,6 +82,20 @@ struct Pan: DrawOperation {
     }
 }
 
+struct Point: DrawOperation {
+    var type: String
+    var point: [Float]
+    var timestamp: Int64
+    var id: Int64
+
+    init(point: [Float], timestamp: Int64, id: Int64) {
+        type = "Point"
+        self.point = point
+        self.timestamp = timestamp
+        self.id = id
+    }
+}
+
 struct PenDown: DrawOperation {
     var type: String
     var color: [Float]

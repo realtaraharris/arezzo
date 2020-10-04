@@ -6,6 +6,9 @@
          contextName = "ViewController.generateVerts():ViewController.swift">
          <PersistentStrings>
             <PersistentString
+               value = "self.pointBuffers">
+            </PersistentString>
+            <PersistentString
                value = "bezierData.count">
             </PersistentString>
          </PersistentStrings>
@@ -27,17 +30,6 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "toTriangleStrip(thickness:miterLimit:p0:p1:p2:p3:output:):AdaptiveBezier.swift">
-         <PersistentStrings>
-            <PersistentString
-               value = "tmp0.x">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "toTriangleStripTwoPoints(thickness:miterLimit:p0:p1:output:):AdaptiveBezier.swift">
-      </ContextState>
-      <ContextState
          contextName = "ViewController.touchesMoved(_:with:):ViewController.swift">
          <PersistentStrings>
             <PersistentString
@@ -50,6 +42,17 @@
       </ContextState>
       <ContextState
          contextName = "ViewController.viewDidLoad():ViewController.swift">
+      </ContextState>
+      <ContextState
+         contextName = "toTriangleStripTwoPoints(thickness:miterLimit:p0:p1:output:):AdaptiveBezier.swift">
+      </ContextState>
+      <ContextState
+         contextName = "toTriangleStrip(thickness:miterLimit:p0:p1:p2:p3:output:):AdaptiveBezier.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "tmp0.x">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
    </ContextStates>
 </VariablesViewState>
