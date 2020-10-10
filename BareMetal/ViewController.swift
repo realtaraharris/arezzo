@@ -91,7 +91,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: [Float] = [0.0, 0.0]
-    private var drawOperationCollector: DrawOperationCollector
+    private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
 //    private var newToolbar: ToolbarEx
     private var id: Int64 = 0
 
@@ -317,6 +317,26 @@ class ViewController: UIViewController, ToolbarDelegate {
         timestamps.append(getCurrentTimestamp())
     }
 
+//    func binarySearch<T:Comparable>(_ inputArr:Array<T>, _ searchItem: T) -> Int {
+//        var lowerIndex = 0
+//        var upperIndex = inputArr.count - 1
+//
+//        while (true) {
+//            let currentIndex = (lowerIndex + upperIndex)/2
+//            if(inputArr[currentIndex] == searchItem) {
+//                return currentIndex
+//            } else if (lowerIndex > upperIndex) {
+//                return upperIndex
+//            } else {
+//                if (inputArr[currentIndex] > searchItem) {
+//                    upperIndex = currentIndex - 1
+//                } else {
+//                    lowerIndex = currentIndex + 1
+//                }
+//            }
+//        }
+//    }
+
     final func generateVerts() {
         var translation: [Float] = [0, 0]
 
@@ -332,96 +352,54 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         // let bezierOptions = BezierTesselationOptions(curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100)
 
+        let currentTime = getCurrentTimestamp()
+
         var openShape: Bool = false
         var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
         var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
 
         var partialPoints: [Float] = []
         var partialColors: [Float] = []
-        for op in drawOperationCollector.drawOperations {
-            if playing, op.timestamp > playbackEndTimestamp || op.timestamp < playbackStartTimestamp { continue }
+        for shape in drawOperationCollector.shapeList {
+            if shape.timestamp.count == 0 { return }
+            if shape.timestamp[0] > currentTime { return }
 
-            if op.type == "Pan" {
-                let panOp = op as! Pan
+            // if shape.notInWindow() { return }
 
-                let deltaX = panOp.end[0] - panOp.start[0]
-                let deltaY = panOp.end[1] - panOp.start[1]
+            let start = 0
+            var end = 0
 
-                translation[0] += deltaX
-                translation[1] += deltaY
+//            let searchIndex: Int = getIndex(currentTime)
+            print("searchIndex: \(shape.getIndex(timestamp: currentTime))")
+
+//            end = searchIndex
+            /*
+                         for index in stride(from: 0, to: shape.timestamp.count, by: 2) {
+                             let timestamp = shape.timestamp[index]
+             //                print("timestamp: \(timestamp), currentTime: \(currentTime), index: \(index), timestamp - currentTime: \(timestamp - currentTime)")
+
+                              if timestamp < currentTime { continue }
+                             end = index
+
+                         }
+                         */
+
+            if end == 0 {
+                end = shape.geometry.count - 2
             }
 
-            if op.type == "PenDown" {
-                let penDownOp = op as! PenDown
-                activeColor = penDownOp.color
-                activeLineWidth = penDownOp.lineWidth
-                openShape = true
-            }
-            if op.type == "Line" {
-                let lineOp = op as! Line
-                partialPoints.append(contentsOf: lineOp.start)
-                partialPoints.append(contentsOf: lineOp.end)
+            if start == end { continue }
 
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-            }
-            if op.type == "QuadraticBezier" {
-                let bezierOp = op as! QuadraticBezier
+            // let's add the points!
+            let pointies: [Float] = Array(shape.geometry[start ..< Int(end)])
 
-                var points: [[Float]] = [[]]
-                tesselateQuadraticBezier(start: bezierOp.start, control: bezierOp.control, end: bezierOp.end, points: &points)
-
-                partialPoints.append(contentsOf: points[0])
-                partialPoints.append(contentsOf: points[1])
-
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-            }
-            if op.type == "CubicBezier" {
-                let bezierOp = op as! CubicBezier
-
-                // var _: [[Float]] = [[]]
-                // tesselateCubicBezier(start: bezierOp.start, control1: bezierOp.control1, control2: bezierOp.control2, end: bezierOp.end, points: &points, options: bezierOptions)
-
-                partialPoints.append(contentsOf: bezierOp.start)
-                partialPoints.append(contentsOf: bezierOp.end)
-
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-            }
-
-            if op.type == "Point" {
-                let pointOp = op as! Point
-                partialPoints.append(contentsOf: pointOp.point)
-                partialColors.append(contentsOf: [1.0, 0.0, 0.0, 1.0])
-            }
-            if op.type == "PenUp", partialPoints.count > 0 {
-                pointData.append(contentsOf: partialPoints)
-                colorData.append(contentsOf: partialColors)
-
-                let pb = device.makeBuffer(
-                    bytes: pointData,
-                    length: pointData.count * 4, //  MemoryLayout.size(ofValue: pointData[0]) = 4
-                    options: .storageModeShared
-                )!
-                pointBuffers.append(pb)
-
-                partialPoints.removeAll()
-                partialColors.removeAll()
-
-                pointData.removeAll()
-                colorData.removeAll()
-                openShape = false
-            }
-
-            if openShape, partialPoints.count > 0 {
-                let pb = device.makeBuffer(
-                    bytes: partialPoints,
-                    length: partialPoints.count * 4, //  MemoryLayout.size(ofValue: pointData[0]) = 4
-                    options: .storageModeShared
-                )!
-                pointBuffers.append(pb)
-            }
+            if pointies.count == 0 { continue }
+            let pb = device.makeBuffer(
+                bytes: pointies,
+                length: pointies.count * 4, //  MemoryLayout.size(ofValue: pointies[0]) = 4
+                options: .storageModeShared
+            )!
+            pointBuffers.append(pb)
         }
 
 //             cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
