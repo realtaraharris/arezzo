@@ -338,9 +338,9 @@ class ViewController: UIViewController, ToolbarDelegate {
 //    }
 
     final func generateVerts() {
-        var translation: [Float] = [0, 0]
+        let translation: [Float] = [0, 0]
 
-        var pointData: [Float] = []
+        var _: [Float] = []
         colorData = []
 
 //         if cachedItems[playbackEndTimestamp] == nil {
@@ -354,12 +354,12 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let currentTime = getCurrentTimestamp()
 
-        var openShape: Bool = false
-        var activeColor: [Float] = [0.0, 1.0, 1.0, 1.0]
-        var activeLineWidth: Float = DEFAULT_STROKE_THICKNESS
+        var _: Bool = false
+        var _: [Float] = [0.0, 1.0, 1.0, 1.0]
+        var _: Float = DEFAULT_STROKE_THICKNESS
 
-        var partialPoints: [Float] = []
-        var partialColors: [Float] = []
+        var _: [Float] = []
+        var _: [Float] = []
         for shape in drawOperationCollector.shapeList {
             if shape.timestamp.count == 0 { return }
             if shape.timestamp[0] > currentTime { return }

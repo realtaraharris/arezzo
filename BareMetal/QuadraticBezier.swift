@@ -96,12 +96,12 @@ func tesselateQuadraticBezier(start: [Float], control: [Float], end: [Float], po
 }
 
 func tesselateQuadraticBezierNew(start: [Float], control: [Float], end: [Float], scale: Float, points: inout [[Float]]) {
-    var RECURSION_LIMIT = 8
-    var FLT_EPSILON: Float = 1.19209290e-7
+    let RECURSION_LIMIT = 8
+    let FLT_EPSILON: Float = 1.19209290e-7
     let PATH_DISTANCE_EPSILON: Float = 1.0
 
-    var curve_angle_tolerance_epsilon: Float = 0.01
-    var m_angle_tolerance: Float = 0
+    let curve_angle_tolerance_epsilon: Float = 0.01
+    let m_angle_tolerance: Float = 0
 
     func begin(start: [Float], control: [Float], end: [Float], points: inout [[Float]], distanceTolerance: Float) {
         points.append(start)
