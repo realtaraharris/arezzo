@@ -106,9 +106,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     required init?(coder aDecoder: NSCoder) {
         metalLayer = CAMetalLayer()
 
+        device = MTLCreateSystemDefaultDevice()
+
 //        let speedScale: Int64 = 100_000
 //        let firstTimestamp = getCurrentTimestamp()
-        drawOperationCollector = DrawOperationCollector()
+        drawOperationCollector = DrawOperationCollector(device: device)
 //        drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0, id: 0))
 //        drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: 0, id: 1))
 //        drawOperationCollector.addOp(Point(point: [316.145, 420.13748], timestamp: 0, id: 2))
@@ -145,7 +147,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         translation = [0, 0]
 
         // Do any additional setup after loading the view.
-        device = MTLCreateSystemDefaultDevice()
 
         metalLayer.device = device
         metalLayer.pixelFormat = .bgra8Unorm
@@ -317,40 +318,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         timestamps.append(getCurrentTimestamp())
     }
 
-//    func binarySearch<T:Comparable>(_ inputArr:Array<T>, _ searchItem: T) -> Int {
-//        var lowerIndex = 0
-//        var upperIndex = inputArr.count - 1
-//
-//        while (true) {
-//            let currentIndex = (lowerIndex + upperIndex)/2
-//            if(inputArr[currentIndex] == searchItem) {
-//                return currentIndex
-//            } else if (lowerIndex > upperIndex) {
-//                return upperIndex
-//            } else {
-//                if (inputArr[currentIndex] > searchItem) {
-//                    upperIndex = currentIndex - 1
-//                } else {
-//                    lowerIndex = currentIndex + 1
-//                }
-//            }
-//        }
-//    }
-
     final func generateVerts() {
         let translation: [Float] = [0, 0]
 
         var _: [Float] = []
         colorData = []
 
-//         if cachedItems[playbackEndTimestamp] == nil {
-//             vertexData.removeAll(keepingCapacity: true)
-//             colorData.removeAll(keepingCapacity: true)
-//             shapeIndex.removeAll(keepingCapacity: true) // clear this or else render() will loop infinitely
-
         pointBuffers.removeAll(keepingCapacity: false)
-
-        // let bezierOptions = BezierTesselationOptions(curveAngleToleranceEpsilon: 0.3, mAngleTolerance: 0.02, mCuspLimit: 0.0, miterLimit: 1.0, scale: 100)
 
         let currentTime = getCurrentTimestamp()
 
@@ -367,26 +341,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             // if shape.notInWindow() { return }
 
             let start = 0
-            var end = 0
-
-//            let searchIndex: Int = getIndex(currentTime)
-            print("searchIndex: \(shape.getIndex(timestamp: currentTime))")
-
-//            end = searchIndex
-            /*
-                         for index in stride(from: 0, to: shape.timestamp.count, by: 2) {
-                             let timestamp = shape.timestamp[index]
-             //                print("timestamp: \(timestamp), currentTime: \(currentTime), index: \(index), timestamp - currentTime: \(timestamp - currentTime)")
-
-                              if timestamp < currentTime { continue }
-                             end = index
-
-                         }
-                         */
-
-            if end == 0 {
-                end = shape.geometry.count - 2
-            }
+            let end = shape.getIndex(timestamp: currentTime) * 2
 
             if start == end { continue }
 
@@ -394,22 +349,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             let pointies: [Float] = Array(shape.geometry[start ..< Int(end)])
 
             if pointies.count == 0 { continue }
-            let pb = device.makeBuffer(
-                bytes: pointies,
-                length: pointies.count * 4, //  MemoryLayout.size(ofValue: pointies[0]) = 4
-                options: .storageModeShared
-            )!
-            pointBuffers.append(pb)
+            if shape.renderBuffer != nil {
+                pointBuffers.append(shape.renderBuffer)
+            }
         }
-
-//             cachedItems[playbackEndTimestamp] = CachedFrame(vertexData: vertexData, colorData: colorData, shapeIndex: shapeIndex, translation: translation)
-//         } else {
-//             guard let ci = cachedItems[playbackEndTimestamp] else { return }
-//             vertexData = ci.vertexData
-//             colorData = ci.colorData
-//             shapeIndex = ci.shapeIndex
-//             translation = ci.translation
-//         }
 
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: 4), options: .storageModeShared)
 

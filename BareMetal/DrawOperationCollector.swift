@@ -7,14 +7,21 @@
 //
 
 import Foundation
+import Metal
 
 class Shape {
     var geometry: [Float] = []
     var timestamp: [Int64] = []
+    var renderBuffer: MTLBuffer!
 
-    func addShape(point: [Float], timestamp: Int64) {
+    func addShape(point: [Float], timestamp: Int64, device: MTLDevice) {
         geometry.append(contentsOf: point)
         self.timestamp.append(timestamp)
+        renderBuffer = device.makeBuffer(
+            bytes: geometry,
+            length: geometry.count * 4,
+            options: .storageModeShared
+        )
     }
 
     func getIndex(timestamp: Int64) -> Int {
@@ -48,18 +55,23 @@ enum PenState {
 class DrawOperationCollector {
     var shapeList: [Shape] = []
     var provisionalShapeIndex = 0
+    var device: MTLDevice
 
     var penState: PenState = .down
 
+    init(device: MTLDevice) {
+        self.device = device
+    }
+
     func addOp(_ op: DrawOperation) {
+        print(op)
         if op.type == "PenDown" {
             penState = .down
             shapeList.append(Shape())
         } else if op.type == "Point", penState == .down {
             let lastShape = shapeList[shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.geometry.append(contentsOf: pointOp.point)
-            lastShape.timestamp.append(pointOp.timestamp)
+            lastShape.addShape(point: pointOp.point, timestamp: pointOp.timestamp, device: device)
         } else if op.type == "PenUp" {
             penState = .up
         }

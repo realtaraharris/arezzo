@@ -10,6 +10,9 @@
 		501C58F024FEC273001972F1 /* ToolbarEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501C58EF24FEC273001972F1 /* ToolbarEx.swift */; };
 		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
 		5047171224F0B056004B0B91 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5047171124F0B056004B0B91 /* Helpers.swift */; };
+		505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505074342531A73D0011C9C9 /* BareMetalTests.swift */; };
+		5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
+		5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 		5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F76F24D40F06004E7247 /* AudioPlayer.swift */; };
 		5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77224D40F06004E7247 /* RecordingDataModel.swift */; };
 		5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77324D40F06004E7247 /* AudioRecorder.swift */; };
@@ -39,11 +42,24 @@
 		50FF3A7524E6231500D985FD /* UIExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A7424E6231500D985FD /* UIExtensions.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		505074372531A73D0011C9C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50C2A6F224A67F87000F3B93 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 50C2A6F924A67F87000F3B93;
+			remoteInfo = BareMetal;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		501C58EF24FEC273001972F1 /* ToolbarEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarEx.swift; sourceTree = "<group>"; };
 		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
 		5047171124F0B056004B0B91 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		505074322531A73D0011C9C9 /* BareMetalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		505074342531A73D0011C9C9 /* BareMetalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalTests.swift; sourceTree = "<group>"; };
+		505074362531A73D0011C9C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5059F76F24D40F06004E7247 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		5059F77224D40F06004E7247 /* RecordingDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingDataModel.swift; sourceTree = "<group>"; };
 		5059F77324D40F06004E7247 /* AudioRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
@@ -80,6 +96,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5050742F2531A73D0011C9C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5060DB8D24C273FE00940927 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -105,6 +128,15 @@
 				50C2A70324A67F87000F3B93 /* Main.storyboard */,
 			);
 			path = Storyboard;
+			sourceTree = "<group>";
+		};
+		505074332531A73D0011C9C9 /* BareMetalTests */ = {
+			isa = PBXGroup;
+			children = (
+				505074342531A73D0011C9C9 /* BareMetalTests.swift */,
+				505074362531A73D0011C9C9 /* Info.plist */,
+			);
+			path = BareMetalTests;
 			sourceTree = "<group>";
 		};
 		5059F76E24D40F06004E7247 /* Audio */ = {
@@ -137,6 +169,7 @@
 			children = (
 				50C2A6FC24A67F87000F3B93 /* BareMetal */,
 				5060DB9124C273FE00940927 /* BareMetal.app */,
+				505074332531A73D0011C9C9 /* BareMetalTests */,
 				50C2A6FB24A67F87000F3B93 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -146,6 +179,7 @@
 			children = (
 				50C2A6FA24A67F87000F3B93 /* BareMetal.app */,
 				5060DB9024C273FE00940927 /* BareMetal.app.app */,
+				505074322531A73D0011C9C9 /* BareMetalTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -191,6 +225,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		505074312531A73D0011C9C9 /* BareMetalTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5050743B2531A73D0011C9C9 /* Build configuration list for PBXNativeTarget "BareMetalTests" */;
+			buildPhases = (
+				5050742E2531A73D0011C9C9 /* Sources */,
+				5050742F2531A73D0011C9C9 /* Frameworks */,
+				505074302531A73D0011C9C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				505074382531A73D0011C9C9 /* PBXTargetDependency */,
+			);
+			name = BareMetalTests;
+			productName = BareMetalTests;
+			productReference = 505074322531A73D0011C9C9 /* BareMetalTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		5060DB8F24C273FE00940927 /* BareMetal.app */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5060DB9D24C2740000940927 /* Build configuration list for PBXNativeTarget "BareMetal.app" */;
@@ -231,10 +283,14 @@
 		50C2A6F224A67F87000F3B93 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1130;
+				LastSwiftUpdateCheck = 1200;
 				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Max Harris";
 				TargetAttributes = {
+					505074312531A73D0011C9C9 = {
+						CreatedOnToolsVersion = 12.0.1;
+						TestTargetID = 50C2A6F924A67F87000F3B93;
+					};
 					5060DB8F24C273FE00940927 = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
@@ -258,11 +314,19 @@
 			targets = (
 				50C2A6F924A67F87000F3B93 /* BareMetal */,
 				5060DB8F24C273FE00940927 /* BareMetal.app */,
+				505074312531A73D0011C9C9 /* BareMetalTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		505074302531A73D0011C9C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5060DB8E24C273FE00940927 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -285,6 +349,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5050742E2531A73D0011C9C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */,
+				5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */,
+				505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5060DB8C24C273FE00940927 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -326,6 +400,14 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		505074382531A73D0011C9C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 50C2A6F924A67F87000F3B93 /* BareMetal */;
+			targetProxy = 505074372531A73D0011C9C9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXVariantGroup section */
 		5060DB9824C2740000940927 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
@@ -354,6 +436,48 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		505074392531A73D0011C9C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2LEWKHUL9;
+				INFOPLIST_FILE = BareMetalTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BareMetal.app/BareMetal";
+			};
+			name = Debug;
+		};
+		5050743A2531A73D0011C9C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2LEWKHUL9;
+				INFOPLIST_FILE = BareMetalTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BareMetal.app/BareMetal";
+			};
+			name = Release;
+		};
 		5060DB9E24C2740000940927 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -564,6 +688,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5050743B2531A73D0011C9C9 /* Build configuration list for PBXNativeTarget "BareMetalTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				505074392531A73D0011C9C9 /* Debug */,
+				5050743A2531A73D0011C9C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5060DB9D24C2740000940927 /* Build configuration list for PBXNativeTarget "BareMetal.app" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
