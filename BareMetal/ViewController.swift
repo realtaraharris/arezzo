@@ -37,10 +37,10 @@ class RenderedShape {
 class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
-    var vertexBuffer: MTLBuffer!
+    var segmentVertexBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
-    var indexBuffer: MTLBuffer!
+    var segmentIndexBuffer: MTLBuffer!
     var pointBuffer: MTLBuffer!
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
@@ -257,17 +257,15 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-//    func circleGeometry(resolution) {
-//      let position = [[0, 0]]
-//      for (wedge = 0; wedge <= resolution; wedge++) {
-//        let theta = (2 * Math.PI * wedge) / resolution
-//        position.append([0.5 * Math.cos(theta), 0.5 * Math.sin(theta)])
-//      }
-//      return {
-//        buffer: regl.buffer(position),
-//        count: position.length
-//      }
-//    }
+    func circleGeometry(resolution: Int) -> [Float] {
+        var position: [Float] = [0.0, 0.0]
+        for wedge in 0 ..< resolution {
+            let theta: Float = (2.0 * Float.pi * Float(wedge)) / Float(resolution)
+            position.append(0.5 * cos(theta))
+            position.append(0.5 * sin(theta))
+        }
+        return position
+    }
 
     final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
@@ -393,19 +391,22 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-        let vertexData: [Float] = [
+        let segmentVertices: [Float] = [
             0.0, -0.5,
             1.0, -0.5,
             1.0, 0.5,
             0.0, 0.5,
         ]
-        let indexData: [UInt32] = [3, 2, 1, 3, 0]
-        indexBuffer = device.makeBuffer(bytes: indexData, length: indexData.count * MemoryLayout.size(ofValue: indexData[0]), options: .storageModeShared)
+        let segmentIndices: [UInt32] = [3, 2, 1, 3, 0]
+        segmentIndexBuffer = device.makeBuffer(bytes: segmentIndices,
+                                               length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
+                                               options: .storageModeShared)
+        segmentVertexBuffer = device.makeBuffer(bytes: segmentVertices,
+                                                length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
+                                                options: .storageModeShared)
 
-        let dataSize = vertexData.count * MemoryLayout.size(ofValue: vertexData[0])
-        vertexBuffer = device.makeBuffer(bytes: vertexData,
-                                         length: dataSize,
-                                         options: .storageModeShared)
+        let capVertices: [Float] = circleGeometry(resolution: 4)
+        let capIndices: [UInt32] = [3, 2, 1, 3, 0]
 
         generateVerts()
 
@@ -413,16 +414,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setRenderPipelineState(renderPipelineState)
 
-        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
         renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
         renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
-        // 24 points -> 2 line segment instances
-        // 16 points -> 1 line segment instance
-        // 8 points -> 0  line segment instances
-        // 24 / 8 - 1 = 2
-        // 16 / 8 - 1 = 1
-        // 8 / 8 - 1 = 0
         for index in 0 ..< pointBuffers.count {
             let rs: RenderedShape = pointBuffers[index]
             renderCommandEncoder.setVertexBuffer(rs.renderBuffer, offset: 0, index: 3)
@@ -430,7 +425,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 type: .triangleStrip,
                 indexCount: 5,
                 indexType: MTLIndexType.uint32,
-                indexBuffer: indexBuffer,
+                indexBuffer: segmentIndexBuffer,
                 indexBufferOffset: 0,
                 // the number of instances should be even and one less than
                 // the number of points
