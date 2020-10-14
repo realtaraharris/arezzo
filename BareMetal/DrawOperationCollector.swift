@@ -64,7 +64,6 @@ class DrawOperationCollector {
     }
 
     func addOp(_ op: DrawOperation) {
-        print(op)
         if op.type == "PenDown" {
             penState = .down
             shapeList.append(Shape())

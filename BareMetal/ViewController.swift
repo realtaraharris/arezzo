@@ -22,6 +22,18 @@ struct CachedFrame {
     var translation: [Float]
 }
 
+class RenderedShape {
+    var startIndex: Int
+    var endIndex: Int
+    var renderBuffer: MTLBuffer
+
+    init(startIndex: Int, endIndex: Int, renderBuffer: MTLBuffer) {
+        self.startIndex = startIndex
+        self.endIndex = endIndex
+        self.renderBuffer = renderBuffer
+    }
+}
+
 class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
@@ -34,7 +46,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var cubicBezierBuffer: MTLBuffer!
     var vertexColorBuffer: MTLBuffer!
 
-    var pointBuffers: [MTLBuffer] = []
+    var pointBuffers: [RenderedShape] = []
 
     var commandQueue: MTLCommandQueue!
     var renderPipelineState: MTLRenderPipelineState!
@@ -350,7 +362,11 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             if pointies.count == 0 { continue }
             if shape.renderBuffer != nil {
-                pointBuffers.append(shape.renderBuffer)
+                pointBuffers.append(RenderedShape(
+                    startIndex: start,
+                    endIndex: end,
+                    renderBuffer: shape.renderBuffer
+                ))
             }
         }
 
@@ -407,9 +423,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         // 24 / 8 - 1 = 2
         // 16 / 8 - 1 = 1
         // 8 / 8 - 1 = 0
-//        if (pointBuffers.count > 0) {
         for index in 0 ..< pointBuffers.count {
-            renderCommandEncoder.setVertexBuffer(pointBuffers[index], offset: 0, index: 3)
+            let rs: RenderedShape = pointBuffers[index]
+            renderCommandEncoder.setVertexBuffer(rs.renderBuffer, offset: 0, index: 3)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
                 indexCount: 5,
@@ -418,10 +434,9 @@ class ViewController: UIViewController, ToolbarDelegate {
                 indexBufferOffset: 0,
                 // the number of instances should be even and one less than
                 // the number of points
-                instanceCount: (pointBuffers[index].length / 8) - 1
+                instanceCount: (rs.endIndex - rs.startIndex) / 2 - 1
             )
         }
-//        }
 
         renderCommandEncoder.endEncoding()
         commandBuffer.present(drawable)
