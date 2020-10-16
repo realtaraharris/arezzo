@@ -38,9 +38,12 @@ class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
     var segmentVertexBuffer: MTLBuffer!
+    var segmentIndexBuffer: MTLBuffer!
+    var capVertexBuffer: MTLBuffer!
+    var capIndexBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
-    var segmentIndexBuffer: MTLBuffer!
+
     var pointBuffer: MTLBuffer!
     var quadraticBezierBuffer: MTLBuffer!
     var cubicBezierBuffer: MTLBuffer!
@@ -49,7 +52,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var pointBuffers: [RenderedShape] = []
 
     var commandQueue: MTLCommandQueue!
-    var renderPipelineState: MTLRenderPipelineState!
+    var segmentRenderPipelineState: MTLRenderPipelineState!
+    var capRenderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
     var shapeIndex: [Int] = []
     var vertexCount: Int = 0
@@ -120,35 +124,17 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         device = MTLCreateSystemDefaultDevice()
 
-//        let speedScale: Int64 = 100_000
-//        let firstTimestamp = getCurrentTimestamp()
         drawOperationCollector = DrawOperationCollector(device: device)
-//        drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0, id: 0))
-//        drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: 0, id: 1))
-//        drawOperationCollector.addOp(Point(point: [316.145, 420.13748], timestamp: 0, id: 2))
-//        drawOperationCollector.addOp(Point(point: [841.316, 592.8283], timestamp: 0, id: 3))
-//        drawOperationCollector.addOp(PenUp(timestamp: 0, id: 4))
-//        drawOperations = [
-//            PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 0),
-//            Line(start: [200, 10], end: [300, 300], timestamp: 0),
-//            Line(start: [20, 200], end: [600, 90], timestamp: 0),
-//            QuadraticBezier(start: [0, 200], end: [1200, 200], control: [600, 0], timestamp: 0),
-//            CubicBezier(start: [10, 20], end: [0, 900], control1: [50, 50], control2: [100, 100], timestamp: 0),
-//            Line(start: [-0.68938684, -1], end: [-0.68938684, 0.14252508], timestamp: 0),
-//            QuadraticBezier(start: [-0.68938684, -0.14252508], end: [-0.6803631, -0.14252508], control: [-0.68938684, -0.14252508], timestamp: firstTimestamp + 1 * speedScale),
-//            QuadraticBezier(start: [-0.6803631, -0.14252508], end: [-0.6278378, -0.13724208], control: [-0.6713394, -0.14252508], timestamp: firstTimestamp + 2 * speedScale),
-//            QuadraticBezier(start: [-0.6278378, -0.13724208], end: [-0.25760883, -0.1199224], control: [-0.5843361, -0.13195896], timestamp: firstTimestamp + 3 * speedScale),
-//            QuadraticBezier(start: [-0.25760883, -0.1199224], end: [0.0788641, -0.10788584], control: [0.0691185, -0.10788584], timestamp: firstTimestamp + 1 * speedScale),
-//            QuadraticBezier(start: [0.0788641, -0.10788584], end: [0.1432414, -0.11152661], control: [0.088609695, -0.10788584], timestamp: firstTimestamp + 4 * speedScale),
-//            QuadraticBezier(start: [0.1432414, -0.11152661], end: [0.19852078, -0.11516762], control: [0.19787312, -0.11516762], timestamp: firstTimestamp + 5 * speedScale),
-//            QuadraticBezier(start: [0.24, 0.3], end: [0.4, 0.4], control: [0.2, 0.6], timestamp: 1_595_985_214_348),
-//            PenUp(timestamp: 0),
-//            PenDown(color: [1.0, 0.0, 0.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: 1_595_985_214_351),
-//            CubicBezier(start: veryRandomVect(), end: veryRandomVect(), control1: veryRandomVect(), control2: veryRandomVect(), timestamp: 1_595_985_214_390),
-//            PenUp(timestamp: 1_595_985_214_395),
-//        ]
+        drawOperationCollector.beginProvisionalOps()
+        drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: Date().toMilliseconds(), id: 0))
+        drawOperationCollector.addOp(Point(point: [310, 645], timestamp: Date().toMilliseconds(), id: 1))
+        drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: Date().toMilliseconds(), id: 1))
+        // drawOperationCollector.addOp(Point(point: [800, 100], timestamp: Date().toMilliseconds(), id: 1))
+        drawOperationCollector.addOp(PenUp(timestamp: Date().toMilliseconds(), id: 4))
 
-//        newToolbar = ToolbarEx()
+        drawOperationCollector.commitProvisionalOps()
+
+        // newToolbar = ToolbarEx()
 
         super.init(coder: aDecoder)
     }
@@ -168,6 +154,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         let screenScale = UIScreen.main.scale
         metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
         view.layer.addSublayer(metalLayer)
+
+        setupRender()
 
         // newToolbar.delegate = self
         // view.addSubview(newToolbar.view)
@@ -218,10 +206,15 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
-        let pipelineStateDescriptor = MTLRenderPipelineDescriptor()
-        pipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "basic_vertex")
-        pipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
-        pipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+        let segmentPipelineStateDescriptor = MTLRenderPipelineDescriptor()
+        segmentPipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "segment_vertex")
+        segmentPipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
+        segmentPipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+
+        let capPipelineStateDescriptor = MTLRenderPipelineDescriptor()
+        capPipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "cap_vertex")
+        capPipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
+        capPipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
 
         let vertexDesc = MTLVertexDescriptor()
 
@@ -232,10 +225,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         vertexDesc.layouts[0].stepFunction = MTLVertexStepFunction.perVertex
         vertexDesc.layouts[0].stride = MemoryLayout<Float>.stride * 4
 
-        pipelineStateDescriptor.vertexDescriptor = vertexDesc
+        segmentPipelineStateDescriptor.vertexDescriptor = vertexDesc
+        capPipelineStateDescriptor.vertexDescriptor = vertexDesc
 
         do {
-            try renderPipelineState = device.makeRenderPipelineState(descriptor: pipelineStateDescriptor)
+            try segmentRenderPipelineState = device.makeRenderPipelineState(descriptor: segmentPipelineStateDescriptor)
+            try capRenderPipelineState = device.makeRenderPipelineState(descriptor: capPipelineStateDescriptor)
         } catch {
             print("Failed to create pipeline state, error \(error)")
         }
@@ -257,12 +252,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-    func circleGeometry(resolution: Int) -> [Float] {
+    func circleGeometry(resolution: Int, SCALE: Float) -> [Float] {
         var position: [Float] = [0.0, 0.0]
         for wedge in 0 ..< resolution {
             let theta: Float = (2.0 * Float.pi * Float(wedge)) / Float(resolution)
-            position.append(0.5 * cos(theta))
-            position.append(0.5 * sin(theta))
+            position.append(0.5 * cos(theta) * SCALE)
+            position.append(0.5 * sin(theta) * SCALE)
         }
         return position
     }
@@ -355,10 +350,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             if start == end { continue }
 
-            // let's add the points!
-            let pointies: [Float] = Array(shape.geometry[start ..< Int(end)])
-
-            if pointies.count == 0 { continue }
             if shape.renderBuffer != nil {
                 pointBuffers.append(RenderedShape(
                     startIndex: start,
@@ -383,6 +374,31 @@ class ViewController: UIViewController, ToolbarDelegate {
         memcpy(uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
     }
 
+    final func setupRender() {
+        let segmentVertices: [Float] = [
+            0.0, -0.5,
+            1.0, -0.5,
+            1.0, 0.5,
+            0.0, 0.5,
+        ]
+        let segmentIndices: [UInt32] = [3, 2, 1, 3, 0]
+        segmentVertexBuffer = device.makeBuffer(bytes: segmentVertices,
+                                                length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
+                                                options: .storageModeShared)
+        segmentIndexBuffer = device.makeBuffer(bytes: segmentIndices,
+                                               length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
+                                               options: .storageModeShared)
+
+        let capVertices: [Float] = circleGeometry(resolution: 12, SCALE: 10)
+        let capIndices: [UInt32] = [12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]
+        capVertexBuffer = device.makeBuffer(bytes: capVertices,
+                                            length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
+                                            options: .storageModeShared)
+        capIndexBuffer = device.makeBuffer(bytes: capIndices,
+                                           length: capIndices.count * MemoryLayout.size(ofValue: capIndices[0]),
+                                           options: .storageModeShared)
+    }
+
     final func render() {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
@@ -391,34 +407,18 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-        let segmentVertices: [Float] = [
-            0.0, -0.5,
-            1.0, -0.5,
-            1.0, 0.5,
-            0.0, 0.5,
-        ]
-        let segmentIndices: [UInt32] = [3, 2, 1, 3, 0]
-        segmentIndexBuffer = device.makeBuffer(bytes: segmentIndices,
-                                               length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
-                                               options: .storageModeShared)
-        segmentVertexBuffer = device.makeBuffer(bytes: segmentVertices,
-                                                length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
-                                                options: .storageModeShared)
-
-        let capVertices: [Float] = circleGeometry(resolution: 4)
-        let capIndices: [UInt32] = [3, 2, 1, 3, 0]
-
         generateVerts()
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        renderCommandEncoder.setRenderPipelineState(renderPipelineState)
-
-        renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
-        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
-        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
         for index in 0 ..< pointBuffers.count {
+            renderCommandEncoder.setRenderPipelineState(segmentRenderPipelineState)
+
+            renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
+            renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
+            renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
+
             let rs: RenderedShape = pointBuffers[index]
             renderCommandEncoder.setVertexBuffer(rs.renderBuffer, offset: 0, index: 3)
             renderCommandEncoder.drawIndexedPrimitives(
@@ -427,9 +427,18 @@ class ViewController: UIViewController, ToolbarDelegate {
                 indexType: MTLIndexType.uint32,
                 indexBuffer: segmentIndexBuffer,
                 indexBufferOffset: 0,
-                // the number of instances should be even and one less than
-                // the number of points
-                instanceCount: (rs.endIndex - rs.startIndex) / 2 - 1
+                instanceCount: (rs.endIndex - rs.startIndex) / 2
+            )
+
+            renderCommandEncoder.setRenderPipelineState(capRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(capVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.drawIndexedPrimitives(
+                type: .triangleStrip,
+                indexCount: 12,
+                indexType: MTLIndexType.uint32,
+                indexBuffer: capIndexBuffer,
+                indexBufferOffset: 0,
+                instanceCount: (rs.endIndex - rs.startIndex) / 2 + 1 // + 1 for the last cap
             )
         }
 
