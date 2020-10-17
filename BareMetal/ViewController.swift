@@ -125,14 +125,15 @@ class ViewController: UIViewController, ToolbarDelegate {
         device = MTLCreateSystemDefaultDevice()
 
         drawOperationCollector = DrawOperationCollector(device: device)
-        drawOperationCollector.beginProvisionalOps()
-        drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: Date().toMilliseconds(), id: 0))
-        drawOperationCollector.addOp(Point(point: [310, 645], timestamp: Date().toMilliseconds(), id: 1))
-        drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: Date().toMilliseconds(), id: 1))
-        // drawOperationCollector.addOp(Point(point: [800, 100], timestamp: Date().toMilliseconds(), id: 1))
-        drawOperationCollector.addOp(PenUp(timestamp: Date().toMilliseconds(), id: 4))
-
-        drawOperationCollector.commitProvisionalOps()
+        /*
+         drawOperationCollector.beginProvisionalOps()
+         drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: Date().toMilliseconds(), id: 0))
+         drawOperationCollector.addOp(Point(point: [310, 645], timestamp: Date().toMilliseconds(), id: 1))
+         drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: Date().toMilliseconds(), id: 1))
+         drawOperationCollector.addOp(Point(point: [800, 100], timestamp: Date().toMilliseconds(), id: 1))
+         drawOperationCollector.addOp(PenUp(timestamp: Date().toMilliseconds(), id: 4))
+         drawOperationCollector.commitProvisionalOps()
+         */
 
         // newToolbar = ToolbarEx()
 
@@ -508,33 +509,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         timestamps.append(timestamp)
         playbackEndTimestamp = timestamp
 
-//        if shouldDrawStraight {
-//        } else {
-
         if mode == "draw" {
-            let midPoints = getMidPoints()
-            var start = [Float(midPoints.0.x), Float(midPoints.0.y)]
-            var control = [Float(previousPoint.x), Float(previousPoint.y)]
-            var end = [Float(midPoints.1.x), Float(midPoints.1.y)]
-
-            start[0] -= translation[0]
-            start[1] -= translation[1]
-
-            control[0] -= translation[0]
-            control[1] -= translation[1]
-
-            end[0] -= translation[0]
-            end[1] -= translation[1]
-
-            if start[0] == control[0], start[1] == control[1] {
-                return
-            }
-
-            /// CRITICAL here
             let currentPointEx = touch.location(in: view)
-//            print("currentPointEx:", currentPointEx.x, currentPointEx.y)
             drawOperationCollector.addOp(Point(point: [Float(currentPointEx.x), Float(currentPointEx.y)], timestamp: timestamp, id: getNextId()))
-//            drawOperationCollector.addOp(QuadraticBezier(start: start, end: end, control: control, timestamp: timestamp, id: getNextId()))
         } else if mode == "pan" {
             let midPoints = getMidPoints()
             let start = [Float(midPoints.0.x), Float(midPoints.0.y)]
