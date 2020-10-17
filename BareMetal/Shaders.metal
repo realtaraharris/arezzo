@@ -42,7 +42,7 @@ vertex VertexOut segment_vertex(
 ) {
     VertexOut vo;
     
-    const float lineWidth = 10.0; // TODO: move into uniforms
+    const float lineWidth = 5.0; // TODO: move into uniforms
 
     const float4 color = float4(0.0, 1.0, 0.0, 1.0);
     // colors[instanceId];
@@ -52,7 +52,6 @@ vertex VertexOut segment_vertex(
     float2 pointB = points[instanceId + 1];
     float2 xBasis = pointB - pointA;
     float2 yBasis = normalize(float2(-xBasis.y, xBasis.x));
-//    float2 point = float2(position.x + pointA.x, position.y + pointA.y);
     float2 point = pointA + xBasis * position.x + yBasis * lineWidth * position.y;
 
     vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
@@ -70,19 +69,12 @@ vertex VertexOut cap_vertex(
     const uint instanceId [[instance_id]]
 ) {
     VertexOut vo;
-    
-    const float lineWidth = 10.0; // TODO: move into uniforms
 
     const float4 color = float4(0.0, 1.0, 0.0, 1.0);
     // colors[instanceId];
     const float2 position = vertex_array[vid];
 
-    float2 pointA = points[instanceId];
-    float2 pointB = points[instanceId + 1];
-    float2 xBasis = pointB - pointA;
-    float2 yBasis = normalize(float2(-xBasis.y, xBasis.x));
-    float2 point = float2(position.x + pointA.x, position.y + pointA.y);
-//    float2 point = pointA + xBasis * position.x + yBasis * lineWidth * position.y;
+    float2 point = points[instanceId] + position;
 
     vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
     vo.color = color;
