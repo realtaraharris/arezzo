@@ -326,38 +326,26 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     final func generateVerts() {
         let translation: [Float] = [0, 0]
-
-        var _: [Float] = []
         colorData = []
-
         pointBuffers.removeAll(keepingCapacity: false)
 
-        let currentTime = getCurrentTimestamp()
-
-        var _: Bool = false
         var _: [Float] = [0.0, 1.0, 1.0, 1.0]
         var _: Float = DEFAULT_STROKE_THICKNESS
 
-        var _: [Float] = []
-        var _: [Float] = []
         for shape in drawOperationCollector.shapeList {
-            if shape.timestamp.count == 0 { return }
-            if shape.timestamp[0] > currentTime { return }
-
-            // if shape.notInWindow() { return }
+            if shape.timestamp.count == 0 || shape.renderBuffer == nil { continue }
+            // if shape.notInWindow() { continue }
 
             let start = 0
-            let end = shape.getIndex(timestamp: currentTime) * 2
+            let end = shape.getIndex(timestamp: playbackEndTimestamp)
 
-            if start == end { continue }
+            if start > end || start == end { continue }
 
-            if shape.renderBuffer != nil {
-                pointBuffers.append(RenderedShape(
-                    startIndex: start,
-                    endIndex: end,
-                    renderBuffer: shape.renderBuffer
-                ))
-            }
+            pointBuffers.append(RenderedShape(
+                startIndex: start,
+                endIndex: end,
+                renderBuffer: shape.renderBuffer
+            ))
         }
 
         colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: 4), options: .storageModeShared)
@@ -412,23 +400,23 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
+        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
+        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
         for index in 0 ..< pointBuffers.count {
-            renderCommandEncoder.setRenderPipelineState(segmentRenderPipelineState)
-
-            renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
-            renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
-            renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
-
             let rs: RenderedShape = pointBuffers[index]
+            let instanceCount = (rs.endIndex - rs.startIndex) / 2
             renderCommandEncoder.setVertexBuffer(rs.renderBuffer, offset: 0, index: 3)
+
+            renderCommandEncoder.setRenderPipelineState(segmentRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
                 indexCount: 5,
                 indexType: MTLIndexType.uint32,
                 indexBuffer: segmentIndexBuffer,
                 indexBufferOffset: 0,
-                instanceCount: (rs.endIndex - rs.startIndex) / 2
+                instanceCount: instanceCount
             )
 
             renderCommandEncoder.setRenderPipelineState(capRenderPipelineState)
@@ -439,7 +427,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 indexType: MTLIndexType.uint32,
                 indexBuffer: capIndexBuffer,
                 indexBufferOffset: 0,
-                instanceCount: (rs.endIndex - rs.startIndex) / 2 + 1 // + 1 for the last cap
+                instanceCount: instanceCount // + 1 for the last cap
             )
         }
 

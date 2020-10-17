@@ -33,10 +33,12 @@ class Shape {
 
         while true {
             let currentIndex = (lowerIndex + upperIndex) / 2
+
+            // return values are multiplied by 2 because there are two components to each poinnt in the renderBuffer
             if inputArr[currentIndex] == searchItem {
-                return currentIndex
+                return currentIndex * 2
             } else if lowerIndex > upperIndex {
-                return upperIndex
+                return upperIndex * 2
             } else {
                 if inputArr[currentIndex] > searchItem {
                     upperIndex = currentIndex - 1
