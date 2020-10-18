@@ -44,15 +44,15 @@ class BareMetalTests: XCTestCase {
 
     func testCircle() {
         let capResolutionOdd = 7
-        let capVerticesOdd: [Float] = circleGeometry(resolution: capResolutionOdd)
-        let capIndicesOdd: [UInt32] = shapeIndices(resolution: capResolutionOdd)
+        let capVerticesOdd: [Float] = circleGeometry(edges: capResolutionOdd)
+        let capIndicesOdd: [UInt32] = shapeIndices(edges: capResolutionOdd)
 
         XCTAssertEqual(capVerticesOdd, [0.5, 0.0, 0.31174493, 0.39091572, -0.111260414, 0.48746398, -0.45048442, 0.21694191, -0.45048448, -0.21694177, -0.111260734, -0.4874639, 0.31174484, -0.3909158])
         XCTAssertEqual(capIndicesOdd, [6, 0, 5, 1, 4, 2, 3])
 
         let capResolutionEven = 8
-        let capVerticesEven: [Float] = circleGeometry(resolution: capResolutionEven)
-        let capIndicesEven: [UInt32] = shapeIndices(resolution: capResolutionEven)
+        let capVerticesEven: [Float] = circleGeometry(edges: capResolutionEven)
+        let capIndicesEven: [UInt32] = shapeIndices(edges: capResolutionEven)
 
         XCTAssertEqual(capVerticesEven, [0.5, 0.0, 0.3535534, 0.35355338, 3.774895e-08, 0.5, -0.35355338, 0.35355338, -0.5, 7.54979e-08, -0.3535535, -0.3535533, 5.9624403e-09, -0.5, 0.35355332, -0.35355344])
         XCTAssertEqual(capIndicesEven, [7, 0, 6, 1, 5, 2, 4, 3])

@@ -110,7 +110,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
 //    private var newToolbar: ToolbarEx
     private var id: Int64 = 0
-    private let capResolution = 9
+    private let capEdges = 9
 
     private var points: [[Float]] = []
     private var colorData: [Float] = []
@@ -357,11 +357,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     final func setupRender() {
         let segmentVertices: [Float] = [
             0.0, -0.5,
-            1.0, -0.5,
-            1.0, 0.5,
             0.0, 0.5,
+            1.0, 0.5,
+            1.0, -0.5,
         ]
-        let segmentIndices: [UInt32] = [3, 2, 1, 3, 0]
+        let segmentIndices: [UInt32] = shapeIndices(edges: 4)
         segmentVertexBuffer = device.makeBuffer(bytes: segmentVertices,
                                                 length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
                                                 options: .storageModeShared)
@@ -369,9 +369,8 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
                                                options: .storageModeShared)
 
-        let capVertices: [Float] = circleGeometry(resolution: capResolution)
-        let capIndices: [UInt32] = shapeIndices(resolution: capResolution)
-
+        let capVertices: [Float] = circleGeometry(edges: capEdges)
+        let capIndices: [UInt32] = shapeIndices(edges: capEdges)
         capVertexBuffer = device.makeBuffer(bytes: capVertices,
                                             length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
                                             options: .storageModeShared)
@@ -404,7 +403,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
-                indexCount: 5,
+                indexCount: 4,
                 indexType: MTLIndexType.uint32,
                 indexBuffer: segmentIndexBuffer,
                 indexBufferOffset: 0,
@@ -415,7 +414,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             renderCommandEncoder.setVertexBuffer(capVertexBuffer, offset: 0, index: 0)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
-                indexCount: capResolution,
+                indexCount: capEdges,
                 indexType: MTLIndexType.uint32,
                 indexBuffer: capIndexBuffer,
                 indexBufferOffset: 0,
