@@ -8,12 +8,12 @@
 
 import Foundation
 
-func circleGeometry(resolution: Int, SCALE: Float) -> [Float] {
+func circleGeometry(resolution: Int) -> [Float] {
     var position: [Float] = []
     for wedge in 0 ..< resolution {
         let theta: Float = (2.0 * Float.pi * Float(wedge)) / Float(resolution)
-        position.append(0.5 * cos(theta) * SCALE)
-        position.append(0.5 * sin(theta) * SCALE)
+        position.append(0.5 * cos(theta))
+        position.append(0.5 * sin(theta))
     }
     return position
 }

@@ -369,7 +369,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
                                                options: .storageModeShared)
 
-        let capVertices: [Float] = circleGeometry(resolution: capResolution, SCALE: 5)
+        let capVertices: [Float] = circleGeometry(resolution: capResolution)
         let capIndices: [UInt32] = shapeIndices(resolution: capResolution)
 
         capVertexBuffer = device.makeBuffer(bytes: capVertices,

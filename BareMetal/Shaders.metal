@@ -74,7 +74,7 @@ vertex VertexOut cap_vertex(
     // colors[instanceId];
     const float2 position = vertex_array[vid];
 
-    float2 point = points[instanceId] + position;
+    float2 point = points[instanceId] + position * 5;
 
     vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
     vo.color = color;
