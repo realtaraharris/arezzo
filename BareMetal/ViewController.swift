@@ -110,6 +110,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
 //    private var newToolbar: ToolbarEx
     private var id: Int64 = 0
+    private let capResolution = 9
 
     private var points: [[Float]] = []
     private var colorData: [Float] = []
@@ -253,16 +254,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-    func circleGeometry(resolution: Int, SCALE: Float) -> [Float] {
-        var position: [Float] = [0.0, 0.0]
-        for wedge in 0 ..< resolution {
-            let theta: Float = (2.0 * Float.pi * Float(wedge)) / Float(resolution)
-            position.append(0.5 * cos(theta) * SCALE)
-            position.append(0.5 * sin(theta) * SCALE)
-        }
-        return position
-    }
-
     final func veryRandomColor() -> [Float] {
         [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
          Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
@@ -378,8 +369,9 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
                                                options: .storageModeShared)
 
-        let capVertices: [Float] = circleGeometry(resolution: 12, SCALE: 5)
-        let capIndices: [UInt32] = [12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]
+        let capVertices: [Float] = circleGeometry(resolution: capResolution, SCALE: 5)
+        let capIndices: [UInt32] = shapeIndices(resolution: capResolution)
+
         capVertexBuffer = device.makeBuffer(bytes: capVertices,
                                             length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
                                             options: .storageModeShared)
@@ -423,11 +415,11 @@ class ViewController: UIViewController, ToolbarDelegate {
             renderCommandEncoder.setVertexBuffer(capVertexBuffer, offset: 0, index: 0)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
-                indexCount: 12,
+                indexCount: capResolution,
                 indexType: MTLIndexType.uint32,
                 indexBuffer: capIndexBuffer,
                 indexBufferOffset: 0,
-                instanceCount: instanceCount // + 1 for the last cap
+                instanceCount: instanceCount + 1 // + 1 for the last cap
             )
         }
 
