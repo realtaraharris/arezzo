@@ -437,8 +437,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
         commandBuffer.commit()
 
-        let captureManager = MTLCaptureManager.shared()
-        captureManager.stopCapture()
+//        let captureManager = MTLCaptureManager.shared()
+//        captureManager.stopCapture()
     }
 
     final func transform(_ point: [Float]) -> [Float] {
@@ -561,7 +561,9 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     @objc func gameloop() {
         autoreleasepool {
-            self.render()
+            if self.playing || self.recording {
+                self.render()
+            }
         }
     }
 }
