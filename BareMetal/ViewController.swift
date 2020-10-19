@@ -26,11 +26,13 @@ class RenderedShape {
     var startIndex: Int
     var endIndex: Int
     var geometryBuffer: MTLBuffer
+    var colorBuffer: MTLBuffer
 
-    init(startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer) {
+    init(startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer) {
         self.startIndex = startIndex
         self.endIndex = endIndex
         self.geometryBuffer = geometryBuffer
+        self.colorBuffer = colorBuffer
     }
 }
 
@@ -332,11 +334,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             pointBuffers.append(RenderedShape(
                 startIndex: start,
                 endIndex: end,
-                geometryBuffer: shape.geometryBuffer
+                geometryBuffer: shape.geometryBuffer,
+                colorBuffer: shape.colorBuffer
             ))
         }
-
-        colorBuffer = device.makeBuffer(bytes: colorData, length: colorData.count * MemoryLayout.size(ofValue: 4), options: .storageModeShared)
 
         self.translation = translation
 
@@ -388,13 +389,13 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        renderCommandEncoder.setVertexBuffer(colorBuffer, offset: 0, index: 1)
         renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
         for index in 0 ..< pointBuffers.count {
             let rs: RenderedShape = pointBuffers[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
             renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
+            renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
 
             renderCommandEncoder.setRenderPipelineState(segmentRenderPipelineState)
             renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
@@ -425,8 +426,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
         commandBuffer.commit()
 
-//        let captureManager = MTLCaptureManager.shared()
-//        captureManager.stopCapture()
+        let captureManager = MTLCaptureManager.shared()
+        captureManager.stopCapture()
     }
 
     final func transform(_ point: [Float]) -> [Float] {

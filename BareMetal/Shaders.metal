@@ -44,8 +44,7 @@ vertex VertexOut segment_vertex(
     
     const float lineWidth = 5.0; // TODO: move into uniforms
 
-    const float4 color = float4(0.0, 1.0, 0.0, 1.0);
-    // colors[instanceId];
+    const float4 color = colors[0];
     const float2 position = vertex_array[vid];
 
     float2 pointA = points[instanceId];
@@ -70,11 +69,10 @@ vertex VertexOut cap_vertex(
 ) {
     VertexOut vo;
 
-    const float4 color = float4(0.0, 1.0, 0.0, 1.0);
-    // colors[instanceId];
+    const float4 color = colors[0];
     const float2 position = vertex_array[vid];
 
-    float2 point = points[instanceId] + position * 5;
+    float2 point = points[instanceId] + position * 5.0; // TODO: move into uniforms
 
     vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
     vo.color = color;

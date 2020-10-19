@@ -13,18 +13,26 @@ class Shape {
     var geometry: [Float] = []
     var timestamp: [Int64] = []
     var geometryBuffer: MTLBuffer!
+    var colorBuffer: MTLBuffer!
 
-    func addShape(point: [Float], timestamp: Int64, device: MTLDevice) {
+    func addShape(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float]) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = geometry.count
-        if geometryCount >= 2,
+        if geometryCount == 0 {
+            colorBuffer = device.makeBuffer(
+                bytes: color,
+                length: color.count * 4,
+                options: .storageModeShared
+            )
+        } else if geometryCount >= 2,
             geometry[geometryCount - 2] == point[0],
             geometry[geometryCount - 1] == point[1] {
             return
         }
 
-        geometry.append(contentsOf: point)
         self.timestamp.append(timestamp)
+
+        geometry.append(contentsOf: point)
         geometryBuffer = device.makeBuffer(
             bytes: geometry,
             length: geometry.count * 4,
@@ -66,6 +74,7 @@ class DrawOperationCollector {
     var shapeList: [Shape] = []
     var provisionalShapeIndex = 0
     var device: MTLDevice
+    var activeColor: [Float] = []
 
     var penState: PenState = .down
 
@@ -75,12 +84,14 @@ class DrawOperationCollector {
 
     func addOp(_ op: DrawOperation) {
         if op.type == "PenDown" {
+            let penDownOp = op as! PenDown
             penState = .down
+            activeColor = penDownOp.color
             shapeList.append(Shape())
         } else if op.type == "Point", penState == .down {
             let lastShape = shapeList[shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.addShape(point: pointOp.point, timestamp: pointOp.timestamp, device: device)
+            lastShape.addShape(point: pointOp.point, timestamp: pointOp.timestamp, device: device, color: activeColor)
         } else if op.type == "PenUp" {
             penState = .up
         }

@@ -90,7 +90,7 @@ class ContentViewDelegate: ObservableObject {
         playing: Bool = false,
         recording: Bool = false,
         clear: Bool = false,
-        selectedColor: Color = Color.red,
+        selectedColor: Color = Color(red: 1.0, green: 0.0, blue: 0.0, opacity: 1.0),
         strokeWidth: Float = DEFAULT_STROKE_THICKNESS,
         mode _: String = "draw",
         uiRect _: [String: CGRect] = [:]
