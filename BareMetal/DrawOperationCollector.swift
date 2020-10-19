@@ -12,12 +12,12 @@ import Metal
 class Shape {
     var geometry: [Float] = []
     var timestamp: [Int64] = []
-    var renderBuffer: MTLBuffer!
+    var geometryBuffer: MTLBuffer!
 
     func addShape(point: [Float], timestamp: Int64, device: MTLDevice) {
         geometry.append(contentsOf: point)
         self.timestamp.append(timestamp)
-        renderBuffer = device.makeBuffer(
+        geometryBuffer = device.makeBuffer(
             bytes: geometry,
             length: geometry.count * 4,
             options: .storageModeShared
@@ -34,7 +34,7 @@ class Shape {
         while true {
             let currentIndex = (lowerIndex + upperIndex) / 2
 
-            // return values are multiplied by 2 because there are two components to each poinnt in the renderBuffer
+            // return values are multiplied by 2 because there are two components for each point in the geometryBuffer
             if inputArr[currentIndex] == searchItem {
                 return currentIndex * 2
             } else if lowerIndex > upperIndex {

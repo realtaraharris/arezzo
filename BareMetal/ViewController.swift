@@ -25,12 +25,12 @@ struct CachedFrame {
 class RenderedShape {
     var startIndex: Int
     var endIndex: Int
-    var renderBuffer: MTLBuffer
+    var geometryBuffer: MTLBuffer
 
-    init(startIndex: Int, endIndex: Int, renderBuffer: MTLBuffer) {
+    init(startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer) {
         self.startIndex = startIndex
         self.endIndex = endIndex
-        self.renderBuffer = renderBuffer
+        self.geometryBuffer = geometryBuffer
     }
 }
 
@@ -320,11 +320,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         colorData = []
         pointBuffers.removeAll(keepingCapacity: false)
 
-        var _: [Float] = [0.0, 1.0, 1.0, 1.0]
-        var _: Float = DEFAULT_STROKE_THICKNESS
-
         for shape in drawOperationCollector.shapeList {
-            if shape.timestamp.count == 0 || shape.renderBuffer == nil { continue }
+            if shape.timestamp.count == 0 || shape.geometryBuffer == nil { continue }
             // if shape.notInWindow() { continue }
 
             let start = 0
@@ -335,7 +332,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             pointBuffers.append(RenderedShape(
                 startIndex: start,
                 endIndex: end,
-                renderBuffer: shape.renderBuffer
+                geometryBuffer: shape.geometryBuffer
             ))
         }
 
@@ -397,7 +394,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         for index in 0 ..< pointBuffers.count {
             let rs: RenderedShape = pointBuffers[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
-            renderCommandEncoder.setVertexBuffer(rs.renderBuffer, offset: 0, index: 3)
+            renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
 
             renderCommandEncoder.setRenderPipelineState(segmentRenderPipelineState)
             renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
