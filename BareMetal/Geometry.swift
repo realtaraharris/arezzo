@@ -20,13 +20,13 @@ func circleGeometry(edges: Int) -> [Float] {
 
 func shapeIndices(edges: Int) -> [UInt32] {
     var indices: [UInt32] = []
-    for n in zip(((edges / 2) ... edges - 1).reversed(), 0 ... (edges / 2) - 1) {
+    let middleEdgeIndex = edges / 2
+    for n in zip((middleEdgeIndex ..< edges).reversed(), 0 ..< middleEdgeIndex) {
         indices.append(UInt32(n.0))
         indices.append(UInt32(n.1))
     }
     if edges % 2 != 0 {
-        indices.append(UInt32(edges / 2))
+        indices.append(UInt32(middleEdgeIndex))
     }
-
     return indices
 }
