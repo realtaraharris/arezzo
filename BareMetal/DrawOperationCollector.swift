@@ -15,6 +15,14 @@ class Shape {
     var geometryBuffer: MTLBuffer!
 
     func addShape(point: [Float], timestamp: Int64, device: MTLDevice) {
+        // filter out duplicate points here so as to keep zero-length line segments out of the system
+        let geometryCount = geometry.count
+        if geometryCount >= 2,
+            geometry[geometryCount - 2] == point[0],
+            geometry[geometryCount - 1] == point[1] {
+            return
+        }
+
         geometry.append(contentsOf: point)
         self.timestamp.append(timestamp)
         geometryBuffer = device.makeBuffer(
