@@ -15,13 +15,6 @@ import UIKit
 
 let DEFAULT_STROKE_THICKNESS: Float = 5
 
-struct CachedFrame {
-    var vertexData: [Float]
-    var colorData: [Float]
-    var shapeIndex: [Int]
-    var translation: [Float]
-}
-
 class RenderedShape {
     var startIndex: Int
     var endIndex: Int
@@ -39,48 +32,29 @@ class RenderedShape {
 class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
+
     var segmentVertexBuffer: MTLBuffer!
     var segmentIndexBuffer: MTLBuffer!
     var capVertexBuffer: MTLBuffer!
     var capIndexBuffer: MTLBuffer!
-    var colorBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
 
-    var pointBuffer: MTLBuffer!
-    var quadraticBezierBuffer: MTLBuffer!
-    var cubicBezierBuffer: MTLBuffer!
-    var vertexColorBuffer: MTLBuffer!
-
-    var pointBuffers: [RenderedShape] = []
+    var renderedShapes: [RenderedShape] = []
 
     var commandQueue: MTLCommandQueue!
     var segmentRenderPipelineState: MTLRenderPipelineState!
     var capRenderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
-    var shapeIndex: [Int] = []
-    var vertexCount: Int = 0
-    var previousDropOpCount = 0
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
     var strokeWidth: Float = DEFAULT_STROKE_THICKNESS
     var playing: Bool = false
     var recording: Bool = false
     var mode: String = "draw"
-    let debugShapeLayer = CAShapeLayer()
-    var cachedItems: [Int64: CachedFrame] = [:]
-
-    var cluesLabel: UILabel!
-    var answersLabel: UILabel!
-    var currentAnswer: UITextField!
-    var recordButton: UIButton!
-    var letterButtons = [UIButton]()
 
     private var delegate = ContentViewDelegate()
     private var audioRec = AudioRecorder()
     private var audioPla = AudioPlayer()
-    private var textChangePublisher: AnyCancellable?
-
-    public var isDrawingEnabled = true
-    public var shouldDrawStraight = false
+    private var changePublisher: AnyCancellable?
 
     @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
@@ -99,10 +73,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     @available(iOS 9.1, *)
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
-    public var firstPoint: CGPoint = .zero
-    public var currentPoint: CGPoint = .zero
-    private var previousPoint: CGPoint = .zero
-    private var previousPreviousPoint: CGPoint = .zero
     private var playbackStartTimestamp: Int64 = 0 // Date().toMilliseconds()
     private var playbackEndTimestamp: Int64 = Date().toMilliseconds()
     private var timestamps = OrderedSet<Int64>()
@@ -115,7 +85,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     private let capEdges = 9
 
     private var points: [[Float]] = []
-    private var colorData: [Float] = []
     private var indexData: [Float] = []
 
     // For pencil interactions
@@ -178,7 +147,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
         var previousDelegate: ContentViewDelegate = ContentViewDelegate()
-        textChangePublisher = delegate.didChange.sink { delegate in
+        changePublisher = delegate.didChange.sink { delegate in
             // if delegate.clear {
             //     self.drawOperations.removeAll(keepingCapacity: false)
             //     self.timestamps.removeAll(keepingCapacity: false)
@@ -256,13 +225,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-    final func veryRandomColor() -> [Float] {
-        [Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
-         Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
-         Float.r(n: Float.random(in: 0.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
-         0.7]
-    }
-
     public func startPlaying() {
         if playing { return }
 
@@ -319,8 +281,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     final func generateVerts() {
         let translation: [Float] = [0, 0]
-        colorData = []
-        pointBuffers.removeAll(keepingCapacity: false)
+        renderedShapes.removeAll(keepingCapacity: false)
 
         for shape in drawOperationCollector.shapeList {
             if shape.timestamp.count == 0 || shape.geometryBuffer == nil { continue }
@@ -331,7 +292,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             if start > end || start == end { continue }
 
-            pointBuffers.append(RenderedShape(
+            renderedShapes.append(RenderedShape(
                 startIndex: start,
                 endIndex: end,
                 geometryBuffer: shape.geometryBuffer,
@@ -391,8 +352,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
 
-        for index in 0 ..< pointBuffers.count {
-            let rs: RenderedShape = pointBuffers[index]
+        for index in 0 ..< renderedShapes.count {
+            let rs: RenderedShape = renderedShapes[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
             renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
             renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
@@ -451,16 +412,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
-        if !recording { return }
-
-        guard isDrawingEnabled, let touch = touches.first else { return }
+        guard recording, let touch = touches.first else { return }
 
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
-
-        setTouchPoints(for: touch, view: view)
-        firstPoint = touch.location(in: view)
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
@@ -473,27 +429,25 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
-        if !recording { return }
-
-        guard isDrawingEnabled, let touch = touches.first else { return }
+        guard recording, let touch = touches.first else { return }
 
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
         }
 
-        updateTouchPoints(for: touch, in: view)
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
         playbackEndTimestamp = timestamp
 
+        let currentPoint = touch.location(in: view)
         if mode == "draw" {
-            let currentPointEx = touch.location(in: view)
-            drawOperationCollector.addOp(Point(point: [Float(currentPointEx.x), Float(currentPointEx.y)], timestamp: timestamp, id: getNextId()))
+            drawOperationCollector.addOp(
+                Point(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: getNextId())
+            )
         } else if mode == "pan" {
-            let midPoints = getMidPoints()
-            let start = [Float(midPoints.0.x), Float(midPoints.0.y)]
-            let end = [Float(midPoints.1.x), Float(midPoints.1.y)]
-            drawOperationCollector.addOp(Pan(start: start, end: end, timestamp: timestamp, id: getNextId()))
+            drawOperationCollector.addOp(
+                Pan(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: getNextId())
+            )
         } else {
             print("invalid mode: \(mode)")
         }
@@ -501,10 +455,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
-
-        if !recording { return }
-
-        guard isDrawingEnabled, let _ = touches.first else { return }
+        guard recording else { return }
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
@@ -514,39 +465,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     override open func touchesCancelled(_ touches: Set<UITouch>, with _: UIEvent?) {
-        print("touches cancelled!")
-
         drawOperationCollector.cancelProvisionalOps()
-
-        if !recording { return }
-
-        guard isDrawingEnabled, let _ = touches.first else { return }
+        guard recording else { return }
     }
 
     // MARK: - utility functions
-
-    private func setTouchPoints(for touch: UITouch, view: UIView) {
-        previousPoint = touch.previousLocation(in: view)
-        previousPreviousPoint = touch.previousLocation(in: view)
-        currentPoint = touch.location(in: view)
-    }
-
-    private func updateTouchPoints(for touch: UITouch, in view: UIView) {
-        previousPreviousPoint = previousPoint
-        previousPoint = touch.previousLocation(in: view)
-        currentPoint = touch.location(in: view)
-    }
-
-    private func calculateMidPoint(_ p1: CGPoint, p2: CGPoint) -> CGPoint {
-        CGPoint(x: (p1.x + p2.x) * 0.5, y: (p1.y + p2.y) * 0.5)
-    }
-
-    private func getMidPoints() -> (CGPoint, CGPoint) {
-        (
-            calculateMidPoint(previousPoint, p2: previousPreviousPoint),
-            calculateMidPoint(currentPoint, p2: previousPoint)
-        )
-    }
 
     @objc func gameloop() {
         autoreleasepool {

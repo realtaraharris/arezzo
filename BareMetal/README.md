@@ -30,10 +30,10 @@ TODO:
 - [ ] handle screen rotation correctly
 - [ ] undo feature
 
-- [ ] square end cap bug: caps are not perfectly normal to start/end line segments
+- [x] no end cap bug: caps are not perfectly normal to start/end line segments
 - [ ] unit tests on quadratic, cubic beziers
 
-- [ ] round line caps
+- [x] round line caps
 - [ ] quadtree structure to store beziers
 - [ ] zoom feature
 - [ ] identify hook on pen missing, use it to push a `PenUp`
