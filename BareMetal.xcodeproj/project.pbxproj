@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,13 +15,13 @@
 		505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505074342531A73D0011C9C9 /* BareMetalTests.swift */; };
 		5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
+		50596397253FB73D00FF8B29 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50596396253FB73D00FF8B29 /* Shape.swift */; };
+		5059639B253FB76800FF8B29 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50596396253FB73D00FF8B29 /* Shape.swift */; };
+		505963AE2543A81F00FF8B29 /* BareMetalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505963AD2543A81F00FF8B29 /* BareMetalUITests.swift */; };
+		505963C62546196F00FF8B29 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 505963C52546196F00FF8B29 /* Dynamic */; };
 		5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F76F24D40F06004E7247 /* AudioPlayer.swift */; };
 		5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77224D40F06004E7247 /* RecordingDataModel.swift */; };
 		5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77324D40F06004E7247 /* AudioRecorder.swift */; };
-		5060DB9324C273FE00940927 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9224C273FE00940927 /* AppDelegate.swift */; };
-		5060DB9524C273FE00940927 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5060DB9424C273FE00940927 /* ViewController.swift */; };
-		5060DB9724C2740000940927 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9624C2740000940927 /* Assets.xcassets */; };
-		5060DB9A24C2740000940927 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5060DB9824C2740000940927 /* Main.storyboard */; };
 		5076C46724EDEB5C00BE021B /* AudioExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5076C46624EDEB5C00BE021B /* AudioExtensions.swift */; };
 		5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5077578B24D8D7E0000C3D42 /* OrderedSet.swift */; };
 		5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5095390D24C6224B00A861CB /* AdaptiveBezier.swift */; };
@@ -52,6 +52,13 @@
 			remoteGlobalIDString = 50C2A6F924A67F87000F3B93;
 			remoteInfo = BareMetal;
 		};
+		505963B02543A81F00FF8B29 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50C2A6F224A67F87000F3B93 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 50C2A6F924A67F87000F3B93;
+			remoteInfo = BareMetal;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -63,16 +70,13 @@
 		505074322531A73D0011C9C9 /* BareMetalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505074342531A73D0011C9C9 /* BareMetalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalTests.swift; sourceTree = "<group>"; };
 		505074362531A73D0011C9C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		50596396253FB73D00FF8B29 /* Shape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape.swift; sourceTree = "<group>"; };
+		505963AB2543A81F00FF8B29 /* BareMetalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		505963AD2543A81F00FF8B29 /* BareMetalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalUITests.swift; sourceTree = "<group>"; };
+		505963AF2543A81F00FF8B29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5059F76F24D40F06004E7247 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		5059F77224D40F06004E7247 /* RecordingDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingDataModel.swift; sourceTree = "<group>"; };
 		5059F77324D40F06004E7247 /* AudioRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
-		5060DB9024C273FE00940927 /* BareMetal.app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5060DB9224C273FE00940927 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		5060DB9424C273FE00940927 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		5060DB9624C2740000940927 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		5060DB9924C2740000940927 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		5060DB9B24C2740000940927 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5060DB9C24C2740000940927 /* BareMetal_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal_app.entitlements; sourceTree = "<group>"; };
 		5060DBA024C2742600940927 /* BareMetal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal.entitlements; sourceTree = "<group>"; };
 		5076C46624EDEB5C00BE021B /* AudioExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioExtensions.swift; sourceTree = "<group>"; };
 		5077578B24D8D7E0000C3D42 /* OrderedSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedSet.swift; sourceTree = "<group>"; };
@@ -106,10 +110,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5060DB8D24C273FE00940927 /* Frameworks */ = {
+		505963A82543A81F00FF8B29 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				505963C62546196F00FF8B29 /* Dynamic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,6 +147,15 @@
 			path = BareMetalTests;
 			sourceTree = "<group>";
 		};
+		505963AC2543A81F00FF8B29 /* BareMetalUITests */ = {
+			isa = PBXGroup;
+			children = (
+				505963AD2543A81F00FF8B29 /* BareMetalUITests.swift */,
+				505963AF2543A81F00FF8B29 /* Info.plist */,
+			);
+			path = BareMetalUITests;
+			sourceTree = "<group>";
+		};
 		5059F76E24D40F06004E7247 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
@@ -154,25 +168,12 @@
 			path = Audio;
 			sourceTree = "<group>";
 		};
-		5060DB9124C273FE00940927 /* BareMetal.app */ = {
-			isa = PBXGroup;
-			children = (
-				5060DB9224C273FE00940927 /* AppDelegate.swift */,
-				5060DB9424C273FE00940927 /* ViewController.swift */,
-				5060DB9624C2740000940927 /* Assets.xcassets */,
-				5060DB9824C2740000940927 /* Main.storyboard */,
-				5060DB9B24C2740000940927 /* Info.plist */,
-				5060DB9C24C2740000940927 /* BareMetal_app.entitlements */,
-			);
-			path = BareMetal.app;
-			sourceTree = "<group>";
-		};
 		50C2A6F124A67F87000F3B93 = {
 			isa = PBXGroup;
 			children = (
 				50C2A6FC24A67F87000F3B93 /* BareMetal */,
-				5060DB9124C273FE00940927 /* BareMetal.app */,
 				505074332531A73D0011C9C9 /* BareMetalTests */,
+				505963AC2543A81F00FF8B29 /* BareMetalUITests */,
 				50C2A6FB24A67F87000F3B93 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -181,8 +182,8 @@
 			isa = PBXGroup;
 			children = (
 				50C2A6FA24A67F87000F3B93 /* BareMetal.app */,
-				5060DB9024C273FE00940927 /* BareMetal.app.app */,
 				505074322531A73D0011C9C9 /* BareMetalTests.xctest */,
+				505963AB2543A81F00FF8B29 /* BareMetalUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -210,6 +211,7 @@
 				501E676C24D730D10032C7BD /* LargePalette.swift */,
 				50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */,
 				50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */,
+				50596396253FB73D00FF8B29 /* Shape.swift */,
 			);
 			path = BareMetal;
 			sourceTree = "<group>";
@@ -247,22 +249,26 @@
 			productReference = 505074322531A73D0011C9C9 /* BareMetalTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		5060DB8F24C273FE00940927 /* BareMetal.app */ = {
+		505963AA2543A81F00FF8B29 /* BareMetalUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5060DB9D24C2740000940927 /* Build configuration list for PBXNativeTarget "BareMetal.app" */;
+			buildConfigurationList = 505963B42543A81F00FF8B29 /* Build configuration list for PBXNativeTarget "BareMetalUITests" */;
 			buildPhases = (
-				5060DB8C24C273FE00940927 /* Sources */,
-				5060DB8D24C273FE00940927 /* Frameworks */,
-				5060DB8E24C273FE00940927 /* Resources */,
+				505963A72543A81F00FF8B29 /* Sources */,
+				505963A82543A81F00FF8B29 /* Frameworks */,
+				505963A92543A81F00FF8B29 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				505963B12543A81F00FF8B29 /* PBXTargetDependency */,
 			);
-			name = BareMetal.app;
-			productName = BareMetal.app;
-			productReference = 5060DB9024C273FE00940927 /* BareMetal.app.app */;
-			productType = "com.apple.product-type.application";
+			name = BareMetalUITests;
+			packageProductDependencies = (
+				505963C52546196F00FF8B29 /* Dynamic */,
+			);
+			productName = BareMetalUITests;
+			productReference = 505963AB2543A81F00FF8B29 /* BareMetalUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		50C2A6F924A67F87000F3B93 /* BareMetal */ = {
 			isa = PBXNativeTarget;
@@ -277,6 +283,8 @@
 			dependencies = (
 			);
 			name = BareMetal;
+			packageProductDependencies = (
+			);
 			productName = BareMetal;
 			productReference = 50C2A6FA24A67F87000F3B93 /* BareMetal.app */;
 			productType = "com.apple.product-type.application";
@@ -295,8 +303,9 @@
 						CreatedOnToolsVersion = 12.0.1;
 						TestTargetID = 50C2A6F924A67F87000F3B93;
 					};
-					5060DB8F24C273FE00940927 = {
-						CreatedOnToolsVersion = 11.3.1;
+					505963AA2543A81F00FF8B29 = {
+						CreatedOnToolsVersion = 12.0.1;
+						TestTargetID = 50C2A6F924A67F87000F3B93;
 					};
 					50C2A6F924A67F87000F3B93 = {
 						CreatedOnToolsVersion = 11.3.1;
@@ -312,13 +321,16 @@
 				Base,
 			);
 			mainGroup = 50C2A6F124A67F87000F3B93;
+			packageReferences = (
+				505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */,
+			);
 			productRefGroup = 50C2A6FB24A67F87000F3B93 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				50C2A6F924A67F87000F3B93 /* BareMetal */,
-				5060DB8F24C273FE00940927 /* BareMetal.app */,
 				505074312531A73D0011C9C9 /* BareMetalTests */,
+				505963AA2543A81F00FF8B29 /* BareMetalUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -331,12 +343,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5060DB8E24C273FE00940927 /* Resources */ = {
+		505963A92543A81F00FF8B29 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5060DB9724C2740000940927 /* Assets.xcassets in Resources */,
-				5060DB9A24C2740000940927 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +367,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5059639B253FB76800FF8B29 /* Shape.swift in Sources */,
 				5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */,
 				5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */,
 				505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */,
@@ -364,12 +375,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5060DB8C24C273FE00940927 /* Sources */ = {
+		505963A72543A81F00FF8B29 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5060DB9524C273FE00940927 /* ViewController.swift in Sources */,
-				5060DB9324C273FE00940927 /* AppDelegate.swift in Sources */,
+				505963AE2543A81F00FF8B29 /* BareMetalUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -387,6 +397,7 @@
 				50FF3A7524E6231500D985FD /* UIExtensions.swift in Sources */,
 				5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */,
 				50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */,
+				50596397253FB73D00FF8B29 /* Shape.swift in Sources */,
 				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,
 				5076C46724EDEB5C00BE021B /* AudioExtensions.swift in Sources */,
 				50FF3A6F24E6221E00D985FD /* Toolbar.swift in Sources */,
@@ -412,17 +423,14 @@
 			target = 50C2A6F924A67F87000F3B93 /* BareMetal */;
 			targetProxy = 505074372531A73D0011C9C9 /* PBXContainerItemProxy */;
 		};
+		505963B12543A81F00FF8B29 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 50C2A6F924A67F87000F3B93 /* BareMetal */;
+			targetProxy = 505963B02543A81F00FF8B29 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		5060DB9824C2740000940927 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				5060DB9924C2740000940927 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		50C2A70324A67F87000F3B93 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -484,49 +492,43 @@
 			};
 			name = Release;
 		};
-		5060DB9E24C2740000940927 /* Debug */ = {
+		505963B22543A81F00FF8B29 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = BareMetal.app/BareMetal_app.entitlements;
-				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = BareMetal.app/Info.plist;
+				INFOPLIST_FILE = BareMetalUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "test.BareMetal-app";
+				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BareMetal;
 			};
 			name = Debug;
 		};
-		5060DB9F24C2740000940927 /* Release */ = {
+		505963B32543A81F00FF8B29 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = BareMetal.app/BareMetal_app.entitlements;
-				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = BareMetal.app/Info.plist;
+				INFOPLIST_FILE = BareMetalUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "test.BareMetal-app";
+				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BareMetal;
 			};
 			name = Release;
 		};
@@ -703,11 +705,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5060DB9D24C2740000940927 /* Build configuration list for PBXNativeTarget "BareMetal.app" */ = {
+		505963B42543A81F00FF8B29 /* Build configuration list for PBXNativeTarget "BareMetalUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5060DB9E24C2740000940927 /* Debug */,
-				5060DB9F24C2740000940927 /* Release */,
+				505963B22543A81F00FF8B29 /* Debug */,
+				505963B32543A81F00FF8B29 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -731,6 +733,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mhdhejazi/Dynamic.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		505963C52546196F00FF8B29 /* Dynamic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */;
+			productName = Dynamic;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 50C2A6F224A67F87000F3B93 /* Project object */;
 }

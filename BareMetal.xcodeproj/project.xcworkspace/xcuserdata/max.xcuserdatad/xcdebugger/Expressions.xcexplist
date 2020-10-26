@@ -22,6 +22,14 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "BareMetalUITests.testExample():BareMetalUITests.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "app.buttons">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "recursiveQuadraticBezier(x1:y1:x2:y2:x3:y3:level:points:):AdaptiveBezier.swift">
          <PersistentStrings>
             <PersistentString
@@ -30,13 +38,10 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "ViewController.touchesMoved(_:with:):ViewController.swift">
+         contextName = "toTriangleStrip(thickness:miterLimit:p0:p1:p2:p3:output:):AdaptiveBezier.swift">
          <PersistentStrings>
             <PersistentString
-               value = "self.view.frame.size.width">
-            </PersistentString>
-            <PersistentString
-               value = "self.view.frame.size.height">
+               value = "tmp0.x">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -47,10 +52,13 @@
          contextName = "toTriangleStripTwoPoints(thickness:miterLimit:p0:p1:output:):AdaptiveBezier.swift">
       </ContextState>
       <ContextState
-         contextName = "toTriangleStrip(thickness:miterLimit:p0:p1:p2:p3:output:):AdaptiveBezier.swift">
+         contextName = "ViewController.touchesMoved(_:with:):ViewController.swift">
          <PersistentStrings>
             <PersistentString
-               value = "tmp0.x">
+               value = "self.view.frame.size.width">
+            </PersistentString>
+            <PersistentString
+               value = "self.view.frame.size.height">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

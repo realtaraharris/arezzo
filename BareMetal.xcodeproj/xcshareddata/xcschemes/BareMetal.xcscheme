@@ -39,6 +39,16 @@
                ReferencedContainer = "container:BareMetal.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "505963AA2543A81F00FF8B29"
+               BuildableName = "BareMetalUITests.xctest"
+               BlueprintName = "BareMetalUITests"
+               ReferencedContainer = "container:BareMetal.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
