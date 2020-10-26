@@ -77,8 +77,8 @@ struct Toolbar: View {
         self.audioPla = audioPla
     }
 
-    @State private var currentPosition: CGSize = .zero
-    @State private var newPosition: CGSize = .zero
+    @State private var currentPosition: CGSize = CGSize(width: -300.0, height: -300.0)
+    @State private var newPosition: CGSize = CGSize(width: -300.0, height: -300.0)
     @State private var tapped = false
     @State private var hovered = true
 
