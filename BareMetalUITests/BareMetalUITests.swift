@@ -28,7 +28,9 @@ class BareMetalUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // print(XCUIApplication().debugDescription)
+        // force a refresh of the accessibility hierarchy. this is needed to eliminate test flakiness
+        _ = XCUIApplication().buttons.count
+
         let record = app.buttons["Record"]
 
         _ = record.waitForExistence(timeout: 10)
@@ -43,6 +45,41 @@ class BareMetalUITests: XCTestCase {
 
         firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
         secondPoint.press(forDuration: 0.1, thenDragTo: thirdPoint)
+
+        let fullScreenshot = XCUIScreen.main.screenshot()
+        let screenshot = XCTAttachment(screenshot: fullScreenshot)
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
+    func testPanning() throws {
+        // UI tests must launch the application that they test.
+        let app = XCUIApplication()
+        app.launch()
+
+        // force a refresh of the accessibility hierarchy. this is needed to eliminate test flakiness
+//        _ = XCUIApplication().buttons.count
+
+        let record = app.buttons["Record"]
+
+//        _ = XCUIApplication().buttons.count
+        _ = record.waitForExistence(timeout: 10)
+        record.tap()
+
+        // TODO: could use XCPointerEventPath + https://github.com/mhdhejazi/Dynamic to stroke through multiple points
+        let window = app.windows.firstMatch
+
+        let firstPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 200, dy: 200))
+        let secondPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 400, dy: 400))
+        let thirdPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 600, dy: 200))
+
+        firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
+        secondPoint.press(forDuration: 0.1, thenDragTo: thirdPoint)
+
+        let pan = app.buttons["Pan"]
+        _ = pan.waitForExistence(timeout: 10)
+        pan.tap()
+        firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
 
         let fullScreenshot = XCUIScreen.main.screenshot()
         let screenshot = XCTAttachment(screenshot: fullScreenshot)

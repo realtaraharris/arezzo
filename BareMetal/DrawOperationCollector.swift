@@ -18,6 +18,7 @@ class DrawOperationCollector {
     var provisionalShapeIndex = 0
     var device: MTLDevice
     var activeColor: [Float] = []
+    var currentId: Int = 0
 
     var penState: PenState = .down
 
@@ -25,16 +26,24 @@ class DrawOperationCollector {
         self.device = device
     }
 
-    func addOp(_ op: DrawOperation) {
-        if op.type == "PenDown" {
+    func addOp(op: DrawOperation, mode: String) {
+        if op.type == "PenDown", mode == "draw" {
             let penDownOp = op as! PenDown
             penState = .down
             activeColor = penDownOp.color
-            shapeList.append(Shape())
+            shapeList.append(Shape(type: "Line", id: currentId))
+            currentId += 1
+        } else if op.type == "PenDown", mode == "pan" {
+            shapeList.append(Shape(type: "Pan", id: currentId))
+            currentId += 1
+        } else if op.type == "Pan", mode == "pan" {
+            let lastShape = shapeList[shapeList.count - 1]
+            let panOp = op as! Pan
+            lastShape.addPanPoint(point: panOp.point, timestamp: panOp.timestamp)
         } else if op.type == "Point", penState == .down {
             let lastShape = shapeList[shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.addShape(point: pointOp.point, timestamp: pointOp.timestamp, device: device, color: activeColor)
+            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: device, color: activeColor)
         } else if op.type == "PenUp" {
             penState = .up
         }

@@ -35,10 +35,10 @@ class Shape {
 
         let lastPanX = panPoints[panCount - 2]
         let lastPanY = panPoints[panCount - 1]
-        print("panCount:", panCount, point)
+//        print("panCount:", panCount, point)
 
         if lastPanX == point[0], lastPanY == point[1] {
-            print("skippedd!!!!!")
+//            print("skippedd!!!!!")
             return
         }
 
@@ -49,7 +49,7 @@ class Shape {
     func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float]) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = geometry.count
-        print("geometryCount:", geometryCount)
+//        print("geometryCount:", geometryCount)
         if geometryCount == 0 {
             colorBuffer = device.makeBuffer(
                 bytes: color,
@@ -59,7 +59,7 @@ class Shape {
         } else if geometryCount >= 2,
             geometry[geometryCount - 2] == point[0],
             geometry[geometryCount - 1] == point[1] {
-            print("skippedd!!!!!")
+//            print("skippedd!!!!!")
             return
         }
 

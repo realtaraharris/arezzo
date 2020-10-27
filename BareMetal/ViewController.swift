@@ -78,7 +78,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
-    private var translation: [Float] = [0.0, 0.0]
+    private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
 //    private var newToolbar: ToolbarEx
     private var id: Int64 = 0
@@ -86,6 +86,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     private var points: [[Float]] = []
     private var indexData: [Float] = []
+    private var panStart: CGPoint = .zero
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -115,7 +116,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     @objc override func viewDidLoad() {
         super.viewDidLoad()
 
-        translation = [0, 0]
+        translation = .zero // [0, 0]
 
         // Do any additional setup after loading the view.
 
@@ -280,10 +281,26 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     final func generateVerts() {
-        let translation: [Float] = [0, 0]
         renderedShapes.removeAll(keepingCapacity: false)
 
+        translation = .zero // [0, 0]
+
         for shape in drawOperationCollector.shapeList {
+//            print(shape.type)
+            if shape.type == "Pan" {
+                if shape.panPoints.count == 0 { continue }
+                let end = shape.getIndex(timestamp: playbackEndTimestamp)
+                if end >= 4 {
+                    // [x:0, y:1, x:2, y:3]
+                    translation.x += CGFloat(shape.panPoints[end - 2])
+                    translation.y += CGFloat(shape.panPoints[end - 1])
+                }
+
+                // print(shape.panPoints)
+                // print("end: \(end), shape.panPoints: \(shape.panPoints.count), translation: \(self.translation)")
+                continue
+            }
+
             if shape.timestamp.count == 0 || shape.geometryBuffer == nil { continue }
             // if shape.notInWindow() { continue }
 
@@ -300,7 +317,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             ))
         }
 
-        self.translation = translation
+//        self.translation = translation
 
         let tr = transform(translation)
         let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: tr[0], y: tr[1])
@@ -391,11 +408,11 @@ class ViewController: UIViewController, ToolbarDelegate {
         captureManager.stopCapture()
     }
 
-    final func transform(_ point: [Float]) -> [Float] {
+    final func transform(_ point: CGPoint) -> [Float] {
         let frameWidth: Float = Float(view.frame.size.width)
         let frameHeight: Float = Float(view.frame.size.height)
-        let x = point[0]
-        let y = point[1]
+        let x: Float = Float(point.x)
+        let y: Float = Float(point.y)
 
         return [
             (2.0 * x / frameWidth) + 1.0,
@@ -422,10 +439,15 @@ class ViewController: UIViewController, ToolbarDelegate {
         timestamps.append(timestamp)
         playbackEndTimestamp = timestamp
         drawOperationCollector.beginProvisionalOps()
-        drawOperationCollector.addOp(PenDown(color: selectedColor,
-                                             lineWidth: strokeWidth,
-                                             timestamp: timestamp,
-                                             id: getNextId()))
+        drawOperationCollector.addOp(op: PenDown(color: selectedColor,
+                                                 lineWidth: strokeWidth,
+                                                 timestamp: timestamp,
+                                                 id: getNextId()), mode: mode)
+
+        let currentPoint = touch.location(in: view)
+        if mode == "pan" {
+            panStart = currentPoint
+        }
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -442,29 +464,33 @@ class ViewController: UIViewController, ToolbarDelegate {
         let currentPoint = touch.location(in: view)
         if mode == "draw" {
             drawOperationCollector.addOp(
-                Point(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: getNextId())
+                op: Point(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: getNextId()),
+                mode: mode
             )
         } else if mode == "pan" {
+            let delta: CGPoint = CGPoint(x: currentPoint.x - panStart.x, y: currentPoint.y - panStart.y)
+//            print("delta:", delta)
             drawOperationCollector.addOp(
-                Pan(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: getNextId())
+                op: Pan(point: [Float(delta.x), Float(delta.y)], timestamp: timestamp, id: getNextId()),
+                mode: mode
             )
         } else {
             print("invalid mode: \(mode)")
         }
     }
 
-    override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
+    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
         guard recording else { return }
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
         playbackEndTimestamp = timestamp
-        drawOperationCollector.addOp(PenUp(timestamp: timestamp, id: getNextId()))
+        drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: getNextId()), mode: mode)
         drawOperationCollector.commitProvisionalOps()
     }
 
-    override open func touchesCancelled(_ touches: Set<UITouch>, with _: UIEvent?) {
+    override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
         drawOperationCollector.cancelProvisionalOps()
         guard recording else { return }
     }
