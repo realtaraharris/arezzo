@@ -14,7 +14,7 @@ import SwiftUI
 class AudioRecorder: NSObject, ObservableObject {
     override init() {
         super.init()
-        fetchRecordings()
+        self.fetchRecordings()
     }
 
     let objectWillChange = PassthroughSubject<AudioRecorder, Never>()
@@ -25,7 +25,7 @@ class AudioRecorder: NSObject, ObservableObject {
 
     var recording = false {
         didSet {
-            objectWillChange.send(self)
+            self.objectWillChange.send(self)
         }
     }
 
@@ -59,13 +59,13 @@ class AudioRecorder: NSObject, ObservableObject {
         ]
 
         do {
-            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            self.audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
 
             let timestamp2 = getCurrentTimestamp()
             print("starting at: \(timestamp2)")
             audioRecorder.record()
 
-            recording = true
+            self.recording = true
         } catch {
             print("Could not start recording")
         }
@@ -74,14 +74,14 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     func stopRecording() {
-        audioRecorder.stop()
-        recording = false
+        self.audioRecorder.stop()
+        self.recording = false
 
-        fetchRecordings()
+        self.fetchRecordings()
     }
 
     func fetchRecordings() {
-        recordings.removeAll()
+        self.recordings.removeAll()
 
         let fileManager = FileManager.default
         let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -91,9 +91,9 @@ class AudioRecorder: NSObject, ObservableObject {
             recordings.append(recording)
         }
 
-        recordings.sort(by: { $0.createdAt.compare($1.createdAt) == .orderedAscending })
+        self.recordings.sort(by: { $0.createdAt.compare($1.createdAt) == .orderedAscending })
 
-        objectWillChange.send(self)
+        self.objectWillChange.send(self)
     }
 
     func deleteRecording(urlsToDelete: [URL]) {
@@ -106,7 +106,7 @@ class AudioRecorder: NSObject, ObservableObject {
             }
         }
 
-        fetchRecordings()
+        self.fetchRecordings()
     }
 }
 
@@ -172,9 +172,9 @@ struct RecordingsList: View {
     func delete(at offsets: IndexSet) {
         var urlsToDelete = [URL]()
         for index in offsets {
-            urlsToDelete.append(audioRecorder.recordings[index].fileURL)
+            urlsToDelete.append(self.audioRecorder.recordings[index].fileURL)
         }
-        audioRecorder.deleteRecording(urlsToDelete: urlsToDelete)
+        self.audioRecorder.deleteRecording(urlsToDelete: urlsToDelete)
     }
 }
 

@@ -16,7 +16,7 @@ class AudioPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     var isPlaying = false {
         didSet {
-            objectWillChange.send(self)
+            self.objectWillChange.send(self)
         }
     }
 
@@ -46,23 +46,23 @@ class AudioPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
 //        playbackSession.overrideOutputAudioPort(AVAudioSession.Port.)
         do {
-            audioPlayer = try AVAudioPlayer(contentsOf: audio)
-            audioPlayer.delegate = self
-            audioPlayer.play()
-            isPlaying = true
+            self.audioPlayer = try AVAudioPlayer(contentsOf: audio)
+            self.audioPlayer.delegate = self
+            self.audioPlayer.play()
+            self.isPlaying = true
         } catch {
             print("Playback failed.")
         }
     }
 
     func stopPlayback() {
-        audioPlayer.stop()
-        isPlaying = false
+        self.audioPlayer.stop()
+        self.isPlaying = false
     }
 
     func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully flag: Bool) {
         if flag {
-            isPlaying = false
+            self.isPlaying = false
         }
     }
 }

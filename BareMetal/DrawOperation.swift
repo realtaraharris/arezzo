@@ -20,7 +20,7 @@ struct Line: DrawOperation {
     var id: Int64
 
     init(start: [Float], end: [Float], timestamp _: Int64, id: Int64) {
-        type = "Line"
+        self.type = "Line"
         self.start = start
         self.end = end
         self.id = id
@@ -38,7 +38,7 @@ struct CubicBezier: DrawOperation {
     var id: Int64
 
     init(start: [Float], end: [Float], control1: [Float], control2: [Float], timestamp: Int64, id: Int64) {
-        type = "CubicBezier"
+        self.type = "CubicBezier"
         self.start = start
         self.end = end
         self.control1 = control1
@@ -57,7 +57,7 @@ struct QuadraticBezier: DrawOperation {
     var id: Int64
 
     init(start: [Float], end: [Float], control: [Float], timestamp: Int64, id: Int64) {
-        type = "QuadraticBezier"
+        self.type = "QuadraticBezier"
         self.start = start
         self.end = end
         self.control = control
@@ -73,7 +73,7 @@ struct Pan: DrawOperation {
     var id: Int64
 
     init(point: [Float], timestamp: Int64, id: Int64) {
-        type = "Pan"
+        self.type = "Pan"
         self.point = point
         self.timestamp = timestamp
         self.id = id
@@ -87,7 +87,7 @@ struct Point: DrawOperation {
     var id: Int64
 
     init(point: [Float], timestamp: Int64, id: Int64) {
-        type = "Point"
+        self.type = "Point"
         self.point = point
         self.timestamp = timestamp
         self.id = id
@@ -102,7 +102,7 @@ struct PenDown: DrawOperation {
     var id: Int64
 
     init(color: [Float], lineWidth: Float, timestamp: Int64, id: Int64) {
-        type = "PenDown"
+        self.type = "PenDown"
         self.color = color
         self.lineWidth = lineWidth
         self.timestamp = timestamp
@@ -116,7 +116,7 @@ struct PenUp: DrawOperation {
     var id: Int64
 
     init(timestamp: Int64, id: Int64) {
-        type = "PenUp"
+        self.type = "PenUp"
         self.timestamp = timestamp
         self.id = id
     }

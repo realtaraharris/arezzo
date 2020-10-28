@@ -93,11 +93,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     private lazy var pencilInteraction = UIPencilInteraction()
 
     required init?(coder aDecoder: NSCoder) {
-        metalLayer = CAMetalLayer()
+        self.metalLayer = CAMetalLayer()
 
-        device = MTLCreateSystemDefaultDevice()
+        self.device = MTLCreateSystemDefaultDevice()
 
-        drawOperationCollector = DrawOperationCollector(device: device)
+        self.drawOperationCollector = DrawOperationCollector(device: self.device)
         /*
          drawOperationCollector.beginProvisionalOps()
          drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: Date().toMilliseconds(), id: 0))
@@ -116,20 +116,20 @@ class ViewController: UIViewController, ToolbarDelegate {
     @objc override func viewDidLoad() {
         super.viewDidLoad()
 
-        translation = .zero // [0, 0]
+        self.translation = .zero // [0, 0]
 
         // Do any additional setup after loading the view.
 
-        metalLayer.device = device
-        metalLayer.pixelFormat = .bgra8Unorm
-        metalLayer.framebufferOnly = true
-        metalLayer.frame = view.layer.frame
+        self.metalLayer.device = self.device
+        self.metalLayer.pixelFormat = .bgra8Unorm
+        self.metalLayer.framebufferOnly = true
+        self.metalLayer.frame = view.layer.frame
 
         let screenScale = UIScreen.main.scale
-        metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
-        view.layer.addSublayer(metalLayer)
+        self.metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
+        view.layer.addSublayer(self.metalLayer)
 
-        setupRender()
+        self.setupRender()
 
         // newToolbar.delegate = self
         // view.addSubview(newToolbar.view)
@@ -148,7 +148,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
         var previousDelegate: ContentViewDelegate = ContentViewDelegate()
-        changePublisher = delegate.didChange.sink { delegate in
+        changePublisher = self.delegate.didChange.sink { delegate in
             // if delegate.clear {
             //     self.drawOperations.removeAll(keepingCapacity: false)
             //     self.timestamps.removeAll(keepingCapacity: false)
@@ -203,22 +203,22 @@ class ViewController: UIViewController, ToolbarDelegate {
         capPipelineStateDescriptor.vertexDescriptor = vertexDesc
 
         do {
-            try segmentRenderPipelineState = device.makeRenderPipelineState(descriptor: segmentPipelineStateDescriptor)
-            try capRenderPipelineState = device.makeRenderPipelineState(descriptor: capPipelineStateDescriptor)
+            try self.segmentRenderPipelineState = self.device.makeRenderPipelineState(descriptor: segmentPipelineStateDescriptor)
+            try self.capRenderPipelineState = self.device.makeRenderPipelineState(descriptor: capPipelineStateDescriptor)
         } catch {
             print("Failed to create pipeline state, error \(error)")
         }
 
-        commandQueue = device.makeCommandQueue() // this is expensive to create, so we save a reference to it
+        self.commandQueue = self.device.makeCommandQueue() // this is expensive to create, so we save a reference to it
 
-        timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
-        timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
+        self.timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
+        self.timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
 
     func triggerProgrammaticCapture() {
         let captureManager = MTLCaptureManager.shared()
         let captureDescriptor = MTLCaptureDescriptor()
-        captureDescriptor.captureObject = device
+        captureDescriptor.captureObject = self.device
         do {
             try captureManager.startCapture(with: captureDescriptor)
         } catch {
@@ -227,11 +227,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func startPlaying() {
-        if playing { return }
+        if self.playing { return }
 
-        playing = true
+        self.playing = true
 
-        var timestampIterator = timestamps.makeIterator()
+        var timestampIterator = self.timestamps.makeIterator()
         let nextTime = timestampIterator.next()
         if nextTime == nil { return }
         var previousTimestamp: Int64 = nextTime!
@@ -265,39 +265,35 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func stopPlaying() {
-        playing = false
+        self.playing = false
     }
 
     public func startRecording() {
         print("in startRecording")
-        recording = true
-        timestamps.append(getCurrentTimestamp())
+        self.recording = true
+        self.timestamps.append(getCurrentTimestamp())
     }
 
     public func stopRecording() {
         print("in stopRecording")
-        recording = false
-        timestamps.append(getCurrentTimestamp())
+        self.recording = false
+        self.timestamps.append(getCurrentTimestamp())
     }
 
     final func generateVerts() {
-        renderedShapes.removeAll(keepingCapacity: false)
+        self.renderedShapes.removeAll(keepingCapacity: false)
 
-        translation = .zero // [0, 0]
+        self.translation = .zero
 
-        for shape in drawOperationCollector.shapeList {
-//            print(shape.type)
+        for shape in self.drawOperationCollector.shapeList {
             if shape.type == "Pan" {
                 if shape.panPoints.count == 0 { continue }
-                let end = shape.getIndex(timestamp: playbackEndTimestamp)
+                let end = shape.getIndex(timestamp: self.playbackEndTimestamp)
                 if end >= 4 {
-                    // [x:0, y:1, x:2, y:3]
-                    translation.x += CGFloat(shape.panPoints[end - 2])
-                    translation.y += CGFloat(shape.panPoints[end - 1])
+                    self.translation.x += CGFloat(shape.panPoints[end - 2])
+                    self.translation.y += CGFloat(shape.panPoints[end - 1])
                 }
 
-                // print(shape.panPoints)
-                // print("end: \(end), shape.panPoints: \(shape.panPoints.count), translation: \(self.translation)")
                 continue
             }
 
@@ -305,11 +301,11 @@ class ViewController: UIViewController, ToolbarDelegate {
             // if shape.notInWindow() { continue }
 
             let start = 0
-            let end = shape.getIndex(timestamp: playbackEndTimestamp)
+            let end = shape.getIndex(timestamp: self.playbackEndTimestamp)
 
             if start > end || start == end { continue }
 
-            renderedShapes.append(RenderedShape(
+            self.renderedShapes.append(RenderedShape(
                 startIndex: start,
                 endIndex: end,
                 geometryBuffer: shape.geometryBuffer,
@@ -317,17 +313,15 @@ class ViewController: UIViewController, ToolbarDelegate {
             ))
         }
 
-//        self.translation = translation
-
-        let tr = transform(translation)
+        let tr = self.transform(self.translation)
         let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: tr[0], y: tr[1])
         let uniform = Uniforms(width: Float(view.frame.size.width), height: Float(view.frame.size.height), modelViewMatrix: modelViewMatrix)
         let uniforms = [uniform]
-        uniformBuffer = device.makeBuffer(
+        uniformBuffer = self.device.makeBuffer(
             length: MemoryLayout<Uniforms>.size,
             options: []
         )
-        memcpy(uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
+        memcpy(self.uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
     }
 
     final func setupRender() {
@@ -338,21 +332,21 @@ class ViewController: UIViewController, ToolbarDelegate {
             1.0, -0.5,
         ]
         let segmentIndices: [UInt32] = shapeIndices(edges: 4)
-        segmentVertexBuffer = device.makeBuffer(bytes: segmentVertices,
-                                                length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
-                                                options: .storageModeShared)
-        segmentIndexBuffer = device.makeBuffer(bytes: segmentIndices,
-                                               length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
-                                               options: .storageModeShared)
+        segmentVertexBuffer = self.device.makeBuffer(bytes: segmentVertices,
+                                                     length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
+                                                     options: .storageModeShared)
+        self.segmentIndexBuffer = self.device.makeBuffer(bytes: segmentIndices,
+                                                         length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
+                                                         options: .storageModeShared)
 
         let capVertices: [Float] = circleGeometry(edges: capEdges)
         let capIndices: [UInt32] = shapeIndices(edges: capEdges)
-        capVertexBuffer = device.makeBuffer(bytes: capVertices,
-                                            length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
-                                            options: .storageModeShared)
-        capIndexBuffer = device.makeBuffer(bytes: capIndices,
-                                           length: capIndices.count * MemoryLayout.size(ofValue: capIndices[0]),
-                                           options: .storageModeShared)
+        capVertexBuffer = self.device.makeBuffer(bytes: capVertices,
+                                                 length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
+                                                 options: .storageModeShared)
+        self.capIndexBuffer = self.device.makeBuffer(bytes: capIndices,
+                                                     length: capIndices.count * MemoryLayout.size(ofValue: capIndices[0]),
+                                                     options: .storageModeShared)
     }
 
     final func render() {
@@ -363,36 +357,36 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-        generateVerts()
+        self.generateVerts()
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: 2)
+        renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
 
-        for index in 0 ..< renderedShapes.count {
-            let rs: RenderedShape = renderedShapes[index]
+        for index in 0 ..< self.renderedShapes.count {
+            let rs: RenderedShape = self.renderedShapes[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
             renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
             renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
 
-            renderCommandEncoder.setRenderPipelineState(segmentRenderPipelineState)
-            renderCommandEncoder.setVertexBuffer(segmentVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
                 indexCount: 4,
                 indexType: MTLIndexType.uint32,
-                indexBuffer: segmentIndexBuffer,
+                indexBuffer: self.segmentIndexBuffer,
                 indexBufferOffset: 0,
                 instanceCount: instanceCount
             )
 
-            renderCommandEncoder.setRenderPipelineState(capRenderPipelineState)
-            renderCommandEncoder.setVertexBuffer(capVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
             renderCommandEncoder.drawIndexedPrimitives(
                 type: .triangleStrip,
-                indexCount: capEdges,
+                indexCount: self.capEdges,
                 indexType: MTLIndexType.uint32,
-                indexBuffer: capIndexBuffer,
+                indexBuffer: self.capIndexBuffer,
                 indexBufferOffset: 0,
                 instanceCount: instanceCount + 1 // + 1 for the last cap
             )
@@ -429,7 +423,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
-        guard recording, let touch = touches.first else { return }
+        guard self.recording, let touch = touches.first else { return }
 
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
@@ -437,21 +431,21 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        playbackEndTimestamp = timestamp
-        drawOperationCollector.beginProvisionalOps()
-        drawOperationCollector.addOp(op: PenDown(color: selectedColor,
-                                                 lineWidth: strokeWidth,
-                                                 timestamp: timestamp,
-                                                 id: getNextId()), mode: mode)
+        self.playbackEndTimestamp = timestamp
+        self.drawOperationCollector.beginProvisionalOps()
+        self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
+                                                      lineWidth: self.strokeWidth,
+                                                      timestamp: timestamp,
+                                                      id: self.getNextId()), mode: self.mode)
 
         let currentPoint = touch.location(in: view)
-        if mode == "pan" {
-            panStart = currentPoint
+        if self.mode == "pan" {
+            self.panStart = currentPoint
         }
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
-        guard recording, let touch = touches.first else { return }
+        guard self.recording, let touch = touches.first else { return }
 
         if #available(iOS 9.1, *) {
             guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
@@ -459,40 +453,39 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        playbackEndTimestamp = timestamp
+        self.playbackEndTimestamp = timestamp
 
         let currentPoint = touch.location(in: view)
-        if mode == "draw" {
-            drawOperationCollector.addOp(
-                op: Point(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: getNextId()),
-                mode: mode
+        if self.mode == "draw" {
+            self.drawOperationCollector.addOp(
+                op: Point(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: self.getNextId()),
+                mode: self.mode
             )
-        } else if mode == "pan" {
-            let delta: CGPoint = CGPoint(x: currentPoint.x - panStart.x, y: currentPoint.y - panStart.y)
-//            print("delta:", delta)
-            drawOperationCollector.addOp(
-                op: Pan(point: [Float(delta.x), Float(delta.y)], timestamp: timestamp, id: getNextId()),
-                mode: mode
+        } else if self.mode == "pan" {
+            let delta: CGPoint = CGPoint(x: currentPoint.x - self.panStart.x, y: currentPoint.y - self.panStart.y)
+            self.drawOperationCollector.addOp(
+                op: Pan(point: [Float(delta.x), Float(delta.y)], timestamp: timestamp, id: self.getNextId()),
+                mode: self.mode
             )
         } else {
-            print("invalid mode: \(mode)")
+            print("invalid mode: \(self.mode)")
         }
     }
 
     override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
-        guard recording else { return }
+        guard self.recording else { return }
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        playbackEndTimestamp = timestamp
-        drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: getNextId()), mode: mode)
-        drawOperationCollector.commitProvisionalOps()
+        self.playbackEndTimestamp = timestamp
+        self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: self.getNextId()), mode: self.mode)
+        self.drawOperationCollector.commitProvisionalOps()
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
-        drawOperationCollector.cancelProvisionalOps()
-        guard recording else { return }
+        self.drawOperationCollector.cancelProvisionalOps()
+        guard self.recording else { return }
     }
 
     // MARK: - utility functions

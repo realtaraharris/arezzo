@@ -36,10 +36,10 @@ struct Matrix4x4 {
     var W: SIMD4<Float>
 
     init() {
-        X = SIMD4<Float>(x: 1, y: 0, z: 0, w: 0)
-        Y = SIMD4<Float>(x: 0, y: 1, z: 0, w: 0)
-        Z = SIMD4<Float>(x: 0, y: 0, z: 1, w: 0)
-        W = SIMD4<Float>(x: 0, y: 0, z: 0, w: 1)
+        self.X = SIMD4<Float>(x: 1, y: 0, z: 0, w: 0)
+        self.Y = SIMD4<Float>(x: 0, y: 1, z: 0, w: 0)
+        self.Z = SIMD4<Float>(x: 0, y: 0, z: 1, w: 0)
+        self.W = SIMD4<Float>(x: 0, y: 0, z: 0, w: 1)
     }
 
     static func translate(x: Float, y: Float) -> Matrix4x4 {

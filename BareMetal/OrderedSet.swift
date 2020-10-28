@@ -23,8 +23,8 @@ public struct OrderedSet<E: Hashable>: Equatable, Collection {
 
     /// Creates an empty ordered set.
     public init() {
-        array = []
-        set = Set()
+        self.array = []
+        self.set = Set()
     }
 
     /// Creates an ordered set with the contents of `array`.
@@ -34,24 +34,24 @@ public struct OrderedSet<E: Hashable>: Equatable, Collection {
     public init(_ array: [Element]) {
         self.init()
         for element in array {
-            append(element)
+            self.append(element)
         }
     }
 
     // MARK: Working with an ordered set
 
     /// The number of elements the ordered set stores.
-    public var count: Int { array.count }
+    public var count: Int { self.array.count }
 
     /// Returns `true` if the set is empty.
-    public var isEmpty: Bool { array.isEmpty }
+    public var isEmpty: Bool { self.array.isEmpty }
 
     /// Returns the contents of the set as an array.
-    public var contents: [Element] { array }
+    public var contents: [Element] { self.array }
 
     /// Returns `true` if the ordered set contains `member`.
     public func contains(_ member: Element) -> Bool {
-        set.contains(member)
+        self.set.contains(member)
     }
 
     /// Adds an element to the ordered set.
@@ -61,31 +61,31 @@ public struct OrderedSet<E: Hashable>: Equatable, Collection {
     /// - returns: True if the item was inserted.
     @discardableResult
     public mutating func append(_ newElement: Element) -> Bool {
-        let inserted = set.insert(newElement).inserted
+        let inserted = self.set.insert(newElement).inserted
         if inserted {
-            array.append(newElement)
+            self.array.append(newElement)
         }
         return inserted
     }
 
     /// Remove and return the element at the beginning of the ordered set.
     public mutating func removeFirst() -> Element {
-        let firstElement = array.removeFirst()
-        set.remove(firstElement)
+        let firstElement = self.array.removeFirst()
+        self.set.remove(firstElement)
         return firstElement
     }
 
     /// Remove and return the element at the end of the ordered set.
     public mutating func removeLast() -> Element {
-        let lastElement = array.removeLast()
-        set.remove(lastElement)
+        let lastElement = self.array.removeLast()
+        self.set.remove(lastElement)
         return lastElement
     }
 
     /// Remove all elements.
     public mutating func removeAll(keepingCapacity keepCapacity: Bool) {
-        array.removeAll(keepingCapacity: keepCapacity)
-        set.removeAll(keepingCapacity: keepCapacity)
+        self.array.removeAll(keepingCapacity: keepCapacity)
+        self.set.removeAll(keepingCapacity: keepCapacity)
     }
 }
 
@@ -100,10 +100,10 @@ extension OrderedSet: ExpressibleByArrayLiteral {
 }
 
 extension OrderedSet: RandomAccessCollection {
-    public var startIndex: Int { contents.startIndex }
-    public var endIndex: Int { contents.endIndex }
+    public var startIndex: Int { self.contents.startIndex }
+    public var endIndex: Int { self.contents.endIndex }
     public subscript(index: Int) -> Element {
-        contents[index]
+        self.contents[index]
     }
 }
 

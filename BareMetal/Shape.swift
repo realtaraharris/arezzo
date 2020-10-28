@@ -24,17 +24,17 @@ class Shape {
     }
 
     func addPanPoint(point: [Float], timestamp: Int64) {
-        let panCount = panPoints.count
+        let panCount = self.panPoints.count
         if panCount == 0 {
-            panPoints.append(contentsOf: point)
+            self.panPoints.append(contentsOf: point)
             self.timestamp.append(timestamp)
             return
         }
 
         assert(panCount % 2 == 0, "panCount should always be even")
 
-        let lastPanX = panPoints[panCount - 2]
-        let lastPanY = panPoints[panCount - 1]
+        let lastPanX = self.panPoints[panCount - 2]
+        let lastPanY = self.panPoints[panCount - 1]
 //        print("panCount:", panCount, point)
 
         if lastPanX == point[0], lastPanY == point[1] {
@@ -42,33 +42,33 @@ class Shape {
             return
         }
 
-        panPoints.append(contentsOf: point)
+        self.panPoints.append(contentsOf: point)
         self.timestamp.append(timestamp)
     }
 
     func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float]) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
-        let geometryCount = geometry.count
+        let geometryCount = self.geometry.count
 //        print("geometryCount:", geometryCount)
         if geometryCount == 0 {
-            colorBuffer = device.makeBuffer(
+            self.colorBuffer = device.makeBuffer(
                 bytes: color,
                 length: color.count * 4,
                 options: .storageModeShared
             )
         } else if geometryCount >= 2,
-            geometry[geometryCount - 2] == point[0],
-            geometry[geometryCount - 1] == point[1] {
+            self.geometry[geometryCount - 2] == point[0],
+            self.geometry[geometryCount - 1] == point[1] {
 //            print("skippedd!!!!!")
             return
         }
 
         self.timestamp.append(timestamp)
 
-        geometry.append(contentsOf: point)
-        geometryBuffer = device.makeBuffer(
-            bytes: geometry,
-            length: geometry.count * 4,
+        self.geometry.append(contentsOf: point)
+        self.geometryBuffer = device.makeBuffer(
+            bytes: self.geometry,
+            length: self.geometry.count * 4,
             options: .storageModeShared
         )
     }
