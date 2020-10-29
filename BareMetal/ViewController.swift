@@ -87,6 +87,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var points: [[Float]] = []
     private var indexData: [Float] = []
     private var panStart: CGPoint = .zero
+    private var panEnd: CGPoint = .zero
+    private var panPosition: CGPoint = .zero
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -289,7 +291,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             if shape.type == "Pan" {
                 if shape.panPoints.count == 0 { continue }
                 let end = shape.getIndex(timestamp: self.playbackEndTimestamp)
-                if end >= 4 {
+                if end >= 2 {
                     self.translation.x += CGFloat(shape.panPoints[end - 2])
                     self.translation.y += CGFloat(shape.panPoints[end - 1])
                 }
@@ -458,7 +460,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         let currentPoint = touch.location(in: view)
         if self.mode == "draw" {
             self.drawOperationCollector.addOp(
-                op: Point(point: [Float(currentPoint.x), Float(currentPoint.y)], timestamp: timestamp, id: self.getNextId()),
+                op: Point(point: [Float(currentPoint.x - self.panPosition.x), Float(currentPoint.y - self.panPosition.y)], timestamp: timestamp, id: self.getNextId()),
                 mode: self.mode
             )
         } else if self.mode == "pan" {
@@ -472,15 +474,24 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
+    override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
-        guard self.recording else { return }
+        guard self.recording, let touch = touches.first else { return }
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
         self.playbackEndTimestamp = timestamp
         self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: self.getNextId()), mode: self.mode)
         self.drawOperationCollector.commitProvisionalOps()
+
+        let currentPoint = touch.location(in: view)
+        if self.mode == "pan" {
+            self.panEnd = currentPoint
+
+            let panDelta = CGPoint(x: self.panEnd.x - self.panStart.x, y: self.panEnd.y - self.panStart.y)
+
+            self.panPosition = CGPoint(x: self.panPosition.x + panDelta.x, y: self.panPosition.y + panDelta.y)
+        }
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
