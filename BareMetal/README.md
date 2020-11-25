@@ -1,7 +1,8 @@
 #  README
 
-### do this before committing if you can
-`swiftformat **/* --swiftversion 5.1.3`
+## before committing
+
+`swiftformat **/* --swiftversion 5.1.3 --self insert`
 
 TODO:
 
@@ -43,7 +44,3 @@ TODO:
 
 app util idea: color picker that stores colors into CSV for you!
 - you click once, it stores the color, dumps a CSV into the clipboard when you ask it to
-
-## before committing
-
-`swiftformat **/* --swiftversion 5.1.3 --self insert`
