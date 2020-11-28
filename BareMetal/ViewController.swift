@@ -6,7 +6,9 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
+import AudioToolbox
 import Combine
+import Foundation
 import Metal
 import QuartzCore
 import simd // vector_float2, vector_float4
@@ -50,10 +52,13 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playing: Bool = false
     var recording: Bool = false
     var mode: String = "draw"
+    var end = false // for orchestration thread
+
+    var queue: AudioQueueRef?
+    var recordingState: RecordingState = RecordingState()
+    var playingState: PlayingState = PlayingState()
 
     private var delegate = ContentViewDelegate()
-    private var audioRec = AudioRecorder()
-    private var audioPla = AudioPlayer()
     private var changePublisher: AnyCancellable?
 
     @available(iOS 9.1, *)
@@ -73,8 +78,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     @available(iOS 9.1, *)
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
-    private var playbackStartTimestamp: Int64 = 0 // Date().toMilliseconds()
-    private var playbackEndTimestamp: Int64 = Date().toMilliseconds()
     private var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
@@ -115,6 +118,22 @@ class ViewController: UIViewController, ToolbarDelegate {
         super.init(coder: aDecoder)
     }
 
+    @objc func playbackThread(thread: Thread) {
+        print("thread.isMainThread: \(thread.isMainThread), thread.isExecuting: \(thread.isExecuting)")
+
+        let timestamps = Timestamps(timestamps: Array(self.timestamps))
+
+        for (curr, next) in timestamps {
+            self.render(endTimestamp: curr)
+
+            if next == -1 {
+                break
+            }
+
+            usleep(UInt32((next - curr) * 1000))
+        }
+    }
+
     @objc override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -136,7 +155,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         // newToolbar.delegate = self
         // view.addSubview(newToolbar.view)
 
-        let controller = UIHostingController(rootView: Toolbar(delegate: delegate, audioRec: audioRec, audioPla: audioPla))
+        let controller = UIHostingController(rootView: Toolbar(delegate: delegate))
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         addChild(controller)
         view.addSubview(controller.view)
@@ -212,9 +231,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         self.commandQueue = self.device.makeCommandQueue() // this is expensive to create, so we save a reference to it
-
-        self.timer = CADisplayLink(target: self, selector: #selector(ViewController.gameloop))
-        self.timer.add(to: RunLoop.main, forMode: RunLoop.Mode.default)
     }
 
     func triggerProgrammaticCapture() {
@@ -232,57 +248,83 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.playing { return }
 
         self.playing = true
-
-        var timestampIterator = self.timestamps.makeIterator()
-        let nextTime = timestampIterator.next()
-        if nextTime == nil { return }
-        var previousTimestamp: Int64 = nextTime!
-
-        func getCurrentTimestamp() -> (timestamp: Int64, delta: Int64, pst: Int64, ok: Bool) {
-            let nextval = timestampIterator.next()
-            if nextval == nil { return (0, 0, 0, false) }
-            let currentTimestamp = nextval!
-
-            let delta: Int64 = currentTimestamp - previousTimestamp
-            let pst = previousTimestamp
-            previousTimestamp = currentTimestamp
-
-            return (currentTimestamp, delta, pst, true)
-        }
-
-        DispatchQueue.global(qos: .userInteractive).async {
-            while self.playing {
-                let (timestamp, delta, _, ok) = getCurrentTimestamp()
-                if !ok {
-                    DispatchQueue.main.async {
-                        self.delegate.playing = false
-                    }
-                    break
-                }
-                let sleepBy = UInt32(delta * 1000)
-                usleep(sleepBy)
-                self.playbackEndTimestamp = timestamp
-            }
-        }
+        let thread = Thread(target: self, selector: #selector(self.playbackThread(thread:)), object: nil)
+        thread.start()
+        //
+//        check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, nil, nil, 0, &self.queue))
+//
+//        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
+//
+//        print("Playing\n")
+//        self.playingState.running = true
+//
+//        for i in 0 ..< BUFFER_COUNT {
+//            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
+//            outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
+//
+//            if !self.playingState.running {
+//                break
+//            }
+//        }
+//
+//        check(AudioQueueStart(self.queue!, nil))
+//
+//        repeat {
+//            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
+//        } while self.playingState.running
     }
 
     public func stopPlaying() {
         self.playing = false
+
+        // delay to ensure queue emits all buffered audio
+//        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
+//
+//        check(AudioQueueStop(self.queue!, true))
+//        check(AudioQueueDispose(self.queue!, true))
     }
 
     public func startRecording() {
         print("in startRecording")
         self.recording = true
         self.timestamps.append(getCurrentTimestamp())
+
+//        var recordingState: RecordingState = RecordingState()
+//
+//        print("queue before AudioQueueNewInput():", queue)
+//        print("recordingState:", recordingState)
+//
+        ////        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue, 0, &queue))
+//        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, nil, nil, 0, &self.queue))
+//        print("queue after AudioQueueNewInput():", self.queue)
+//
+//        for _ in 0 ..< BUFFER_COUNT {
+//            var buffer: AudioQueueBufferRef?
+//            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffer))
+//            check(AudioQueueEnqueueBuffer(self.queue!, buffer!, 0, nil))
+//        }
+//
+//        recordingState.running = true
+//        check(AudioQueueStart(self.queue!, nil))
+//        print("queue after AudioQueueStart():", self.queue)
+//
+//        CFRunLoopRun()
     }
 
     public func stopRecording() {
         print("in stopRecording")
-        self.recording = false
-        self.timestamps.append(getCurrentTimestamp())
+
+//        print("audioData.count:", audioData.count, "audioData:", audioData)
+
+//        self.recording = false
+//        self.timestamps.append(getCurrentTimestamp())
+//
+//        self.recordingState.running = false
+//        check(AudioQueueStop(self.queue!, true))
+//        check(AudioQueueDispose(self.queue!, true))
     }
 
-    final func generateVerts() {
+    final func generateVerts(endTimestamp: Int64) {
         self.renderedShapes.removeAll(keepingCapacity: false)
 
         self.translation = .zero
@@ -290,7 +332,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         for shape in self.drawOperationCollector.shapeList {
             if shape.type == "Pan" {
                 if shape.panPoints.count == 0 { continue }
-                let end = shape.getIndex(timestamp: self.playbackEndTimestamp)
+                let end = shape.getIndex(timestamp: endTimestamp)
                 if end >= 2 {
                     self.translation.x += CGFloat(shape.panPoints[end - 2])
                     self.translation.y += CGFloat(shape.panPoints[end - 1])
@@ -303,7 +345,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             // if shape.notInWindow() { continue }
 
             let start = 0
-            let end = shape.getIndex(timestamp: self.playbackEndTimestamp)
+            let end = shape.getIndex(timestamp: endTimestamp)
 
             if start > end || start == end { continue }
 
@@ -351,7 +393,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                      options: .storageModeShared)
     }
 
-    final func render() {
+    final func render(endTimestamp: Int64) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -359,7 +401,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-        self.generateVerts()
+        self.generateVerts(endTimestamp: endTimestamp)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
@@ -433,7 +475,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        self.playbackEndTimestamp = timestamp
         self.drawOperationCollector.beginProvisionalOps()
         self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
                                                       lineWidth: self.strokeWidth,
@@ -444,6 +485,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.mode == "pan" {
             self.panStart = currentPoint
         }
+
+        self.render(endTimestamp: timestamp)
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -455,7 +498,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        self.playbackEndTimestamp = timestamp
 
         let currentPoint = touch.location(in: view)
         if self.mode == "draw" {
@@ -472,6 +514,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         } else {
             print("invalid mode: \(self.mode)")
         }
+
+        self.render(endTimestamp: timestamp)
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -480,7 +524,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
-        self.playbackEndTimestamp = timestamp
+
         self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: self.getNextId()), mode: self.mode)
         self.drawOperationCollector.commitProvisionalOps()
 
@@ -492,20 +536,15 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             self.panPosition = CGPoint(x: self.panPosition.x + panDelta.x, y: self.panPosition.y + panDelta.y)
         }
+
+        self.render(endTimestamp: timestamp)
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
         self.drawOperationCollector.cancelProvisionalOps()
         guard self.recording else { return }
-    }
 
-    // MARK: - utility functions
-
-    @objc func gameloop() {
-        autoreleasepool {
-            if self.playing || self.recording {
-                self.render()
-            }
-        }
+        let timestamp = getCurrentTimestamp()
+        self.render(endTimestamp: timestamp)
     }
 }

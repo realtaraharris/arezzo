@@ -11,7 +11,7 @@
 		500DB82F253CF6F900A30A0D /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500DB82D253CF6F900A30A0D /* Geometry.swift */; };
 		501C58F024FEC273001972F1 /* ToolbarEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501C58EF24FEC273001972F1 /* ToolbarEx.swift */; };
 		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
-		5047171224F0B056004B0B91 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5047171124F0B056004B0B91 /* Helpers.swift */; };
+		50323189257028270050C298 /* Timestamps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323188257028270050C298 /* Timestamps.swift */; };
 		505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505074342531A73D0011C9C9 /* BareMetalTests.swift */; };
 		5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
@@ -19,11 +19,11 @@
 		5059639B253FB76800FF8B29 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50596396253FB73D00FF8B29 /* Shape.swift */; };
 		505963AE2543A81F00FF8B29 /* BareMetalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505963AD2543A81F00FF8B29 /* BareMetalUITests.swift */; };
 		505963C62546196F00FF8B29 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 505963C52546196F00FF8B29 /* Dynamic */; };
-		5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F76F24D40F06004E7247 /* AudioPlayer.swift */; };
-		5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77224D40F06004E7247 /* RecordingDataModel.swift */; };
-		5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5059F77324D40F06004E7247 /* AudioRecorder.swift */; };
-		5076C46724EDEB5C00BE021B /* AudioExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5076C46624EDEB5C00BE021B /* AudioExtensions.swift */; };
 		5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5077578B24D8D7E0000C3D42 /* OrderedSet.swift */; };
+		508832352559DBC70001E5A2 /* Playback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508832342559DBC70001E5A2 /* Playback.swift */; };
+		5088323D2559DBE70001E5A2 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5088323C2559DBE70001E5A2 /* ErrorHandler.swift */; };
+		508832422559DC100001E5A2 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508832412559DC100001E5A2 /* Recording.swift */; };
+		5088324A255B39620001E5A2 /* AudioDeviceFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50883249255B39620001E5A2 /* AudioDeviceFinder.swift */; };
 		5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5095390D24C6224B00A861CB /* AdaptiveBezier.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
@@ -36,6 +36,7 @@
 		50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */; };
 		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
 		50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
+		50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E696E2256CBE4400C271D8 /* AudioStream.swift */; };
 		50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 		50FF3A6D24E621E100D985FD /* GeometryGetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6C24E621E100D985FD /* GeometryGetter.swift */; };
 		50FF3A6F24E6221E00D985FD /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6E24E6221E00D985FD /* Toolbar.swift */; };
@@ -65,7 +66,7 @@
 		500DB82D253CF6F900A30A0D /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
 		501C58EF24FEC273001972F1 /* ToolbarEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarEx.swift; sourceTree = "<group>"; };
 		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
-		5047171124F0B056004B0B91 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		50323188257028270050C298 /* Timestamps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timestamps.swift; sourceTree = "<group>"; };
 		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		505074322531A73D0011C9C9 /* BareMetalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505074342531A73D0011C9C9 /* BareMetalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalTests.swift; sourceTree = "<group>"; };
@@ -74,12 +75,12 @@
 		505963AB2543A81F00FF8B29 /* BareMetalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505963AD2543A81F00FF8B29 /* BareMetalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalUITests.swift; sourceTree = "<group>"; };
 		505963AF2543A81F00FF8B29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5059F76F24D40F06004E7247 /* AudioPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
-		5059F77224D40F06004E7247 /* RecordingDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordingDataModel.swift; sourceTree = "<group>"; };
-		5059F77324D40F06004E7247 /* AudioRecorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		5060DBA024C2742600940927 /* BareMetal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BareMetal.entitlements; sourceTree = "<group>"; };
-		5076C46624EDEB5C00BE021B /* AudioExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioExtensions.swift; sourceTree = "<group>"; };
 		5077578B24D8D7E0000C3D42 /* OrderedSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedSet.swift; sourceTree = "<group>"; };
+		508832342559DBC70001E5A2 /* Playback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playback.swift; sourceTree = "<group>"; };
+		5088323C2559DBE70001E5A2 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		508832412559DC100001E5A2 /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
+		50883249255B39620001E5A2 /* AudioDeviceFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceFinder.swift; sourceTree = "<group>"; };
 		5095390D24C6224B00A861CB /* AdaptiveBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveBezier.swift; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* BareMetal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BareMetal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -94,6 +95,7 @@
 		50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewDelegate.swift; sourceTree = "<group>"; };
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
 		50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperationCollector.swift; sourceTree = "<group>"; };
+		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
 		50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperation.swift; sourceTree = "<group>"; };
 		50FF3A6C24E621E100D985FD /* GeometryGetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryGetter.swift; sourceTree = "<group>"; };
 		50FF3A6E24E6221E00D985FD /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
@@ -156,14 +158,14 @@
 			path = BareMetalUITests;
 			sourceTree = "<group>";
 		};
-		5059F76E24D40F06004E7247 /* Audio */ = {
+		508832332559DB960001E5A2 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				5059F76F24D40F06004E7247 /* AudioPlayer.swift */,
-				5076C46624EDEB5C00BE021B /* AudioExtensions.swift */,
-				5047171124F0B056004B0B91 /* Helpers.swift */,
-				5059F77224D40F06004E7247 /* RecordingDataModel.swift */,
-				5059F77324D40F06004E7247 /* AudioRecorder.swift */,
+				508832342559DBC70001E5A2 /* Playback.swift */,
+				5088323C2559DBE70001E5A2 /* ErrorHandler.swift */,
+				508832412559DC100001E5A2 /* Recording.swift */,
+				50883249255B39620001E5A2 /* AudioDeviceFinder.swift */,
+				50E696E2256CBE4400C271D8 /* AudioStream.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -191,8 +193,8 @@
 		50C2A6FC24A67F87000F3B93 /* BareMetal */ = {
 			isa = PBXGroup;
 			children = (
+				508832332559DB960001E5A2 /* Audio */,
 				50FF3A6B24E621AF00D985FD /* UI */,
-				5059F76E24D40F06004E7247 /* Audio */,
 				502160AE24C8222C00A658D1 /* Storyboard */,
 				5060DBA024C2742600940927 /* BareMetal.entitlements */,
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
@@ -212,6 +214,7 @@
 				50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */,
 				50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */,
 				50596396253FB73D00FF8B29 /* Shape.swift */,
+				50323188257028270050C298 /* Timestamps.swift */,
 			);
 			path = BareMetal;
 			sourceTree = "<group>";
@@ -387,31 +390,32 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5088324A255B39620001E5A2 /* AudioDeviceFinder.swift in Sources */,
 				50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */,
 				501C58F024FEC273001972F1 /* ToolbarEx.swift in Sources */,
-				5059F77724D40F06004E7247 /* RecordingDataModel.swift in Sources */,
 				501E676D24D730D10032C7BD /* LargePalette.swift in Sources */,
 				50C2A71224A68667000F3B93 /* Shaders.metal in Sources */,
 				50FF3A7324E622E000D985FD /* ColorPickerPopover.swift in Sources */,
+				5088323D2559DBE70001E5A2 /* ErrorHandler.swift in Sources */,
 				50C4F4E824EB8321009F0E01 /* QuadraticBezier.swift in Sources */,
+				50323189257028270050C298 /* Timestamps.swift in Sources */,
 				50FF3A7524E6231500D985FD /* UIExtensions.swift in Sources */,
-				5059F77824D40F06004E7247 /* AudioRecorder.swift in Sources */,
 				50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */,
+				508832352559DBC70001E5A2 /* Playback.swift in Sources */,
 				50596397253FB73D00FF8B29 /* Shape.swift in Sources */,
 				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,
-				5076C46724EDEB5C00BE021B /* AudioExtensions.swift in Sources */,
 				50FF3A6F24E6221E00D985FD /* Toolbar.swift in Sources */,
 				500DB82E253CF6F900A30A0D /* Geometry.swift in Sources */,
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
-				5047171224F0B056004B0B91 /* Helpers.swift in Sources */,
+				508832422559DC100001E5A2 /* Recording.swift in Sources */,
 				50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */,
 				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
 				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
 				50FF3A7124E6227F00D985FD /* ColorSwatch.swift in Sources */,
 				50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */,
-				5059F77424D40F06004E7247 /* AudioPlayer.swift in Sources */,
 				50FF3A6D24E621E100D985FD /* GeometryGetter.swift in Sources */,
+				50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -663,6 +667,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
@@ -685,6 +690,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;

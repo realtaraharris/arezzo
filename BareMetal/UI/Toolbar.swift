@@ -26,8 +26,8 @@ struct VerticalSlider: View {
 
 struct ToolbarItems: View {
     @ObservedObject var delegate: ContentViewDelegate
-    @ObservedObject var audioRec: AudioRecorder
-    @ObservedObject var audioPla: AudioPlayer
+//    @ObservedObject var audioRec: AudioRecorder
+//    @ObservedObject var audioPla: AudioPlayer
 
     @State private var url: URL = URL(string: "https://maxharris.org/")!
 
@@ -47,17 +47,17 @@ struct ToolbarItems: View {
 
             self.delegate.recording ? Button("Stop Recording") {
                 self.delegate.recording = false
-                self.audioRec.stopRecording()
+//                self.audioRec.stopRecording()
             } : Button("Record") {
                 self.delegate.recording = true
-                self.url = self.audioRec.startRecording()
+//                self.url = self.audioRec.startRecording()
             }
             self.delegate.playing ? Button("Stop Playing") {
                 self.delegate.playing = false
-                self.audioPla.stopPlayback()
+//                self.audioPla.stopPlayback()
             } : Button("Play") {
                 self.delegate.playing = true
-                self.audioPla.startPlayback(audio: self.url)
+//                self.audioPla.startPlayback(audio: self.url)
             }
 
             VerticalSlider(value: $delegate.strokeWidth, sliderHeight: 80)
@@ -68,13 +68,13 @@ struct ToolbarItems: View {
 
 struct Toolbar: View {
     @ObservedObject var delegate: ContentViewDelegate
-    @ObservedObject var audioRec: AudioRecorder
-    @ObservedObject var audioPla: AudioPlayer
+//    @ObservedObject var audioRec: AudioRecorder
+//    @ObservedObject var audioPla: AudioPlayer
 
-    init(delegate: ContentViewDelegate, audioRec: AudioRecorder, audioPla: AudioPlayer) {
+    init(delegate: ContentViewDelegate) {
         self.delegate = delegate
-        self.audioRec = audioRec
-        self.audioPla = audioPla
+//        self.audioRec = audioRec
+//        self.audioPla = audioPla
     }
 
     @State private var currentPosition: CGSize = CGSize(width: -300.0, height: -300.0)
@@ -122,7 +122,7 @@ struct Toolbar: View {
                     .shadow(color: Color(red: 0.9, green: 0.9, blue: 0.9, opacity: 1.0), radius: 10)
                     .drawingGroup()
                     .gesture(circleDragGesture)
-                ToolbarItems(delegate: self.delegate, audioRec: self.audioRec, audioPla: self.audioPla)
+                ToolbarItems(delegate: self.delegate)
             }.offset(x: self.currentPosition.width, y: self.currentPosition.height)
         )
     }
