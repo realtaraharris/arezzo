@@ -28,7 +28,7 @@ func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef,
     audioData.append(contentsOf: int16Buffer)
 
     // enqueue the buffer, or re-enqueue it if it's a used one
-    if recorder.pointee.running {
-        check(AudioQueueEnqueueBuffer(inQueue, inBuffer, 0, nil))
-    }
+//    if recorder.pointee.running {
+    check(AudioQueueEnqueueBuffer(inQueue, inBuffer, 0, nil))
+//    }
 }

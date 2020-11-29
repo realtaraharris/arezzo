@@ -53,6 +53,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var recording: Bool = false
     var mode: String = "draw"
     var end = false // for orchestration thread
+    private var width: CGFloat = 0.0
+    private var height: CGFloat = 0.0
 
     var queue: AudioQueueRef?
     var recordingState: RecordingState = RecordingState()
@@ -92,6 +94,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var panStart: CGPoint = .zero
     private var panEnd: CGPoint = .zero
     private var panPosition: CGPoint = .zero
+    private var playbackThread: Thread = Thread()
+    private var recordingThread: Thread = Thread()
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -118,20 +122,90 @@ class ViewController: UIViewController, ToolbarDelegate {
         super.init(coder: aDecoder)
     }
 
-    @objc func playbackThread(thread: Thread) {
+    @objc func playback(thread: Thread) {
         print("thread.isMainThread: \(thread.isMainThread), thread.isExecuting: \(thread.isExecuting)")
 
-        let timestamps = Timestamps(timestamps: Array(self.timestamps))
+        check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, nil, nil, 0, &self.queue))
 
-        for (curr, next) in timestamps {
-            self.render(endTimestamp: curr)
+        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
 
-            if next == -1 {
+        print("Playing\n")
+        self.playingState.running = true
+
+        for i in 0 ..< BUFFER_COUNT {
+            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
+            outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
+
+            if !self.playingState.running {
                 break
             }
-
-            usleep(UInt32((next - curr) * 1000))
         }
+
+        let timestamps = Timestamps(timestamps: Array(self.timestamps))
+//        for (curr, next) in timestamps {
+//            self.render(endTimestamp: curr)
+//
+//            if next == -1 {
+//                break
+//            }
+//
+//            usleep(UInt32((next - curr) * 1000))
+//        }
+
+        var f = timestamps.makeIterator()
+
+        let (currInit, nextInit) = f.next()!
+        let delta = nextInit - currInit
+
+        func proc(_: Timer) {
+            let (curr, next) = f.next()!
+
+            if next == -1 {
+                self.playingState.running = false
+                return
+            }
+
+            print("in proc, curr:", curr)
+
+            self.render(endTimestamp: curr)
+
+            let delta = next - curr
+            let timer = Timer(fire: Date(milliseconds: delta), interval: 0, repeats: false, block: proc)
+            RunLoop.current.add(timer, forMode: .common)
+        }
+
+        let timer = Timer(fire: Date(milliseconds: delta), interval: 0, repeats: false, block: proc)
+        RunLoop.current.add(timer, forMode: .common)
+
+        check(AudioQueueStart(self.queue!, nil))
+
+        repeat {
+            print("yup")
+            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
+        } while self.playingState.running
+    }
+
+    @objc func recording(thread _: Thread) {
+        var recordingState: RecordingState = RecordingState()
+
+        print("queue before AudioQueueNewInput():", queue)
+        print("recordingState:", recordingState)
+
+        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
+//        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, nil, nil, 0, &self.queue))
+        print("queue after AudioQueueNewInput():", self.queue)
+
+        for _ in 0 ..< BUFFER_COUNT {
+            var buffer: AudioQueueBufferRef?
+            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffer))
+            check(AudioQueueEnqueueBuffer(self.queue!, buffer!, 0, nil))
+        }
+
+        recordingState.running = true
+        check(AudioQueueStart(self.queue!, nil))
+        print("queue after AudioQueueStart():", self.queue)
+
+        CFRunLoopRun()
     }
 
     @objc override func viewDidLoad() {
@@ -231,6 +305,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         self.commandQueue = self.device.makeCommandQueue() // this is expensive to create, so we save a reference to it
+
+        self.width = self.view.frame.width
+        self.height = self.view.frame.height
+
+        self.playbackThread = Thread(target: self, selector: #selector(self.playback(thread:)), object: nil)
+        self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
     }
 
     func triggerProgrammaticCapture() {
@@ -248,34 +328,14 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.playing { return }
 
         self.playing = true
-        let thread = Thread(target: self, selector: #selector(self.playbackThread(thread:)), object: nil)
-        thread.start()
-        //
-//        check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, nil, nil, 0, &self.queue))
-//
-//        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
-//
-//        print("Playing\n")
-//        self.playingState.running = true
-//
-//        for i in 0 ..< BUFFER_COUNT {
-//            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
-//            outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
-//
-//            if !self.playingState.running {
-//                break
-//            }
-//        }
-//
-//        check(AudioQueueStart(self.queue!, nil))
-//
-//        repeat {
-//            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
-//        } while self.playingState.running
+
+        self.playbackThread.start()
     }
 
     public func stopPlaying() {
         self.playing = false
+
+        self.playbackThread.cancel()
 
         // delay to ensure queue emits all buffered audio
 //        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
@@ -289,30 +349,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recording = true
         self.timestamps.append(getCurrentTimestamp())
 
-//        var recordingState: RecordingState = RecordingState()
-//
-//        print("queue before AudioQueueNewInput():", queue)
-//        print("recordingState:", recordingState)
-//
-        ////        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue, 0, &queue))
-//        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, nil, nil, 0, &self.queue))
-//        print("queue after AudioQueueNewInput():", self.queue)
-//
-//        for _ in 0 ..< BUFFER_COUNT {
-//            var buffer: AudioQueueBufferRef?
-//            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffer))
-//            check(AudioQueueEnqueueBuffer(self.queue!, buffer!, 0, nil))
-//        }
-//
-//        recordingState.running = true
-//        check(AudioQueueStart(self.queue!, nil))
-//        print("queue after AudioQueueStart():", self.queue)
-//
-//        CFRunLoopRun()
+        self.recordingThread.start()
     }
 
     public func stopRecording() {
         print("in stopRecording")
+
+        self.recordingThread.cancel()
 
 //        print("audioData.count:", audioData.count, "audioData:", audioData)
 
@@ -359,7 +402,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let tr = self.transform(self.translation)
         let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: tr[0], y: tr[1])
-        let uniform = Uniforms(width: Float(view.frame.size.width), height: Float(view.frame.size.height), modelViewMatrix: modelViewMatrix)
+        let uniform = Uniforms(width: Float(self.width), height: Float(self.height), modelViewMatrix: modelViewMatrix)
         let uniforms = [uniform]
         uniformBuffer = self.device.makeBuffer(
             length: MemoryLayout<Uniforms>.size,
@@ -447,8 +490,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     final func transform(_ point: CGPoint) -> [Float] {
-        let frameWidth: Float = Float(view.frame.size.width)
-        let frameHeight: Float = Float(view.frame.size.height)
+        let frameWidth: Float = Float(self.width)
+        let frameHeight: Float = Float(self.height)
         let x: Float = Float(point.x)
         let y: Float = Float(point.y)
 
