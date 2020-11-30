@@ -12,6 +12,8 @@
 		501C58F024FEC273001972F1 /* ToolbarEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501C58EF24FEC273001972F1 /* ToolbarEx.swift */; };
 		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
 		50323189257028270050C298 /* Timestamps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323188257028270050C298 /* Timestamps.swift */; };
+		5032318F257583A10050C298 /* PlaybackThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5032318E257583A10050C298 /* PlaybackThread.swift */; };
+		50323194257597840050C298 /* RecordingThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323193257597840050C298 /* RecordingThread.swift */; };
 		505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505074342531A73D0011C9C9 /* BareMetalTests.swift */; };
 		5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
@@ -67,6 +69,8 @@
 		501C58EF24FEC273001972F1 /* ToolbarEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarEx.swift; sourceTree = "<group>"; };
 		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
 		50323188257028270050C298 /* Timestamps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timestamps.swift; sourceTree = "<group>"; };
+		5032318E257583A10050C298 /* PlaybackThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackThread.swift; sourceTree = "<group>"; };
+		50323193257597840050C298 /* RecordingThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingThread.swift; sourceTree = "<group>"; };
 		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		505074322531A73D0011C9C9 /* BareMetalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505074342531A73D0011C9C9 /* BareMetalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalTests.swift; sourceTree = "<group>"; };
@@ -140,6 +144,15 @@
 			path = Storyboard;
 			sourceTree = "<group>";
 		};
+		5032318D257583790050C298 /* ControlThreads */ = {
+			isa = PBXGroup;
+			children = (
+				5032318E257583A10050C298 /* PlaybackThread.swift */,
+				50323193257597840050C298 /* RecordingThread.swift */,
+			);
+			path = ControlThreads;
+			sourceTree = "<group>";
+		};
 		505074332531A73D0011C9C9 /* BareMetalTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -193,6 +206,7 @@
 		50C2A6FC24A67F87000F3B93 /* BareMetal */ = {
 			isa = PBXGroup;
 			children = (
+				5032318D257583790050C298 /* ControlThreads */,
 				508832332559DB960001E5A2 /* Audio */,
 				50FF3A6B24E621AF00D985FD /* UI */,
 				502160AE24C8222C00A658D1 /* Storyboard */,
@@ -411,10 +425,12 @@
 				508832422559DC100001E5A2 /* Recording.swift in Sources */,
 				50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */,
 				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
+				50323194257597840050C298 /* RecordingThread.swift in Sources */,
 				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
 				50FF3A7124E6227F00D985FD /* ColorSwatch.swift in Sources */,
 				50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */,
 				50FF3A6D24E621E100D985FD /* GeometryGetter.swift in Sources */,
+				5032318F257583A10050C298 /* PlaybackThread.swift in Sources */,
 				50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

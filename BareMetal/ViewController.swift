@@ -80,7 +80,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     @available(iOS 9.1, *)
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
-    private var timestamps = OrderedSet<Int64>()
+    public var timestamps = OrderedSet<Int64>()
     private var lastTimestampDrawn: Int64 = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
@@ -94,8 +94,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var panStart: CGPoint = .zero
     private var panEnd: CGPoint = .zero
     private var panPosition: CGPoint = .zero
-    private var playbackThread: Thread = Thread()
-    private var recordingThread: Thread = Thread()
+    public var playbackThread: Thread = Thread()
+    public var recordingThread: Thread = Thread()
 
     // For pencil interactions
     @available(iOS 12.1, *)
@@ -120,113 +120,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         // newToolbar = ToolbarEx()
 
         super.init(coder: aDecoder)
-    }
-
-    @objc func playback(thread _: Thread) {
-        print("self.playbackThread.isCancelled:", self.playbackThread.isCancelled)
-        check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
-
-        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
-
-        print("Playing\n")
-        self.playingState.running = true
-
-        for i in 0 ..< BUFFER_COUNT {
-            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
-            outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
-
-            if !self.playingState.running {
-                break
-            }
-        }
-
-        let timestamps = Timestamps(timestamps: Array(self.timestamps))
-//        for (curr, next) in timestamps {
-//            self.render(endTimestamp: curr)
-//
-//            if next == -1 {
-//                break
-//            }
-//
-//            usleep(UInt32((next - curr) * 1000))
-//        }
-
-        var f = timestamps.makeIterator()
-
-        let (currInit, nextInit) = f.next()!
-        let delta = nextInit - currInit
-
-        func proc(_: Timer) {
-            let (curr, next) = f.next()!
-
-            if next == -1 {
-                self.playingState.running = false
-                return
-            }
-
-            print("in proc, curr:", curr)
-
-            self.render(endTimestamp: curr)
-
-            let delta = next - curr
-            let timer = Timer(fire: Date(milliseconds: getCurrentTimestamp() + delta), interval: 0, repeats: false, block: proc)
-            RunLoop.current.add(timer, forMode: .common)
-        }
-
-        let timer = Timer(fire: Date(milliseconds: delta), interval: 0, repeats: false, block: proc)
-        RunLoop.current.add(timer, forMode: .common)
-
-        check(AudioQueueStart(self.queue!, nil))
-
-        repeat {
-            print("yup, self.playbackThread.isCancelled:", self.playbackThread.isCancelled)
-            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
-        } while !self.playbackThread.isCancelled
-
-        if !self.playbackThread.isCancelled {
-            // delay to ensure queue emits all buffered audio
-            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
-        }
-
-        check(AudioQueueStop(self.queue!, true))
-        check(AudioQueueDispose(self.queue!, true))
-    }
-
-    @objc func recording(thread _: Thread) {
-        print("self.recordingThread.isCancelled:", self.recordingThread.isCancelled)
-
-        var recordingState: RecordingState = RecordingState()
-        var queue: AudioQueueRef?
-
-        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &queue))
-
-        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
-
-        print("Recording\n")
-        recordingState.running = true
-
-        for i in 0 ..< BUFFER_COUNT {
-            check(AudioQueueAllocateBuffer(queue!, UInt32(bufferByteSize), &buffers[i]))
-            var bs = AudioTimeStamp()
-            inputCallback(inUserData: &recordingState, inQueue: queue!, inBuffer: buffers[i]!, inStartTime: &bs, inNumPackets: 0, inPacketDesc: nil)
-
-            if !recordingState.running {
-                break
-            }
-        }
-
-        check(AudioQueueStart(queue!, nil))
-
-        repeat {
-            print("self.recordingThread.isCancelled:", self.recordingThread.isCancelled)
-            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
-        } while !self.recordingThread.isCancelled
-
-        self.recordingState.running = false
-        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
-
-        check(AudioQueueStop(queue!, true))
-        check(AudioQueueDispose(queue!, true))
     }
 
     @objc override func viewDidLoad() {
