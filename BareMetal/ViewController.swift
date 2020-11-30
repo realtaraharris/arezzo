@@ -122,10 +122,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         super.init(coder: aDecoder)
     }
 
-    @objc func playback(thread: Thread) {
-        print("thread.isMainThread: \(thread.isMainThread), thread.isExecuting: \(thread.isExecuting)")
-
-        check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, nil, nil, 0, &self.queue))
+    @objc func playback(thread _: Thread) {
+        print("self.playbackThread.isCancelled:", self.playbackThread.isCancelled)
+        check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
 
         var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
 
@@ -170,7 +169,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.render(endTimestamp: curr)
 
             let delta = next - curr
-            let timer = Timer(fire: Date(milliseconds: delta), interval: 0, repeats: false, block: proc)
+            let timer = Timer(fire: Date(milliseconds: getCurrentTimestamp() + delta), interval: 0, repeats: false, block: proc)
             RunLoop.current.add(timer, forMode: .common)
         }
 
@@ -180,32 +179,54 @@ class ViewController: UIViewController, ToolbarDelegate {
         check(AudioQueueStart(self.queue!, nil))
 
         repeat {
-            print("yup")
+            print("yup, self.playbackThread.isCancelled:", self.playbackThread.isCancelled)
             CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
-        } while self.playingState.running
+        } while !self.playbackThread.isCancelled
+
+        if !self.playbackThread.isCancelled {
+            // delay to ensure queue emits all buffered audio
+            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
+        }
+
+        check(AudioQueueStop(self.queue!, true))
+        check(AudioQueueDispose(self.queue!, true))
     }
 
     @objc func recording(thread _: Thread) {
+        print("self.recordingThread.isCancelled:", self.recordingThread.isCancelled)
+
         var recordingState: RecordingState = RecordingState()
+        var queue: AudioQueueRef?
 
-        print("queue before AudioQueueNewInput():", queue)
-        print("recordingState:", recordingState)
+        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &queue))
 
-        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
-//        check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, nil, nil, 0, &self.queue))
-        print("queue after AudioQueueNewInput():", self.queue)
+        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
 
-        for _ in 0 ..< BUFFER_COUNT {
-            var buffer: AudioQueueBufferRef?
-            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffer))
-            check(AudioQueueEnqueueBuffer(self.queue!, buffer!, 0, nil))
+        print("Recording\n")
+        recordingState.running = true
+
+        for i in 0 ..< BUFFER_COUNT {
+            check(AudioQueueAllocateBuffer(queue!, UInt32(bufferByteSize), &buffers[i]))
+            var bs = AudioTimeStamp()
+            inputCallback(inUserData: &recordingState, inQueue: queue!, inBuffer: buffers[i]!, inStartTime: &bs, inNumPackets: 0, inPacketDesc: nil)
+
+            if !recordingState.running {
+                break
+            }
         }
 
-        recordingState.running = true
-        check(AudioQueueStart(self.queue!, nil))
-        print("queue after AudioQueueStart():", self.queue)
+        check(AudioQueueStart(queue!, nil))
 
-        CFRunLoopRun()
+        repeat {
+            print("self.recordingThread.isCancelled:", self.recordingThread.isCancelled)
+            CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
+        } while !self.recordingThread.isCancelled
+
+        self.recordingState.running = false
+        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
+
+        check(AudioQueueStop(queue!, true))
+        check(AudioQueueDispose(queue!, true))
     }
 
     @objc override func viewDidLoad() {
@@ -328,20 +349,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.playing { return }
 
         self.playing = true
-
         self.playbackThread.start()
     }
 
     public func stopPlaying() {
         self.playing = false
-
         self.playbackThread.cancel()
-
-        // delay to ensure queue emits all buffered audio
-//        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
-//
-//        check(AudioQueueStop(self.queue!, true))
-//        check(AudioQueueDispose(self.queue!, true))
     }
 
     public func startRecording() {
@@ -354,17 +367,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func stopRecording() {
         print("in stopRecording")
-
+        self.recording = false
         self.recordingThread.cancel()
 
 //        print("audioData.count:", audioData.count, "audioData:", audioData)
-
-//        self.recording = false
-//        self.timestamps.append(getCurrentTimestamp())
-//
-//        self.recordingState.running = false
-//        check(AudioQueueStop(self.queue!, true))
-//        check(AudioQueueDispose(self.queue!, true))
     }
 
     final func generateVerts(endTimestamp: Int64) {

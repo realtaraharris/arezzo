@@ -13,7 +13,7 @@ struct RecordingState {
 }
 
 func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef, inBuffer: AudioQueueBufferRef, inStartTime _: UnsafePointer<AudioTimeStamp>, inNumPackets _: UInt32, inPacketDesc _: UnsafePointer<AudioStreamPacketDescription>?) {
-    print("in inputCallback()")
+//    print("in inputCallback()")
 
     guard let recorder = inUserData?.assumingMemoryBound(to: RecordingState.self) else {
         return
@@ -27,8 +27,10 @@ func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef,
 
     audioData.append(contentsOf: int16Buffer)
 
+    print("recorder.pointee.running:", recorder.pointee.running)
+
     // enqueue the buffer, or re-enqueue it if it's a used one
-//    if recorder.pointee.running {
-    check(AudioQueueEnqueueBuffer(inQueue, inBuffer, 0, nil))
-//    }
+    if recorder.pointee.running {
+        check(AudioQueueEnqueueBuffer(inQueue, inBuffer, 0, nil))
+    }
 }
