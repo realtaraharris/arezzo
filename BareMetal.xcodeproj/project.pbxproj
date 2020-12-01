@@ -208,7 +208,7 @@
 			children = (
 				5032318D257583790050C298 /* ControlThreads */,
 				508832332559DB960001E5A2 /* Audio */,
-				50FF3A6B24E621AF00D985FD /* UI */,
+				50FF3A6B24E621AF00D985FD /* SwiftUIJunk */,
 				502160AE24C8222C00A658D1 /* Storyboard */,
 				5060DBA024C2742600940927 /* BareMetal.entitlements */,
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
@@ -233,7 +233,7 @@
 			path = BareMetal;
 			sourceTree = "<group>";
 		};
-		50FF3A6B24E621AF00D985FD /* UI */ = {
+		50FF3A6B24E621AF00D985FD /* SwiftUIJunk */ = {
 			isa = PBXGroup;
 			children = (
 				50FF3A6C24E621E100D985FD /* GeometryGetter.swift */,
@@ -242,7 +242,7 @@
 				50FF3A7224E622E000D985FD /* ColorPickerPopover.swift */,
 				50FF3A7424E6231500D985FD /* UIExtensions.swift */,
 			);
-			path = UI;
+			path = SwiftUIJunk;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

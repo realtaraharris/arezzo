@@ -85,7 +85,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
-//    private var newToolbar: ToolbarEx
+    private var newToolbar: ToolbarEx
     private var id: Int64 = 0
     private let capEdges = 9
 
@@ -117,7 +117,7 @@ class ViewController: UIViewController, ToolbarDelegate {
          drawOperationCollector.commitProvisionalOps()
          */
 
-        // newToolbar = ToolbarEx()
+        self.newToolbar = ToolbarEx()
 
         super.init(coder: aDecoder)
     }
@@ -140,52 +140,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.setupRender()
 
-        // newToolbar.delegate = self
-        // view.addSubview(newToolbar.view)
-
-        let controller = UIHostingController(rootView: Toolbar(delegate: delegate))
-        controller.view.translatesAutoresizingMaskIntoConstraints = false
-        addChild(controller)
-        view.addSubview(controller.view)
-        controller.view.backgroundColor = UIColor.clear
-        controller.didMove(toParent: self)
-
-        controller.view.translatesAutoresizingMaskIntoConstraints = false
-        controller.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        controller.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-        controller.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-        controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-
-        var previousDelegate: ContentViewDelegate = ContentViewDelegate()
-        changePublisher = self.delegate.didChange.sink { delegate in
-            // if delegate.clear {
-            //     self.drawOperations.removeAll(keepingCapacity: false)
-            //     self.timestamps.removeAll(keepingCapacity: false)
-            // }
-
-            if delegate.playing != previousDelegate.playing {
-                if delegate.playing {
-                    self.startPlaying()
-                } else {
-                    self.stopPlaying()
-                }
-            }
-
-            if delegate.recording != previousDelegate.recording {
-                if delegate.recording {
-                    self.startRecording()
-                } else {
-                    self.stopRecording()
-                }
-            }
-
-            self.mode = delegate.mode
-            self.selectedColor = delegate.selectedColor.toColorArray()
-
-            self.strokeWidth = delegate.strokeWidth
-
-            previousDelegate = delegate.copy()
-        }
+        self.newToolbar.delegate = self
+        view.addSubview(self.newToolbar.view)
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
