@@ -60,7 +60,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var recordingState: RecordingState = RecordingState()
     var playingState: PlayingState = PlayingState()
 
-    private var delegate = ContentViewDelegate()
+    public var delegate = ContentViewDelegate()
     private var changePublisher: AnyCancellable?
 
     @available(iOS 9.1, *)
@@ -227,6 +227,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
     }
 
+    @objc func stopPlayUI() {
+//        self.delegate.playing = false
+    }
+
     func triggerProgrammaticCapture() {
         let captureManager = MTLCaptureManager.shared()
         let captureDescriptor = MTLCaptureDescriptor()
@@ -262,8 +266,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         print("in stopRecording")
         self.recording = false
         self.recordingThread.cancel()
-
-//        print("audioData.count:", audioData.count, "audioData:", audioData)
     }
 
     final func generateVerts(endTimestamp: Int64) {
