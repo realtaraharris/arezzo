@@ -12,7 +12,6 @@ import Foundation
 import Metal
 import QuartzCore
 import simd // vector_float2, vector_float4
-import SwiftUI
 import UIKit
 
 let DEFAULT_STROKE_THICKNESS: Float = 5
@@ -85,7 +84,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
-    private var newToolbar: ToolbarEx
+    private var newToolbar: Toolbar
     private var id: Int64 = 0
     private let capEdges = 9
 
@@ -117,7 +116,7 @@ class ViewController: UIViewController, ToolbarDelegate {
          drawOperationCollector.commitProvisionalOps()
          */
 
-        self.newToolbar = ToolbarEx()
+        self.newToolbar = Toolbar()
 
         super.init(coder: aDecoder)
     }

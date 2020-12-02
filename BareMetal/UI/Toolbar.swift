@@ -39,7 +39,7 @@ class ToolbarView: UIView {
     }
 }
 
-class ToolbarEx: UIViewController {
+class Toolbar: UIViewController {
     var delegate: ToolbarDelegate?
     var recording: Bool = false
     var playing: Bool = false
