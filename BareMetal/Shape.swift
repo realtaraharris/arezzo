@@ -14,6 +14,7 @@ class Shape {
     var timestamp: [Int64] = []
     var geometryBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
+    var widthBuffer: MTLBuffer!
     var type: String
     var panPoints: [Float] = [] // only used when type == "Pan"
     var id: Int
@@ -46,7 +47,7 @@ class Shape {
         self.timestamp.append(timestamp)
     }
 
-    func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float]) {
+    func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float], thickness: Float) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = self.geometry.count
 //        print("geometryCount:", geometryCount)
@@ -54,6 +55,11 @@ class Shape {
             self.colorBuffer = device.makeBuffer(
                 bytes: color,
                 length: color.count * 4,
+                options: .storageModeShared
+            )
+            self.widthBuffer = device.makeBuffer(
+                bytes: [thickness],
+                length: 4,
                 options: .storageModeShared
             )
         } else if geometryCount >= 2,

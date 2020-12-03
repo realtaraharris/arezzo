@@ -97,8 +97,8 @@ struct Point: DrawOperation {
 struct PenDown: DrawOperation {
     var type: String
     var color: [Float]
-    var lineWidth: Float = 0.050
-    var timestamp: Int64 = 0
+    var lineWidth: Float
+    var timestamp: Int64
     var id: Int64
 
     init(color: [Float], lineWidth: Float, timestamp: Int64, id: Int64) {

@@ -18,6 +18,7 @@ class DrawOperationCollector {
     var provisionalShapeIndex = 0
     var device: MTLDevice
     var activeColor: [Float] = []
+    var currentThickness = DEFAULT_STROKE_THICKNESS
     var currentId: Int = 0
 
     var penState: PenState = .down
@@ -31,6 +32,7 @@ class DrawOperationCollector {
             let penDownOp = op as! PenDown
             self.penState = .down
             self.activeColor = penDownOp.color
+            self.currentThickness = penDownOp.lineWidth
             self.shapeList.append(Shape(type: "Line", id: self.currentId))
             self.currentId += 1
         } else if op.type == "PenDown", mode == "pan" {
@@ -43,7 +45,7 @@ class DrawOperationCollector {
         } else if op.type == "Point", self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: self.device, color: self.activeColor)
+            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: self.device, color: self.activeColor, thickness: self.currentThickness)
         } else if op.type == "PenUp" {
             self.penState = .up
         }

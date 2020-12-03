@@ -31,12 +31,13 @@ class BareMetalTests: XCTestCase {
 
         let f = Shape(type: "Line", id: 0)
         let color: [Float] = [1.0, 0.0, 0.0, 1.0]
-        f.addShapePoint(point: [513.87476, 343.04993], timestamp: 1_602_408_785_976, device: device, color: color)
-        f.addShapePoint(point: [517.7709, 343.04993], timestamp: 1_602_408_786_160, device: device, color: color)
-        f.addShapePoint(point: [522.0779, 342.015], timestamp: 1_602_408_786_177, device: device, color: color)
-        f.addShapePoint(point: [526.7654, 341.54828], timestamp: 1_602_408_786_193, device: device, color: color)
-        f.addShapePoint(point: [531.5544, 341.54828], timestamp: 1_602_408_787_213, device: device, color: color)
-        f.addShapePoint(point: [556.4631, 342.81653], timestamp: 1_602_408_787_221, device: device, color: color)
+        let thickness: Float = 5
+        f.addShapePoint(point: [513.87476, 343.04993], timestamp: 1_602_408_785_976, device: device, color: color, thickness: thickness)
+        f.addShapePoint(point: [517.7709, 343.04993], timestamp: 1_602_408_786_160, device: device, color: color, thickness: thickness)
+        f.addShapePoint(point: [522.0779, 342.015], timestamp: 1_602_408_786_177, device: device, color: color, thickness: thickness)
+        f.addShapePoint(point: [526.7654, 341.54828], timestamp: 1_602_408_786_193, device: device, color: color, thickness: thickness)
+        f.addShapePoint(point: [531.5544, 341.54828], timestamp: 1_602_408_787_213, device: device, color: color, thickness: thickness)
+        f.addShapePoint(point: [556.4631, 342.81653], timestamp: 1_602_408_787_221, device: device, color: color, thickness: thickness)
 
         XCTAssert(f.getIndex(timestamp: 1_602_408_787_221) == 10)
         XCTAssert(f.getIndex(timestamp: -1) == -2)

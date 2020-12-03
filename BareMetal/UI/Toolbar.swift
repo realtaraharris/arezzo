@@ -15,6 +15,8 @@ protocol ToolbarDelegate {
 
     func startPlaying()
     func stopPlaying()
+
+    func setLineThickness(_ strokeWidth: Float)
 }
 
 class ToolbarView: UIView {
@@ -24,17 +26,17 @@ class ToolbarView: UIView {
                                height: frame.size.height)
 
         if frameRect.contains(point) {
-            print("frame: \(frame), \(point)")
+//            print("frame: \(frame), \(point)")
             return true
         }
 
         for subview in subviews as [UIView] {
             if !subview.isHidden, subview.alpha > 0, subview.isUserInteractionEnabled, subview.point(inside: convert(point, to: subview), with: event) {
-                print("point: true")
+//                print("point: true")
                 return true
             }
         }
-        print("point: false")
+//        print("point: false")
         return false
     }
 }
@@ -77,6 +79,8 @@ class Toolbar: UIViewController {
         view.addSubview(playButton!)
 
         let slider = UISlider()
+        slider.minimumValue = 5.0
+        slider.maximumValue = 50.0
         slider.translatesAutoresizingMaskIntoConstraints = false
         slider.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / -2))
         slider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
@@ -127,6 +131,7 @@ class Toolbar: UIViewController {
     }
 
     @objc func sliderChanged(_ sender: UISlider!) {
+        delegate?.setLineThickness(sender.value)
         print("slider changed: \(sender.value)")
     }
 

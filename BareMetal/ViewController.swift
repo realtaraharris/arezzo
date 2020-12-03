@@ -21,12 +21,14 @@ class RenderedShape {
     var endIndex: Int
     var geometryBuffer: MTLBuffer
     var colorBuffer: MTLBuffer
+    var widthBuffer: MTLBuffer
 
-    init(startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer) {
+    init(startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer, widthBuffer: MTLBuffer) {
         self.startIndex = startIndex
         self.endIndex = endIndex
         self.geometryBuffer = geometryBuffer
         self.colorBuffer = colorBuffer
+        self.widthBuffer = widthBuffer
     }
 }
 
@@ -86,7 +88,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
     private var newToolbar: Toolbar
     private var id: Int64 = 0
-    private let capEdges = 9
+    private let capEdges = 21
 
     private var points: [[Float]] = []
     private var indexData: [Float] = []
@@ -223,6 +225,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingThread.cancel()
     }
 
+    public func setLineThickness(_ strokeWidth: Float) {
+        self.strokeWidth = strokeWidth
+    }
+
     final func generateVerts(endTimestamp: Int64) {
         self.renderedShapes.removeAll(keepingCapacity: false)
 
@@ -252,7 +258,8 @@ class ViewController: UIViewController, ToolbarDelegate {
                 startIndex: start,
                 endIndex: end,
                 geometryBuffer: shape.geometryBuffer,
-                colorBuffer: shape.colorBuffer
+                colorBuffer: shape.colorBuffer,
+                widthBuffer: shape.widthBuffer
             ))
         }
 
@@ -309,6 +316,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         for index in 0 ..< self.renderedShapes.count {
             let rs: RenderedShape = self.renderedShapes[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
+            renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
             renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
             renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
 

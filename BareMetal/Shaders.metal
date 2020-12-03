@@ -20,11 +20,6 @@ struct Uniforms {
     float4x4 modelViewMatrix;
 };
 
-struct Beep {
-    float2 pointA [[attribute(0)]];
-    float2 pointB [[attribute(1)]];
-};
-
 float2 screenSpaceToMetalSpace (float2 position, float width, float height) {
     return float2(
         (2.0f * position.x / width) - 2.0,
@@ -37,12 +32,13 @@ vertex VertexOut segment_vertex(
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
     constant packed_float2 *points[[buffer(3)]],
+    constant float *widths[[buffer(4)]],
     unsigned int vid[[vertex_id]],
     const uint instanceId [[instance_id]]
 ) {
     VertexOut vo;
     
-    const float lineWidth = 5.0; // TODO: move into uniforms
+    const float lineWidth = widths[0];
 
     const float4 color = colors[0];
     const float2 position = vertex_array[vid];
@@ -64,15 +60,17 @@ vertex VertexOut cap_vertex(
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
     constant packed_float2 *points[[buffer(3)]],
+    constant float *widths[[buffer(4)]],
     unsigned int vid[[vertex_id]],
     const uint instanceId [[instance_id]]
 ) {
     VertexOut vo;
 
+    const float lineWidth = widths[0];
     const float4 color = colors[0];
     const float2 position = vertex_array[vid];
 
-    float2 point = points[instanceId] + position * 5.0; // TODO: move into uniforms
+    float2 point = points[instanceId] + position * lineWidth;
 
     vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
     vo.color = color;
