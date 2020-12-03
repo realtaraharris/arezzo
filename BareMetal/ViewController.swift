@@ -14,7 +14,7 @@ import QuartzCore
 import simd // vector_float2, vector_float4
 import UIKit
 
-let DEFAULT_STROKE_THICKNESS: Float = 5
+let DEFAULT_LINE_WIDTH: Float = 5
 
 class RenderedShape {
     var startIndex: Int
@@ -49,7 +49,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var capRenderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
-    var strokeWidth: Float = DEFAULT_STROKE_THICKNESS
+    var lineWidth: Float = DEFAULT_LINE_WIDTH
     var playing: Bool = false
     var recording: Bool = false
     var mode: String = "draw"
@@ -110,7 +110,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.drawOperationCollector = DrawOperationCollector(device: self.device)
         /*
          drawOperationCollector.beginProvisionalOps()
-         drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_STROKE_THICKNESS, timestamp: Date().toMilliseconds(), id: 0))
+         drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: Date().toMilliseconds(), id: 0))
          drawOperationCollector.addOp(Point(point: [310, 645], timestamp: Date().toMilliseconds(), id: 1))
          drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: Date().toMilliseconds(), id: 1))
          drawOperationCollector.addOp(Point(point: [800, 100], timestamp: Date().toMilliseconds(), id: 1))
@@ -225,8 +225,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingThread.cancel()
     }
 
-    public func setLineThickness(_ strokeWidth: Float) {
-        self.strokeWidth = strokeWidth
+    public func setLineWidth(_ lineWidth: Float) {
+        self.lineWidth = lineWidth
     }
 
     final func generateVerts(endTimestamp: Int64) {
@@ -384,7 +384,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         timestamps.append(timestamp)
         self.drawOperationCollector.beginProvisionalOps()
         self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
-                                                      lineWidth: self.strokeWidth,
+                                                      lineWidth: self.lineWidth,
                                                       timestamp: timestamp,
                                                       id: self.getNextId()), mode: self.mode)
 

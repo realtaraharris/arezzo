@@ -16,7 +16,7 @@ protocol ToolbarDelegate {
     func startPlaying()
     func stopPlaying()
 
-    func setLineThickness(_ strokeWidth: Float)
+    func setLineWidth(_ lineWidth: Float)
 }
 
 class ToolbarView: UIView {
@@ -131,7 +131,7 @@ class Toolbar: UIViewController {
     }
 
     @objc func sliderChanged(_ sender: UISlider!) {
-        delegate?.setLineThickness(sender.value)
+        delegate?.setLineWidth(sender.value)
         print("slider changed: \(sender.value)")
     }
 

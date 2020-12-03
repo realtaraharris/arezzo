@@ -20,7 +20,7 @@ TODO:
 - [x] clicks on SwiftUI elements bleed through to the underlying drawing touch handlers
     - [x] how do you declare an associative array in Swift? each view needs a unique key
     - [x] need a way to make blue SwiftUI rects disappear when popover shuts
-- [x] stroke width UI
+- [x] line width UI
 - [x] add more colors to color picker
 - [x] playback
 - [x] pan feature

@@ -187,7 +187,7 @@ func calculateSquareDistance(x1: Float, y1: Float, x2: Float, y2: Float) -> Floa
 }
 
 // triangle strip
-func dumpTriangleStrip(thickness: Float, miterLimit: Float, points: [[Float]]) -> [Float] {
+func dumpTriangleStrip(width: Float, miterLimit: Float, points: [[Float]]) -> [Float] {
     var output: [Float] = []
 
     if points.count < 2 {
@@ -201,7 +201,7 @@ func dumpTriangleStrip(thickness: Float, miterLimit: Float, points: [[Float]]) -
         let p0 = simd_float2(_p0[0], _p0[1])
         let p1 = simd_float2(_p1[0], _p1[1])
 
-        toTriangleStripTwoPoints(thickness: thickness, miterLimit: miterLimit, p0: p0, p1: p1, output: &output)
+        toTriangleStripTwoPoints(width: width, miterLimit: miterLimit, p0: p0, p1: p1, output: &output)
         return output
     }
 
@@ -213,7 +213,7 @@ func dumpTriangleStrip(thickness: Float, miterLimit: Float, points: [[Float]]) -
 //            let p1 = simd_float2(_p1[0], _p1[1])
         let p2 = simd_float2(_p2[0], _p2[1])
 
-        toTriangleStripTwoPoints(thickness: thickness, miterLimit: miterLimit, p0: p0, p1: p2, output: &output)
+        toTriangleStripTwoPoints(width: width, miterLimit: miterLimit, p0: p0, p1: p2, output: &output)
         return output
     }
 
@@ -228,13 +228,13 @@ func dumpTriangleStrip(thickness: Float, miterLimit: Float, points: [[Float]]) -
         let p2 = simd_float2(_p2[0], _p2[1])
         let p3 = simd_float2(_p3[0], _p3[1])
 
-        toTriangleStrip(isFirst: index == 0, isLast: index == points.count - 4, thickness: thickness, miterLimit: miterLimit, p0: p0, p1: p1, p2: p2, p3: p3, output: &output)
+        toTriangleStrip(isFirst: index == 0, isLast: index == points.count - 4, width: width, miterLimit: miterLimit, p0: p0, p1: p1, p2: p2, p3: p3, output: &output)
     }
 
     return output
 }
 
-func toTriangleStripTwoPoints(thickness: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, output: inout [Float]) {
+func toTriangleStripTwoPoints(width: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, output: inout [Float]) {
     // perform naive culling
 //    let area = simd_float2(1.2, 1.2)
 //    if p1.x < -area.x || p1.x > area.x { return }
@@ -248,40 +248,40 @@ func toTriangleStripTwoPoints(thickness: Float, miterLimit _: Float, p0: simd_fl
 
     // first point
     // if you want an end cap, this is where you'd emit it
-    let tmp0 = (p0 + thickness * n0)
+    let tmp0 = (p0 + width * n0)
     output.append(tmp0.x)
     output.append(tmp0.y)
     output.append(0)
 
-    let tmp1 = (p0 - thickness * n0)
+    let tmp1 = (p0 - width * n0)
     output.append(tmp1.x)
     output.append(tmp1.y)
     output.append(0)
 
-//    let tmp2 = (p1 - thickness * n0)
+//    let tmp2 = (p1 - width * n0)
 //    output.append(tmp2.x)
 //    output.append(tmp2.y)
 //    output.append(0)
 //
-//    let tmp3 = (p1 + thickness * n0)
+//    let tmp3 = (p1 + width * n0)
 //    output.append(tmp3.x)
 //    output.append(tmp3.y)
 //    output.append(0)
 
     // last point
     // if you want an end cap, this is where you'd emit it
-    let tmp4 = (p1 + thickness * n0)
+    let tmp4 = (p1 + width * n0)
     output.append(tmp4.x)
     output.append(tmp4.y)
     output.append(0)
 
-    let tmp5 = (p1 - thickness * n0)
+    let tmp5 = (p1 - width * n0)
     output.append(tmp5.x)
     output.append(tmp5.y)
     output.append(0)
 }
 
-func toTriangleStripThreePoints(thickness: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, output: inout [Float]) {
+func toTriangleStripThreePoints(width: Float, miterLimit _: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, output: inout [Float]) {
     // determine the direction of each of the 3 segments (previous, current, next)
     let v0 = normalize(p1 - p0)
     let v1 = normalize(p2 - p1)
@@ -295,40 +295,40 @@ func toTriangleStripThreePoints(thickness: Float, miterLimit _: Float, p0: simd_
 //    var miter_b = normalize(n1 + n2) // miter at end of current segment
 
     // determine the length of the miter by projecting it onto normal and then inverse it
-//    var length_a = thickness / dot(miter_a, n1)
-//    var length_b = thickness / dot(miter_b, n1)
+//    var length_a = width / dot(miter_a, n1)
+//    var length_b = width / dot(miter_b, n1)
 
     // first point
     // if you want an end cap, this is where you'd emit it
 
-    let tmp2 = (p0 + thickness * n0)
+    let tmp2 = (p0 + width * n0)
     output.append(tmp2.x)
     output.append(tmp2.y)
     output.append(0)
 
-    let tmp0 = (p0 - thickness * n0)
+    let tmp0 = (p0 - width * n0)
     output.append(tmp0.x)
     output.append(tmp0.y)
     output.append(0)
 
-//    let tmp1 = (p0 - thickness * n0)
+//    let tmp1 = (p0 - width * n0)
 //    output.append(tmp1.x)
 //    output.append(tmp1.y)
 //    output.append(0)
 //
-//    let tmp3 = (p0 - thickness * n1)
+//    let tmp3 = (p0 - width * n1)
 //    output.append(tmp3.x)
 //    output.append(tmp3.y)
 //    output.append(0)
 
-    let tmp5 = (p1 + thickness * n1)
+    let tmp5 = (p1 + width * n1)
     output.append(tmp5.x)
     output.append(tmp5.y)
     output.append(0)
 
     // last point
     // if you want an end cap, this is where you'd emit it
-    let tmp4 = (p1 - thickness * n1)
+    let tmp4 = (p1 - width * n1)
     output.append(tmp4.x)
     output.append(tmp4.y)
     output.append(0)
@@ -336,10 +336,10 @@ func toTriangleStripThreePoints(thickness: Float, miterLimit _: Float, p0: simd_
 
 /**
  Calculates thick line strip around input line loop
- :param thickness The thickness of the line in pixels
+ :param width The width of the line in pixels
  :param miterLimit 1.0: always miter, -1.0: never miter, 0.75: default
  */
-func toTriangleStrip(isFirst: Bool, isLast: Bool, thickness: Float, miterLimit: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, p3: simd_float2, output: inout [Float]) {
+func toTriangleStrip(isFirst: Bool, isLast: Bool, width: Float, miterLimit: Float, p0: simd_float2, p1: simd_float2, p2: simd_float2, p3: simd_float2, output: inout [Float]) {
     // determine the direction of each of the 3 segments (previous, current, next)
     let v0 = normalize(p1 - p0)
     let v1 = normalize(p2 - p1)
@@ -355,28 +355,28 @@ func toTriangleStrip(isFirst: Bool, isLast: Bool, thickness: Float, miterLimit: 
     var miter_b = normalize(n1 + n2) // miter at end of current segment
 
     // determine the length of the miter by projecting it onto normal and then inverse it
-    var length_a = thickness / dot(miter_a, n1)
-    var length_b = thickness / dot(miter_b, n1)
+    var length_a = width / dot(miter_a, n1)
+    var length_b = width / dot(miter_b, n1)
 
     if isFirst {
         // if you want an end cap, this is where you'd emit it
 
-        let tmp0 = (p0 + thickness * n1)
+        let tmp0 = (p0 + width * n1)
         output.append(tmp0.x)
         output.append(tmp0.y)
         output.append(0)
 
-        let tmp2 = (p1 + thickness * n1)
+        let tmp2 = (p1 + width * n1)
         output.append(tmp2.x)
         output.append(tmp2.y)
         output.append(0)
 
-        let tmp1 = (p0 - thickness * n0)
+        let tmp1 = (p0 - width * n0)
         output.append(tmp1.x)
         output.append(tmp1.y)
         output.append(0)
 
-        let tmp3 = (p1 - thickness * n1)
+        let tmp3 = (p1 - width * n1)
         output.append(tmp3.x)
         output.append(tmp3.y)
         output.append(0)
@@ -385,26 +385,26 @@ func toTriangleStrip(isFirst: Bool, isLast: Bool, thickness: Float, miterLimit: 
     // prevent excessively long miters at sharp corners
     if dot(v0, v1) < -miterLimit {
         miter_a = n1
-        length_a = thickness
+        length_a = width
 
         // close the gap
         if dot(v0, n1) > 0 {
-            let tmp0 = (p1 + thickness * n0)
+            let tmp0 = (p1 + width * n0)
             output.append(tmp0.x)
             output.append(tmp0.y)
             output.append(0.0)
 
-            let tmp1 = (p1 + thickness * n1)
+            let tmp1 = (p1 + width * n1)
             output.append(tmp1.x)
             output.append(tmp1.y)
             output.append(0.0)
         } else {
-            let tmp0 = (p1 - thickness * n1)
+            let tmp0 = (p1 - width * n1)
             output.append(tmp0.x)
             output.append(tmp0.y)
             output.append(0.0)
 
-            let tmp1 = (p1 - thickness * n0)
+            let tmp1 = (p1 - width * n0)
             output.append(tmp1.x)
             output.append(tmp1.y)
             output.append(0.0)
@@ -413,7 +413,7 @@ func toTriangleStrip(isFirst: Bool, isLast: Bool, thickness: Float, miterLimit: 
 
     if dot(v1, v2) < -miterLimit {
         miter_b = n1
-        length_b = thickness
+        length_b = width
     }
 
     let tmp0 = (p1 + length_a * miter_a)
@@ -438,12 +438,12 @@ func toTriangleStrip(isFirst: Bool, isLast: Bool, thickness: Float, miterLimit: 
 
     if isLast {
         // if you want an end cap, this is where you'd emit it
-        let tmp0 = (p3 + thickness * n2)
+        let tmp0 = (p3 + width * n2)
         output.append(tmp0.x)
         output.append(tmp0.y)
         output.append(0)
 
-        let tmp1 = (p3 - thickness * n2)
+        let tmp1 = (p3 - width * n2)
         output.append(tmp1.x)
         output.append(tmp1.y)
         output.append(0)

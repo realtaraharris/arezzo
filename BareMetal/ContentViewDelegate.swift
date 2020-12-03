@@ -56,7 +56,7 @@ class ContentViewDelegate: ObservableObject {
         }
     }
 
-    var strokeWidth: Float = DEFAULT_STROKE_THICKNESS {
+    var lineWidth: Float = DEFAULT_LINE_WIDTH {
         didSet {
             self.didChange.send(self)
         }
@@ -91,7 +91,7 @@ class ContentViewDelegate: ObservableObject {
         recording: Bool = false,
         clear: Bool = false,
         selectedColor: Color = Color(red: 1.0, green: 0.0, blue: 0.0, opacity: 1.0),
-        strokeWidth: Float = DEFAULT_STROKE_THICKNESS,
+        lineWidth: Float = DEFAULT_LINE_WIDTH,
         mode _: String = "draw",
         uiRect _: [String: CGRect] = [:]
     ) {
@@ -99,7 +99,7 @@ class ContentViewDelegate: ObservableObject {
         self.recording = recording
         self.clear = clear
         self.selectedColor = selectedColor
-        self.strokeWidth = strokeWidth
+        self.lineWidth = lineWidth
     }
 
     func copy() -> ContentViewDelegate {
@@ -108,7 +108,7 @@ class ContentViewDelegate: ObservableObject {
             recording: recording,
             clear: clear,
             selectedColor: selectedColor,
-            strokeWidth: strokeWidth,
+            lineWidth: lineWidth,
             mode: mode,
             uiRect: uiRects
         )

@@ -47,7 +47,7 @@ class Shape {
         self.timestamp.append(timestamp)
     }
 
-    func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float], thickness: Float) {
+    func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float], lineWidth: Float) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = self.geometry.count
 //        print("geometryCount:", geometryCount)
@@ -58,7 +58,7 @@ class Shape {
                 options: .storageModeShared
             )
             self.widthBuffer = device.makeBuffer(
-                bytes: [thickness],
+                bytes: [lineWidth],
                 length: 4,
                 options: .storageModeShared
             )
