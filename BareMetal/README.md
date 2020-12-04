@@ -25,8 +25,8 @@ TODO:
 - [x] playback
 - [x] pan feature
 
-- [ ] audio recording
-- [ ] audio playback
+- [x] audio recording
+- [x] audio playback
 
 - [ ] handle screen rotation correctly
 - [ ] undo feature

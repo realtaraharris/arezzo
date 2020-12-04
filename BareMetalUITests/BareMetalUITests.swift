@@ -6,7 +6,6 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
-//import Dynamic
 import XCTest
 
 class BareMetalUITests: XCTestCase {
@@ -22,71 +21,72 @@ class BareMetalUITests: XCTestCase {
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
-/*
-    func testDrawing() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
 
-        // force a refresh of the accessibility hierarchy. this is needed to eliminate test flakiness
-        _ = XCUIApplication().buttons.count
+    /*
+         func testDrawing() throws {
+             // UI tests must launch the application that they test.
+             let app = XCUIApplication()
+             app.launch()
 
-        let record = app.buttons["Record"]
+             // force a refresh of the accessibility hierarchy. this is needed to eliminate test flakiness
+             _ = XCUIApplication().buttons.count
 
-        _ = record.waitForExistence(timeout: 10)
-        record.tap()
+             let record = app.buttons["Record"]
 
-        // TODO: could use XCPointerEventPath + https://github.com/mhdhejazi/Dynamic to stroke through multiple points
-        let window = app.windows.firstMatch
+             _ = record.waitForExistence(timeout: 10)
+             record.tap()
 
-        let firstPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 200, dy: 200))
-        let secondPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 400, dy: 400))
-        let thirdPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 600, dy: 200))
+             // TODO: could use XCPointerEventPath + https://github.com/mhdhejazi/Dynamic to stroke through multiple points
+             let window = app.windows.firstMatch
 
-        firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
-        secondPoint.press(forDuration: 0.1, thenDragTo: thirdPoint)
+             let firstPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 200, dy: 200))
+             let secondPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 400, dy: 400))
+             let thirdPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 600, dy: 200))
 
-        let fullScreenshot = XCUIScreen.main.screenshot()
-        let screenshot = XCTAttachment(screenshot: fullScreenshot)
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
-    }
+             firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
+             secondPoint.press(forDuration: 0.1, thenDragTo: thirdPoint)
 
-    func testPanning() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
+             let fullScreenshot = XCUIScreen.main.screenshot()
+             let screenshot = XCTAttachment(screenshot: fullScreenshot)
+             screenshot.lifetime = .keepAlways
+             add(screenshot)
+         }
 
-        // force a refresh of the accessibility hierarchy. this is needed to eliminate test flakiness
-//        _ = XCUIApplication().buttons.count
+         func testPanning() throws {
+             // UI tests must launch the application that they test.
+             let app = XCUIApplication()
+             app.launch()
 
-        let record = app.buttons["Record"]
+             // force a refresh of the accessibility hierarchy. this is needed to eliminate test flakiness
+     //        _ = XCUIApplication().buttons.count
 
-//        _ = XCUIApplication().buttons.count
-        _ = record.waitForExistence(timeout: 10)
-        record.tap()
+             let record = app.buttons["Record"]
 
-        // TODO: could use XCPointerEventPath + https://github.com/mhdhejazi/Dynamic to stroke through multiple points
-        let window = app.windows.firstMatch
+     //        _ = XCUIApplication().buttons.count
+             _ = record.waitForExistence(timeout: 10)
+             record.tap()
 
-        let firstPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 200, dy: 200))
-        let secondPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 400, dy: 400))
-        let thirdPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 600, dy: 200))
+             // TODO: could use XCPointerEventPath + https://github.com/mhdhejazi/Dynamic to stroke through multiple points
+             let window = app.windows.firstMatch
 
-        firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
-        secondPoint.press(forDuration: 0.1, thenDragTo: thirdPoint)
+             let firstPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 200, dy: 200))
+             let secondPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 400, dy: 400))
+             let thirdPoint = window.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 600, dy: 200))
 
-        let pan = app.buttons["Pan"]
-        _ = pan.waitForExistence(timeout: 10)
-        pan.tap()
-        firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
+             firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
+             secondPoint.press(forDuration: 0.1, thenDragTo: thirdPoint)
 
-        let fullScreenshot = XCUIScreen.main.screenshot()
-        let screenshot = XCTAttachment(screenshot: fullScreenshot)
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
-    }
-*/
+             let pan = app.buttons["Pan"]
+             _ = pan.waitForExistence(timeout: 10)
+             pan.tap()
+             firstPoint.press(forDuration: 0.1, thenDragTo: secondPoint)
+
+             let fullScreenshot = XCUIScreen.main.screenshot()
+             let screenshot = XCTAttachment(screenshot: fullScreenshot)
+             screenshot.lifetime = .keepAlways
+             add(screenshot)
+         }
+     */
 //    func testLaunchPerformance() throws {
 //        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, *) {
 //            // This measures how long it takes to launch your application.
