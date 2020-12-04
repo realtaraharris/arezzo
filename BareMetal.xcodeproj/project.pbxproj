@@ -6,6 +6,20 @@
 	objectVersion = 52;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		50E8841025798C7100BB6321 /* Mutation Test */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 50E8841125798C7100BB6321 /* Build configuration list for PBXAggregateTarget "Mutation Test" */;
+			buildPhases = (
+				50E884182579C10100BB6321 /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = "Mutation Test";
+			productName = "Mutation Test";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		500DB82E253CF6F900A30A0D /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500DB82D253CF6F900A30A0D /* Geometry.swift */; };
 		500DB82F253CF6F900A30A0D /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500DB82D253CF6F900A30A0D /* Geometry.swift */; };
@@ -39,6 +53,9 @@
 		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
 		50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E696E2256CBE4400C271D8 /* AudioStream.swift */; };
+		50E88407257989B200BB6321 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E88406257989B200BB6321 /* Constants.swift */; };
+		50E88408257989B200BB6321 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E88406257989B200BB6321 /* Constants.swift */; };
+		50E88409257989B200BB6321 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E88406257989B200BB6321 /* Constants.swift */; };
 		50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +112,7 @@
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
 		50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperationCollector.swift; sourceTree = "<group>"; };
 		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
+		50E88406257989B200BB6321 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -176,6 +194,7 @@
 		50C2A6F124A67F87000F3B93 = {
 			isa = PBXGroup;
 			children = (
+				50E88406257989B200BB6321 /* Constants.swift */,
 				50C2A6FC24A67F87000F3B93 /* BareMetal */,
 				505074332531A73D0011C9C9 /* BareMetalTests */,
 				505963AC2543A81F00FF8B29 /* BareMetalUITests */,
@@ -312,6 +331,9 @@
 					50C2A6F924A67F87000F3B93 = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
+					50E8841025798C7100BB6321 = {
+						CreatedOnToolsVersion = 12.2;
+					};
 				};
 			};
 			buildConfigurationList = 50C2A6F524A67F87000F3B93 /* Build configuration list for PBXProject "BareMetal" */;
@@ -333,6 +355,7 @@
 				50C2A6F924A67F87000F3B93 /* BareMetal */,
 				505074312531A73D0011C9C9 /* BareMetalTests */,
 				505963AA2543A81F00FF8B29 /* BareMetalUITests */,
+				50E8841025798C7100BB6321 /* Mutation Test */,
 			);
 		};
 /* End PBXProject section */
@@ -364,6 +387,26 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		50E884182579C10100BB6321 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nmuter --output-xcode\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		5050742E2531A73D0011C9C9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -374,6 +417,7 @@
 				5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */,
 				505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */,
 				500DB82F253CF6F900A30A0D /* Geometry.swift in Sources */,
+				50E88408257989B200BB6321 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,6 +426,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				505963AE2543A81F00FF8B29 /* BareMetalUITests.swift in Sources */,
+				50E88409257989B200BB6321 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,6 +440,7 @@
 				501E676D24D730D10032C7BD /* LargePalette.swift in Sources */,
 				50C2A71224A68667000F3B93 /* Shaders.metal in Sources */,
 				5088323D2559DBE70001E5A2 /* ErrorHandler.swift in Sources */,
+				50E88407257989B200BB6321 /* Constants.swift in Sources */,
 				50C4F4E824EB8321009F0E01 /* QuadraticBezier.swift in Sources */,
 				50323189257028270050C298 /* Timestamps.swift in Sources */,
 				50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */,
@@ -457,16 +503,17 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetalTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BareMetal.app/BareMetal";
 			};
 			name = Debug;
@@ -478,16 +525,17 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetalTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BareMetal.app/BareMetal";
 			};
 			name = Release;
@@ -498,16 +546,17 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetalUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 				TEST_TARGET_NAME = BareMetal;
 			};
 			name = Debug;
@@ -518,16 +567,17 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetalUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetalUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 				TEST_TARGET_NAME = BareMetal;
 			};
 			name = Release;
@@ -664,6 +714,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -688,12 +739,31 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+		50E8841225798C7100BB6321 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2LEWKHUL9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		50E8841325798C7100BB6321 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D2LEWKHUL9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -732,6 +802,15 @@
 			buildConfigurations = (
 				50C2A70F24A67F8A000F3B93 /* Debug */,
 				50C2A71024A67F8A000F3B93 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		50E8841125798C7100BB6321 /* Build configuration list for PBXAggregateTarget "Mutation Test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50E8841225798C7100BB6321 /* Debug */,
+				50E8841325798C7100BB6321 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

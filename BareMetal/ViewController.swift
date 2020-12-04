@@ -14,8 +14,6 @@ import QuartzCore
 import simd // vector_float2, vector_float4
 import UIKit
 
-let DEFAULT_LINE_WIDTH: Float = 5
-
 class RenderedShape {
     var startIndex: Int
     var endIndex: Int
