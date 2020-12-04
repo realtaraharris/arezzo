@@ -16,6 +16,9 @@ protocol ToolbarDelegate {
     func startPlaying()
     func stopPlaying()
 
+    func setDrawMode()
+    func setPanMode()
+
     func setLineWidth(_ lineWidth: Float)
 }
 
@@ -45,9 +48,11 @@ class Toolbar: UIViewController {
     var delegate: ToolbarDelegate?
     var recording: Bool = false
     var playing: Bool = false
+    var mode: String = "draw"
 
     var recordButton: UIButton?
     var playButton: UIButton?
+    var drawModeButton: UIButton?
 
     override func loadView() {
         view = ToolbarView()
@@ -62,21 +67,43 @@ class Toolbar: UIViewController {
             playButton = UIButton(type: .system)
         }
 
+        if drawModeButton == nil {
+            drawModeButton = UIButton(type: .system)
+        }
+
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
         gesture.cancelsTouchesInView = true
         view.addGestureRecognizer(gesture)
 
+        let cornerRadius: CGFloat = 10.0
+        let titleEdgeInsets = UIEdgeInsets(top: 2, left: 5, bottom: 2, right: 5)
+
         recordButton!.translatesAutoresizingMaskIntoConstraints = false
-        recordButton!.backgroundColor = UIColor.blue
+        recordButton!.backgroundColor = UIColor.darkGray
+        recordButton!.layer.cornerRadius = cornerRadius
+        recordButton!.clipsToBounds = true
+        recordButton!.titleEdgeInsets = titleEdgeInsets
         recordButton!.setTitle("\(!recording ? "Start" : "Stop") Recording", for: .normal)
         recordButton!.addTarget(self, action: #selector(toggleRecording), for: .touchUpInside)
         view.addSubview(recordButton!)
 
         playButton!.translatesAutoresizingMaskIntoConstraints = false
-        playButton!.backgroundColor = UIColor.blue
+        playButton!.backgroundColor = UIColor.darkGray
+        playButton!.layer.cornerRadius = cornerRadius
+        playButton!.clipsToBounds = true
+        playButton!.titleEdgeInsets = titleEdgeInsets
         playButton!.setTitle("\(!recording ? "Start" : "Stop") Playing", for: .normal)
         playButton!.addTarget(self, action: #selector(togglePlaying), for: .touchUpInside)
         view.addSubview(playButton!)
+
+        drawModeButton!.translatesAutoresizingMaskIntoConstraints = false
+        drawModeButton!.backgroundColor = UIColor.darkGray
+        drawModeButton!.layer.cornerRadius = cornerRadius
+        drawModeButton!.clipsToBounds = true
+        drawModeButton!.titleEdgeInsets = titleEdgeInsets
+        drawModeButton!.setTitle(mode == "pan" ? "Pan" : "Draw", for: .normal)
+        drawModeButton!.addTarget(self, action: #selector(toggleDrawMode), for: .touchUpInside)
+        view.addSubview(drawModeButton!)
 
         let slider = UISlider()
         slider.minimumValue = 5.0
@@ -90,19 +117,21 @@ class Toolbar: UIViewController {
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 500, y: 100, width: 500, height: 100)
 
-//        let space1 = UILayoutGuide()
-//        space1.identifier = "buttonSpacing1"
-//        view.addLayoutGuide(space1)
-
         NSLayoutConstraint.activate([
             slider.widthAnchor.constraint(equalTo: view.heightAnchor),
             slider.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
 
+            playButton!.leadingAnchor.constraint(equalTo: slider.trailingAnchor, constant: -20),
             playButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
-            playButton!.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+            playButton!.widthAnchor.constraint(equalToConstant: 130.0),
 
+            drawModeButton!.leadingAnchor.constraint(equalTo: playButton!.trailingAnchor, constant: 20),
+            drawModeButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            drawModeButton!.widthAnchor.constraint(equalToConstant: 80.0),
+
+            recordButton!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: 20),
             recordButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
-            recordButton!.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            recordButton!.widthAnchor.constraint(equalToConstant: 150.0),
         ])
     }
 
@@ -128,6 +157,23 @@ class Toolbar: UIViewController {
 
         playButton!.setTitle("\(playing ? "Start" : "Stop") Playing", for: .normal)
         playing = !playing
+    }
+
+    @objc func toggleDrawMode() {
+        print("toggleDrawMode()")
+        if mode != "draw" {
+            delegate?.setDrawMode()
+        } else {
+            delegate?.setPanMode()
+        }
+
+        drawModeButton!.setTitle("\(self.mode == "draw" ? "Pan" : "Draw")", for: .normal)
+
+        if self.mode == "draw" {
+            self.mode = "pan"
+        } else {
+            self.mode = "draw"
+        }
     }
 
     @objc func sliderChanged(_ sender: UISlider!) {

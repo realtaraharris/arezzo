@@ -219,6 +219,14 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingThread.cancel()
     }
 
+    public func setDrawMode() {
+        self.mode = "draw"
+    }
+
+    public func setPanMode() {
+        self.mode = "pan"
+    }
+
     public func setLineWidth(_ lineWidth: Float) {
         self.lineWidth = lineWidth
     }
