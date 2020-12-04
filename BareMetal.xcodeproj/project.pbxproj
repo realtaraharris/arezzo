@@ -49,7 +49,6 @@
 		50C2A70A24A67F8A000F3B93 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50C2A70824A67F8A000F3B93 /* LaunchScreen.storyboard */; };
 		50C2A71224A68667000F3B93 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A71124A68667000F3B93 /* Shaders.metal */; };
 		50C4F4E824EB8321009F0E01 /* QuadraticBezier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4F4E724EB8321009F0E01 /* QuadraticBezier.swift */; };
-		50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */; };
 		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
 		50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E696E2256CBE4400C271D8 /* AudioStream.swift */; };
@@ -108,7 +107,6 @@
 		50C2A70B24A67F8A000F3B93 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50C2A71124A68667000F3B93 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		50C4F4E724EB8321009F0E01 /* QuadraticBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadraticBezier.swift; sourceTree = "<group>"; };
-		50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewDelegate.swift; sourceTree = "<group>"; };
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
 		50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperationCollector.swift; sourceTree = "<group>"; };
 		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
@@ -225,7 +223,6 @@
 				50C2A70124A67F87000F3B93 /* ViewController.swift */,
 				500DB82D253CF6F900A30A0D /* Geometry.swift */,
 				50CCCB9B24EE245E0085F134 /* Utillities.swift */,
-				50CCCB9924EE21B70085F134 /* ContentViewDelegate.swift */,
 				5077578B24D8D7E0000C3D42 /* OrderedSet.swift */,
 				50C2A70B24A67F8A000F3B93 /* Info.plist */,
 				50C2A71124A68667000F3B93 /* Shaders.metal */,
@@ -455,7 +452,6 @@
 				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
 				50323194257597840050C298 /* RecordingThread.swift in Sources */,
 				5095390E24C6224B00A861CB /* AdaptiveBezier.swift in Sources */,
-				50CCCB9A24EE21B70085F134 /* ContentViewDelegate.swift in Sources */,
 				5032318F257583A10050C298 /* PlaybackThread.swift in Sources */,
 				50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */,
 			);

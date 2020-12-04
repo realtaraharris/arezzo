@@ -51,16 +51,12 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playing: Bool = false
     var recording: Bool = false
     var mode: String = "draw"
-    var end = false // for orchestration thread
     private var width: CGFloat = 0.0
     private var height: CGFloat = 0.0
 
     var queue: AudioQueueRef?
     var recordingState: RecordingState = RecordingState()
     var playingState: PlayingState = PlayingState()
-
-    public var delegate = ContentViewDelegate()
-    private var changePublisher: AnyCancellable?
 
     @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
