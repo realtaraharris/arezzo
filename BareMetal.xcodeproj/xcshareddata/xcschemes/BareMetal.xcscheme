@@ -48,6 +48,11 @@
                BlueprintName = "BareMetalUITests"
                ReferencedContainer = "container:BareMetal.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "BareMetalUITests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>
