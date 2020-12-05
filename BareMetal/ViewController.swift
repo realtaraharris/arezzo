@@ -179,7 +179,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     @objc func stopPlayUI() {
-//        self.delegate.playing = false
+        self.newToolbar.togglePlaying()
     }
 
     func triggerProgrammaticCapture() {

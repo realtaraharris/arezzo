@@ -54,7 +54,7 @@ extension ViewController {
 
         repeat {
             CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
-        } while !self.playbackThread.isCancelled
+        } while !self.playbackThread.isCancelled && self.playingState.running
 
         if !self.playbackThread.isCancelled {
             // delay to ensure queue emits all buffered audio

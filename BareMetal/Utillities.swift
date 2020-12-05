@@ -10,11 +10,11 @@ import Foundation
 
 extension Date {
     var millisecondsSince1970: Int64 {
-        Int64((self.timeIntervalSince1970 * 1000.0).rounded())
+        Int64((self.timeIntervalSince1970 * 1000.0))
     }
 
     init(milliseconds: Int64) {
-        self = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000)
+        self = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000.0)
     }
 }
 
@@ -22,12 +22,6 @@ func getCurrentTimestamp() -> Int64 {
 //    print("new:", Date().millisecondsSince1970, "old:", Date().toMilliseconds())
 //    return Date().toMilliseconds()
     Date().millisecondsSince1970
-}
-
-extension Date {
-    func toMilliseconds() -> Int64 {
-        Int64(timeIntervalSince1970 * 1000)
-    }
 }
 
 func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
