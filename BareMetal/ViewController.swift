@@ -75,8 +75,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     @available(iOS 9.1, *)
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
-    public var timestamps = OrderedSet<Int64>()
-    private var lastTimestampDrawn: Int64 = 0
+    public var timestamps = OrderedSet<Double>()
+    private var lastTimestampDrawn: Double = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
@@ -231,7 +231,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.lineWidth = lineWidth
     }
 
-    final func generateVerts(endTimestamp: Int64) {
+    final func generateVerts(endTimestamp: Double) {
         self.renderedShapes.removeAll(keepingCapacity: false)
 
         self.translation = .zero
@@ -301,7 +301,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                      options: .storageModeShared)
     }
 
-    final func render(endTimestamp: Int64) {
+    final func render(endTimestamp: Double) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()

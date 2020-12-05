@@ -11,7 +11,7 @@ import Metal
 
 class Shape {
     var geometry: [Float] = []
-    var timestamp: [Int64] = []
+    var timestamp: [Double] = []
     var geometryBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
     var widthBuffer: MTLBuffer!
@@ -24,7 +24,7 @@ class Shape {
         self.id = id
     }
 
-    func addPanPoint(point: [Float], timestamp: Int64) {
+    func addPanPoint(point: [Float], timestamp: Double) {
         let panCount = self.panPoints.count
         if panCount == 0 {
             self.panPoints.append(contentsOf: point)
@@ -47,7 +47,7 @@ class Shape {
         self.timestamp.append(timestamp)
     }
 
-    func addShapePoint(point: [Float], timestamp: Int64, device: MTLDevice, color: [Float], lineWidth: Float) {
+    func addShapePoint(point: [Float], timestamp: Double, device: MTLDevice, color: [Float], lineWidth: Float) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = self.geometry.count
 //        print("geometryCount:", geometryCount)
@@ -79,7 +79,7 @@ class Shape {
         )
     }
 
-    func getIndex(timestamp: Int64) -> Int {
+    func getIndex(timestamp: Double) -> Int {
         let input = self.timestamp
         var lowerIndex = 0
         var upperIndex = input.count - 1

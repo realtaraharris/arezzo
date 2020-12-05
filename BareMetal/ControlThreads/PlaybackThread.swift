@@ -32,7 +32,9 @@ extension ViewController {
         let (currInit, nextInit) = timestampIterator.next()!
         let delta = nextInit - currInit
 
-        func renderNext(_: Timer) {
+        print("mach_absolute_time():", mach_absolute_time())
+
+        func renderNext(_: CFRunLoopTimer?) {
             let (curr, next) = timestampIterator.next()!
 
             if next == -1 {
@@ -43,12 +45,16 @@ extension ViewController {
             self.render(endTimestamp: curr)
 
             let delta = next - curr
-            let timer = Timer(fire: Date(milliseconds: getCurrentTimestamp() + delta), interval: 0, repeats: false, block: renderNext)
-            RunLoop.current.add(timer, forMode: .common)
+            let fireDate = CFAbsoluteTimeGetCurrent() + delta
+//            print("recursive fireDate:", fireDate, "CFAbsoluteTimeGetCurrent():", CFAbsoluteTimeGetCurrent(), "delta:", delta)
+            let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
+            RunLoop.current.add(timer!, forMode: .common)
         }
 
-        let timer = Timer(fire: Date(milliseconds: delta), interval: 0, repeats: false, block: renderNext)
-        RunLoop.current.add(timer, forMode: .common)
+        let fireDate = CFAbsoluteTimeGetCurrent() + delta
+//        print("outer fireDate:", fireDate, "CFAbsoluteTimeGetCurrent():", CFAbsoluteTimeGetCurrent(), "delta:", delta)
+        let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
+        RunLoop.current.add(timer!, forMode: .common)
 
         check(AudioQueueStart(self.queue!, nil))
 

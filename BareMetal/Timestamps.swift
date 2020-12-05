@@ -9,7 +9,7 @@
 import Foundation
 
 struct Timestamps: Sequence {
-    let timestamps: [Int64]
+    let timestamps: [Double]
 
     func makeIterator() -> TimestampIterator {
         TimestampIterator(self.timestamps)
@@ -17,10 +17,10 @@ struct Timestamps: Sequence {
 }
 
 struct TimestampIterator: IteratorProtocol {
-    private let values: [Int64]
+    private let values: [Double]
     private var index: Int?
 
-    init(_ values: [Int64]) {
+    init(_ values: [Double]) {
         self.values = values
     }
 
@@ -34,7 +34,7 @@ struct TimestampIterator: IteratorProtocol {
         return nil
     }
 
-    mutating func next() -> (Int64, Int64)? {
+    mutating func next() -> (Double, Double)? {
         if let index = self.nextIndex(for: self.index) {
             self.index = index
 
