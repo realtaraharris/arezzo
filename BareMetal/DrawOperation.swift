@@ -27,45 +27,6 @@ struct Line: DrawOperation {
     }
 }
 
-struct CubicBezier: DrawOperation {
-    var type: String
-    var start: [Float]
-    var end: [Float]
-    var control1: [Float]
-    var control2: [Float]
-    var lineWidth: Float = 0.050
-    var timestamp: Double = 0
-    var id: Int64
-
-    init(start: [Float], end: [Float], control1: [Float], control2: [Float], timestamp: Double, id: Int64) {
-        self.type = "CubicBezier"
-        self.start = start
-        self.end = end
-        self.control1 = control1
-        self.control2 = control2
-        self.timestamp = timestamp
-        self.id = id
-    }
-}
-
-struct QuadraticBezier: DrawOperation {
-    var type: String
-    var start: [Float]
-    var end: [Float]
-    var control: [Float]
-    var timestamp: Double = 0
-    var id: Int64
-
-    init(start: [Float], end: [Float], control: [Float], timestamp: Double, id: Int64) {
-        self.type = "QuadraticBezier"
-        self.start = start
-        self.end = end
-        self.control = control
-        self.timestamp = timestamp
-        self.id = id
-    }
-}
-
 struct Pan: DrawOperation {
     var type: String
     var point: [Float]
