@@ -215,6 +215,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func stopRecording() {
         print("in stopRecording")
+        self.drawOperationCollector.serialize()
+
         self.recording = false
         self.recordingThread.cancel()
     }

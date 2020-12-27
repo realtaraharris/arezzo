@@ -14,6 +14,7 @@ enum PenState {
 }
 
 class DrawOperationCollector {
+    var opList: [DrawOperation] = []
     var shapeList: [Shape] = []
     var provisionalShapeIndex = 0
     var device: MTLDevice
@@ -28,25 +29,27 @@ class DrawOperationCollector {
     }
 
     func addOp(op: DrawOperation, mode: String) {
-        if op.type == "PenDown", mode == "draw" {
+        self.opList.append(op)
+
+        if op.type == .penDown, mode == "draw" {
             let penDownOp = op as! PenDown
             self.penState = .down
             self.activeColor = penDownOp.color
             self.currentLineWidth = penDownOp.lineWidth
             self.shapeList.append(Shape(type: "Line", id: self.currentId))
             self.currentId += 1
-        } else if op.type == "PenDown", mode == "pan" {
+        } else if op.type == .penDown, mode == "pan" {
             self.shapeList.append(Shape(type: "Pan", id: self.currentId))
             self.currentId += 1
-        } else if op.type == "Pan", mode == "pan" {
+        } else if op.type == .pan, mode == "pan" {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
             lastShape.addPanPoint(point: panOp.point, timestamp: panOp.timestamp)
-        } else if op.type == "Point", self.penState == .down {
+        } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
             lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: self.device, color: self.activeColor, lineWidth: self.currentLineWidth)
-        } else if op.type == "PenUp" {
+        } else if op.type == .penUp {
             self.penState = .up
         }
     }
@@ -61,5 +64,12 @@ class DrawOperationCollector {
 
     func cancelProvisionalOps() {
         self.shapeList.removeSubrange(self.provisionalShapeIndex ..< self.shapeList.count)
+    }
+
+    func serialize() {
+        let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
+        let jsonData = try! JSONEncoder().encode(wrappedItems)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        print(jsonString)
     }
 }
