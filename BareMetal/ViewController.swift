@@ -215,7 +215,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func stopRecording() {
         print("in stopRecording")
-        self.drawOperationCollector.serialize()
 
         self.recording = false
         self.recordingThread.cancel()
@@ -227,6 +226,19 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func setPanMode() {
         self.mode = "pan"
+    }
+
+    func save() {
+        print("SAVE")
+        self.drawOperationCollector.serialize()
+    }
+
+    func restore() {
+        print("RESTORE")
+    }
+
+    func clear() {
+        print("CLEAR")
     }
 
     public func setLineWidth(_ lineWidth: Float) {

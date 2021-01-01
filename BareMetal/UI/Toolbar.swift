@@ -19,6 +19,10 @@ protocol ToolbarDelegate {
     func setDrawMode()
     func setPanMode()
 
+    func save()
+    func restore()
+    func clear()
+
     func setLineWidth(_ lineWidth: Float)
 }
 
@@ -54,6 +58,10 @@ class Toolbar: UIViewController {
     var playButton: UIButton?
     var drawModeButton: UIButton?
 
+    var saveButton: UIButton?
+    var restoreButton: UIButton?
+    var clearButton: UIButton?
+
     override func loadView() {
         view = ToolbarView()
     }
@@ -69,6 +77,18 @@ class Toolbar: UIViewController {
 
         if drawModeButton == nil {
             drawModeButton = UIButton(type: .system)
+        }
+
+        if saveButton == nil {
+            saveButton = UIButton(type: .system)
+        }
+
+        if restoreButton == nil {
+            restoreButton = UIButton(type: .system)
+        }
+
+        if clearButton == nil {
+            clearButton = UIButton(type: .system)
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -105,6 +125,33 @@ class Toolbar: UIViewController {
         drawModeButton!.addTarget(self, action: #selector(toggleDrawMode), for: .touchUpInside)
         view.addSubview(drawModeButton!)
 
+        saveButton!.translatesAutoresizingMaskIntoConstraints = false
+        saveButton!.backgroundColor = UIColor.darkGray
+        saveButton!.layer.cornerRadius = cornerRadius
+        saveButton!.clipsToBounds = true
+        saveButton!.titleEdgeInsets = titleEdgeInsets
+        saveButton!.setTitle("Save", for: .normal)
+        saveButton!.addTarget(self, action: #selector(save), for: .touchUpInside)
+        view.addSubview(saveButton!)
+
+        restoreButton!.translatesAutoresizingMaskIntoConstraints = false
+        restoreButton!.backgroundColor = UIColor.darkGray
+        restoreButton!.layer.cornerRadius = cornerRadius
+        restoreButton!.clipsToBounds = true
+        restoreButton!.titleEdgeInsets = titleEdgeInsets
+        restoreButton!.setTitle("Restore", for: .normal)
+        restoreButton!.addTarget(self, action: #selector(restore), for: .touchUpInside)
+        view.addSubview(restoreButton!)
+
+        clearButton!.translatesAutoresizingMaskIntoConstraints = false
+        clearButton!.backgroundColor = UIColor.darkGray
+        clearButton!.layer.cornerRadius = cornerRadius
+        clearButton!.clipsToBounds = true
+        clearButton!.titleEdgeInsets = titleEdgeInsets
+        clearButton!.setTitle("Clear", for: .normal)
+        clearButton!.addTarget(self, action: #selector(clear), for: .touchUpInside)
+        view.addSubview(clearButton!)
+
         let slider = UISlider()
         slider.minimumValue = 5.0
         slider.maximumValue = 50.0
@@ -115,7 +162,7 @@ class Toolbar: UIViewController {
 
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
-        view.frame = CGRect(x: 500, y: 100, width: 500, height: 100)
+        view.frame = CGRect(x: 100, y: 100, width: 850, height: 100)
 
         NSLayoutConstraint.activate([
             slider.widthAnchor.constraint(equalTo: view.heightAnchor),
@@ -132,6 +179,18 @@ class Toolbar: UIViewController {
             recordButton!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: 20),
             recordButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
             recordButton!.widthAnchor.constraint(equalToConstant: 150.0),
+
+            saveButton!.leadingAnchor.constraint(equalTo: recordButton!.trailingAnchor, constant: 20),
+            saveButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            saveButton!.widthAnchor.constraint(equalToConstant: 80.0),
+
+            restoreButton!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: 20),
+            restoreButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            restoreButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            clearButton!.leadingAnchor.constraint(equalTo: restoreButton!.trailingAnchor, constant: 20),
+            clearButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            clearButton!.widthAnchor.constraint(equalToConstant: 100.0),
         ])
     }
 
@@ -174,6 +233,18 @@ class Toolbar: UIViewController {
         } else {
             self.mode = "draw"
         }
+    }
+
+    @objc func save() {
+        delegate?.save()
+    }
+
+    @objc func restore() {
+        delegate?.restore()
+    }
+
+    @objc func clear() {
+        delegate?.clear()
     }
 
     @objc func sliderChanged(_ sender: UISlider!) {
