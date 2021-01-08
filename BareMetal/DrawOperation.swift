@@ -63,13 +63,15 @@ struct PenDown: DrawOperation {
     var color: [Float]
     var lineWidth: Float
     var timestamp: Double
+    var mode: String
     var id: Int64
 
-    init(color: [Float], lineWidth: Float, timestamp: Double, id: Int64) {
+    init(color: [Float], lineWidth: Float, timestamp: Double, mode: String, id: Int64) {
         self.type = DrawOperationType.penDown
         self.color = color
         self.lineWidth = lineWidth
         self.timestamp = timestamp
+        self.mode = mode
         self.id = id
     }
 }

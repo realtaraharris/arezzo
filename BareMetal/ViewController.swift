@@ -235,10 +235,14 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func restore() {
         print("RESTORE")
+        self.drawOperationCollector.deserialize()
     }
 
     func clear() {
         print("CLEAR")
+        self.drawOperationCollector.clear()
+        let timestamp = getCurrentTimestamp()
+        self.render(endTimestamp: timestamp)
     }
 
     public func setLineWidth(_ lineWidth: Float) {
@@ -402,7 +406,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
                                                       lineWidth: self.lineWidth,
                                                       timestamp: timestamp,
-                                                      id: self.getNextId()), mode: self.mode)
+                                                      mode: self.mode,
+                                                      id: self.getNextId()))
 
         let currentPoint = touch.location(in: view)
         if self.mode == "pan" {
@@ -425,15 +430,11 @@ class ViewController: UIViewController, ToolbarDelegate {
         let currentPoint = touch.location(in: view)
         if self.mode == "draw" {
             self.drawOperationCollector.addOp(
-                op: Point(point: [Float(currentPoint.x - self.panPosition.x), Float(currentPoint.y - self.panPosition.y)], timestamp: timestamp, id: self.getNextId()),
-                mode: self.mode
-            )
+                op: Point(point: [Float(currentPoint.x - self.panPosition.x), Float(currentPoint.y - self.panPosition.y)], timestamp: timestamp, id: self.getNextId()))
         } else if self.mode == "pan" {
             let delta: CGPoint = CGPoint(x: currentPoint.x - self.panStart.x, y: currentPoint.y - self.panStart.y)
             self.drawOperationCollector.addOp(
-                op: Pan(point: [Float(delta.x), Float(delta.y)], timestamp: timestamp, id: self.getNextId()),
-                mode: self.mode
-            )
+                op: Pan(point: [Float(delta.x), Float(delta.y)], timestamp: timestamp, id: self.getNextId()))
         } else {
             print("invalid mode: \(self.mode)")
         }
@@ -448,7 +449,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         let timestamp = getCurrentTimestamp()
         timestamps.append(timestamp)
 
-        self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: self.getNextId()), mode: self.mode)
+        self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: self.getNextId()))
         self.drawOperationCollector.commitProvisionalOps()
 
         let currentPoint = touch.location(in: view)
