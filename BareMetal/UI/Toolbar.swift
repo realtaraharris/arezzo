@@ -152,45 +152,59 @@ class Toolbar: UIViewController {
         clearButton!.addTarget(self, action: #selector(clear), for: .touchUpInside)
         view.addSubview(clearButton!)
 
-        let slider = UISlider()
-        slider.minimumValue = 5.0
-        slider.maximumValue = 50.0
-        slider.translatesAutoresizingMaskIntoConstraints = false
-        slider.transform = CGAffineTransform(rotationAngle: CGFloat(Float.pi / -2))
-        slider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
-        view.addSubview(slider)
+        let thicknessSlider = UISlider()
+        thicknessSlider.minimumValue = 5.0
+        thicknessSlider.maximumValue = 50.0
+        thicknessSlider.translatesAutoresizingMaskIntoConstraints = false
+        thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
+        view.addSubview(thicknessSlider)
+
+        let toolbarWidth: CGFloat = 880
+        let toolbarHeight: CGFloat = 120
+        let playbackSlider = UISlider()
+        playbackSlider.minimumValue = 0
+        playbackSlider.maximumValue = 100
+        playbackSlider.translatesAutoresizingMaskIntoConstraints = false
+        playbackSlider.addTarget(self, action: #selector(playbackSliderChanged), for: .valueChanged)
+        let margin: CGFloat = 20
+        view.addSubview(playbackSlider)
 
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
-        view.frame = CGRect(x: 100, y: 100, width: 850, height: 100)
+        view.frame = CGRect(x: 100, y: 100, width: toolbarWidth, height: toolbarHeight)
 
         NSLayoutConstraint.activate([
-            slider.widthAnchor.constraint(equalTo: view.heightAnchor),
-            slider.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            thicknessSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            thicknessSlider.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            thicknessSlider.widthAnchor.constraint(equalToConstant: 80.0),
 
-            playButton!.leadingAnchor.constraint(equalTo: slider.trailingAnchor, constant: -20),
-            playButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            playButton!.leadingAnchor.constraint(equalTo: thicknessSlider.trailingAnchor, constant: margin),
+            playButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             playButton!.widthAnchor.constraint(equalToConstant: 130.0),
 
-            drawModeButton!.leadingAnchor.constraint(equalTo: playButton!.trailingAnchor, constant: 20),
-            drawModeButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            drawModeButton!.leadingAnchor.constraint(equalTo: playButton!.trailingAnchor, constant: margin),
+            drawModeButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             drawModeButton!.widthAnchor.constraint(equalToConstant: 80.0),
 
-            recordButton!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: 20),
-            recordButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            recordButton!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: margin),
+            recordButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             recordButton!.widthAnchor.constraint(equalToConstant: 150.0),
 
-            saveButton!.leadingAnchor.constraint(equalTo: recordButton!.trailingAnchor, constant: 20),
-            saveButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            saveButton!.leadingAnchor.constraint(equalTo: recordButton!.trailingAnchor, constant: margin),
+            saveButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             saveButton!.widthAnchor.constraint(equalToConstant: 80.0),
 
-            restoreButton!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: 20),
-            restoreButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            restoreButton!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: margin),
+            restoreButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             restoreButton!.widthAnchor.constraint(equalToConstant: 100.0),
 
-            clearButton!.leadingAnchor.constraint(equalTo: restoreButton!.trailingAnchor, constant: 20),
-            clearButton!.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor),
+            clearButton!.leadingAnchor.constraint(equalTo: restoreButton!.trailingAnchor, constant: margin),
+            clearButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             clearButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            playbackSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            playbackSlider.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -margin),
+            playbackSlider.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(margin * 2)),
         ])
     }
 
@@ -247,9 +261,13 @@ class Toolbar: UIViewController {
         delegate?.clear()
     }
 
-    @objc func sliderChanged(_ sender: UISlider!) {
+    @objc func thicknessSliderChanged(_ sender: UISlider!) {
         delegate?.setLineWidth(sender.value)
-        print("slider changed: \(sender.value)")
+        print("line thickness slider changed: \(sender.value)")
+    }
+
+    @objc func playbackSliderChanged(_ sender: UISlider!) {
+        print("playback slider changed: \(sender.value)")
     }
 
     @objc func panView(_ sender: UIPanGestureRecognizer) {
