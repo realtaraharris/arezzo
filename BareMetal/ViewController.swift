@@ -173,9 +173,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.width = self.view.frame.width
         self.height = self.view.frame.height
-
-        self.playbackThread = Thread(target: self, selector: #selector(self.playback(thread:)), object: nil)
-        self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
     }
 
     @objc func stopPlayUI() {
@@ -197,6 +194,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.playing { return }
 
         self.playing = true
+        self.playingState.lastIndexRead = 0
+        self.playbackThread = Thread(target: self, selector: #selector(self.playback(thread:)), object: nil)
         self.playbackThread.start()
     }
 
@@ -210,6 +209,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recording = true
         self.timestamps.append(getCurrentTimestamp())
 
+        self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
         self.recordingThread.start()
     }
 
@@ -247,6 +247,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func setLineWidth(_ lineWidth: Float) {
         self.lineWidth = lineWidth
+    }
+
+    func setPlaybackPosition(_ playbackPosition: Float) {
+        print("playback position:", playbackPosition)
     }
 
     final func generateVerts(endTimestamp: Double) {

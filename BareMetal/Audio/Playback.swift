@@ -8,10 +8,9 @@
 import AudioToolbox
 import Foundation
 
-var lastIndexRead: Int = 0
-
 struct PlayingState {
     var running: Bool = false
+    var lastIndexRead: Int = 0
 }
 
 func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, inBuffer: AudioQueueBufferRef) {
@@ -21,8 +20,8 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
     }
 
     let bytesPerChannel = MemoryLayout<Int16>.size
-    let sliceStart = lastIndexRead
-    let sliceEnd = min(audioData.count, lastIndexRead + bufferByteSize / bytesPerChannel)
+    let sliceStart = player.pointee.lastIndexRead
+    let sliceEnd = min(audioData.count, player.pointee.lastIndexRead + bufferByteSize / bytesPerChannel)
 
     if sliceEnd >= audioData.count {
         player.pointee.running = false
@@ -38,12 +37,8 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
     // need to be careful to convert from counts of Ints to bytes
     memcpy(inBuffer.pointee.mAudioData, slice, sliceCount * bytesPerChannel)
     inBuffer.pointee.mAudioDataByteSize = UInt32(sliceCount * bytesPerChannel)
-    lastIndexRead += sliceCount
+    player.pointee.lastIndexRead += sliceCount
 
     // enqueue the buffer, or re-enqueue it if it's a used one
     check(AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nil))
-}
-
-struct Player {
-    init() {}
 }

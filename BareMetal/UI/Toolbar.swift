@@ -24,6 +24,7 @@ protocol ToolbarDelegate {
     func clear()
 
     func setLineWidth(_ lineWidth: Float)
+    func setPlaybackPosition(_ playbackPosition: Float)
 }
 
 class ToolbarView: UIView {
@@ -263,11 +264,10 @@ class Toolbar: UIViewController {
 
     @objc func thicknessSliderChanged(_ sender: UISlider!) {
         delegate?.setLineWidth(sender.value)
-        print("line thickness slider changed: \(sender.value)")
     }
 
     @objc func playbackSliderChanged(_ sender: UISlider!) {
-        print("playback slider changed: \(sender.value)")
+        delegate?.setPlaybackPosition(sender.value)
     }
 
     @objc func panView(_ sender: UIPanGestureRecognizer) {
