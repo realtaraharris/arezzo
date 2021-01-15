@@ -55,8 +55,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var height: CGFloat = 0.0
 
     var queue: AudioQueueRef?
-    var recordingState: RecordingState = RecordingState()
-    var playingState: PlayingState = PlayingState()
+    var recordingState: RecordingState = RecordingState(running: false, audioData: [])
+    var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
 
     @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
@@ -194,6 +194,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.playing { return }
 
         self.playing = true
+        self.playingState.audioData = self.drawOperationCollector.audioData
         self.playingState.lastIndexRead = 0
         self.playbackThread = Thread(target: self, selector: #selector(self.playback(thread:)), object: nil)
         self.playbackThread.start()
@@ -207,6 +208,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     public func startRecording() {
         print("in startRecording")
         self.recording = true
+        self.recordingState.audioData = self.drawOperationCollector.audioData
         self.timestamps.append(getCurrentTimestamp())
 
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
@@ -217,6 +219,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         print("in stopRecording")
 
         self.recording = false
+        self.drawOperationCollector.audioData = self.recordingState.audioData
         self.recordingThread.cancel()
     }
 

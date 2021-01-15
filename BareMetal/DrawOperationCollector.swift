@@ -27,6 +27,8 @@ class DrawOperationCollector {
 
     var penState: PenState = .down
 
+    var audioData: [Int16] = []
+
     init(device: MTLDevice) {
         self.device = device
     }

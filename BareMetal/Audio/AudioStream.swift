@@ -8,8 +8,6 @@
 import AudioToolbox
 import Foundation
 
-var audioData: [Int16] = []
-
 let CHANNEL_COUNT = 2
 let BUFFER_DURATION: Double = 0.1
 let SAMPLE_RATE: Float64 = 44100.0

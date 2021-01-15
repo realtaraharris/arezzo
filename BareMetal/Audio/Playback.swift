@@ -8,9 +8,16 @@
 import AudioToolbox
 import Foundation
 
-struct PlayingState {
-    var running: Bool = false
-    var lastIndexRead: Int = 0
+class PlayingState {
+    var running: Bool
+    var lastIndexRead: Int
+    var audioData: [Int16]
+
+    init(running: Bool, lastIndexRead: Int, audioData: [Int16]) {
+        self.running = running
+        self.lastIndexRead = lastIndexRead
+        self.audioData = audioData
+    }
 }
 
 func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, inBuffer: AudioQueueBufferRef) {
@@ -21,15 +28,15 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
 
     let bytesPerChannel = MemoryLayout<Int16>.size
     let sliceStart = player.pointee.lastIndexRead
-    let sliceEnd = min(audioData.count, player.pointee.lastIndexRead + bufferByteSize / bytesPerChannel)
+    let sliceEnd = min(player.pointee.audioData.count, player.pointee.lastIndexRead + bufferByteSize / bytesPerChannel)
 
-    if sliceEnd >= audioData.count {
+    if sliceEnd >= player.pointee.audioData.count {
         player.pointee.running = false
         print("found end of audio data")
         return
     }
 
-    let slice = Array(audioData[sliceStart ..< sliceEnd])
+    let slice = Array(player.pointee.audioData[sliceStart ..< sliceEnd])
     let sliceCount = slice.count
 
     // print("slice start:", sliceStart, "slice end:", sliceEnd, "audioData.count", audioData.count, "slice count:", sliceCount)

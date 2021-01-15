@@ -11,7 +11,6 @@ import Foundation
 
 extension ViewController {
     @objc func recording(thread _: Thread) {
-        var recordingState: RecordingState = RecordingState()
         var queue: AudioQueueRef?
 
         check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &queue))
