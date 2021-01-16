@@ -10,11 +10,11 @@ import Foundation
 
 class RecordingState {
     var running: Bool
-    var audioData: [Int16]
+    var drawOperationCollector: DrawOperationCollector
 
-    init(running: Bool, audioData: [Int16]) {
+    init(running: Bool, drawOperationCollector: DrawOperationCollector) {
         self.running = running
-        self.audioData = audioData
+        self.drawOperationCollector = drawOperationCollector
     }
 }
 
@@ -31,7 +31,9 @@ func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef,
     let int16Ptr = inBuffer.pointee.mAudioData.bindMemory(to: Int16.self, capacity: numBytes)
     let int16Buffer = UnsafeBufferPointer(start: int16Ptr, count: numBytes)
 
-    recorder.pointee.audioData.append(contentsOf: int16Buffer)
+    let timestamp = getCurrentTimestamp()
+    let id: Int64 = -1
+    recorder.pointee.drawOperationCollector.addOp(op: AudioClip(timestamp: timestamp, id: id, audioSamples: Array(int16Buffer)))
 
     // enqueue the buffer, or re-enqueue it if it's a used one
     if recorder.pointee.running {

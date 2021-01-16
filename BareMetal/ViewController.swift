@@ -55,8 +55,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var height: CGFloat = 0.0
 
     var queue: AudioQueueRef?
-    var recordingState: RecordingState = RecordingState(running: false, audioData: [])
-    var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
+    var recordingState: RecordingState
+    var playingState: PlayingState
 
     @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
@@ -102,6 +102,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.device = MTLCreateSystemDefaultDevice()
 
         self.drawOperationCollector = DrawOperationCollector(device: self.device)
+
+        self.recordingState = RecordingState(running: false, drawOperationCollector: self.drawOperationCollector)
+        self.playingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
         /*
          drawOperationCollector.beginProvisionalOps()
          drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: Date().toMilliseconds(), id: 0))
@@ -208,18 +211,14 @@ class ViewController: UIViewController, ToolbarDelegate {
     public func startRecording() {
         print("in startRecording")
         self.recording = true
-        self.recordingState.audioData = self.drawOperationCollector.audioData
         self.timestamps.append(getCurrentTimestamp())
-
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
         self.recordingThread.start()
     }
 
     public func stopRecording() {
         print("in stopRecording")
-
         self.recording = false
-        self.drawOperationCollector.audioData = self.recordingState.audioData
         self.recordingThread.cancel()
     }
 

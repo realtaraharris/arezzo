@@ -10,7 +10,6 @@ import Foundation
 
 protocol DrawOperation: Codable {
     var type: DrawOperationType { get }
-
     var timestamp: Double { get }
     var id: Int64 { get }
 }
@@ -88,8 +87,22 @@ struct PenUp: DrawOperation {
     }
 }
 
+struct AudioClip: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+    var id: Int64
+    var audioSamples: [Int16]
+
+    init(timestamp: Double, id: Int64, audioSamples: [Int16]) {
+        self.type = DrawOperationType.audioClip
+        self.timestamp = timestamp
+        self.id = id
+        self.audioSamples = audioSamples
+    }
+}
+
 enum DrawOperationType: String, Codable {
-    case line, pan, point, penDown, penUp
+    case line, pan, point, penDown, penUp, audioClip
 
     var metatype: DrawOperation.Type {
         switch self {
@@ -103,6 +116,8 @@ enum DrawOperationType: String, Codable {
             return PenDown.self
         case .penUp:
             return PenUp.self
+        case .audioClip:
+            return AudioClip.self
         }
     }
 }

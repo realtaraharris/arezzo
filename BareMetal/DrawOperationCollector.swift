@@ -13,6 +13,11 @@ enum PenState {
     case down, up
 }
 
+func getDocumentsDirectory() -> URL {
+    let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+    return paths[0]
+}
+
 class DrawOperationCollector {
     var opList: [DrawOperation] = []
     var shapeList: [Shape] = []
@@ -22,15 +27,13 @@ class DrawOperationCollector {
     var currentLineWidth = DEFAULT_LINE_WIDTH
     var currentId: Int = 0
     var mode: String = "draw"
-
-    var jsonString = "" // temp
-
     var penState: PenState = .down
-
     var audioData: [Int16] = []
+    var filename: URL
 
     init(device: MTLDevice) {
         self.device = device
+        self.filename = getDocumentsDirectory().appendingPathComponent("output.txt")
     }
 
     func addOp(op: DrawOperation) {
@@ -58,6 +61,9 @@ class DrawOperationCollector {
             lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: self.device, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .penUp {
             self.penState = .up
+        } else if op.type == .audioClip {
+            let audioClipOp = op as! AudioClip
+            self.audioData.append(contentsOf: audioClipOp.audioSamples)
         }
     }
 
@@ -80,15 +86,21 @@ class DrawOperationCollector {
 
     func serialize() {
         let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
-        let jsonData = try! JSONEncoder().encode(wrappedItems)
-        self.jsonString = String(data: jsonData, encoding: .utf8)!
-        print("encoded:", self.jsonString)
+
+        do {
+            let jsonData = try JSONEncoder().encode(wrappedItems)
+            let jsonString = String(data: jsonData, encoding: .utf8)!
+            try jsonString.write(to: self.filename, atomically: true, encoding: String.Encoding.utf8)
+        } catch {
+            print(error)
+        }
     }
 
     func deserialize() {
         do {
-            let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: self.jsonString.data(using: .utf8)!)
-            print("decoded:", decoded)
+            let jsonString = try String(contentsOf: self.filename, encoding: .utf8)
+            let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)
+
             self.opList = decoded.map {
                 self.addOp(op: $0.drawOperation)
                 return $0.drawOperation
