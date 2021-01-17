@@ -75,11 +75,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     @available(iOS 9.1, *)
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
-    public var timestamps = OrderedSet<Double>()
     private var lastTimestampDrawn: Double = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
-    private var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
+    var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
     private var newToolbar: Toolbar
     private var id: Int64 = 0
     private let capEdges = 21
@@ -211,7 +210,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     public func startRecording() {
         print("in startRecording")
         self.recording = true
-        self.timestamps.append(getCurrentTimestamp())
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
         self.recordingThread.start()
     }
@@ -407,7 +405,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         let timestamp = getCurrentTimestamp()
-        timestamps.append(timestamp)
+
         self.drawOperationCollector.beginProvisionalOps()
         self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
                                                       lineWidth: self.lineWidth,
@@ -431,7 +429,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         let timestamp = getCurrentTimestamp()
-        timestamps.append(timestamp)
 
         let currentPoint = touch.location(in: view)
         if self.mode == "draw" {
@@ -453,7 +450,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard self.recording, let touch = touches.first else { return }
 
         let timestamp = getCurrentTimestamp()
-        timestamps.append(timestamp)
 
         self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp, id: self.getNextId()))
         self.drawOperationCollector.commitProvisionalOps()

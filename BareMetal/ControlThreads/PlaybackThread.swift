@@ -26,7 +26,7 @@ extension ViewController {
             }
         }
 
-        let timestamps = Timestamps(timestamps: Array(self.timestamps))
+        let timestamps = Timestamps(timestamps: Array(self.drawOperationCollector.timestamps))
         var timestampIterator = timestamps.makeIterator()
 
         let (firstTime, _) = timestampIterator.next()!

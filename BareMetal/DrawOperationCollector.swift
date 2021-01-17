@@ -29,15 +29,17 @@ class DrawOperationCollector {
     var mode: String = "draw"
     var penState: PenState = .down
     var audioData: [Int16] = []
+    var timestamps = OrderedSet<Double>()
     var filename: URL
 
     init(device: MTLDevice) {
         self.device = device
-        self.filename = getDocumentsDirectory().appendingPathComponent("output.txt")
+        self.filename = getDocumentsDirectory().appendingPathComponent("BareMetalOutput.json")
     }
 
     func addOp(op: DrawOperation) {
         self.opList.append(op)
+        self.timestamps.append(op.timestamp)
 
         if op.type == .penDown {
             let penDownOp = op as! PenDown
@@ -82,6 +84,8 @@ class DrawOperationCollector {
     func clear() {
         self.opList = []
         self.shapeList = []
+        self.audioData = []
+        self.timestamps = OrderedSet<Double>()
     }
 
     func serialize() {
