@@ -11,7 +11,6 @@ import Foundation
 protocol DrawOperation: Codable {
     var type: DrawOperationType { get }
     var timestamp: Double { get }
-    var id: Int64 { get }
 }
 
 struct Line: DrawOperation {
@@ -19,13 +18,11 @@ struct Line: DrawOperation {
     var start: [Float]
     var end: [Float]
     var timestamp: Double = 0
-    var id: Int64
 
-    init(start: [Float], end: [Float], timestamp _: Int64, id: Int64) {
+    init(start: [Float], end: [Float], timestamp _: Int64) {
         self.type = DrawOperationType.line
         self.start = start
         self.end = end
-        self.id = id
     }
 }
 
@@ -33,13 +30,11 @@ struct Pan: DrawOperation {
     var type: DrawOperationType
     var point: [Float]
     var timestamp: Double
-    var id: Int64
 
-    init(point: [Float], timestamp: Double, id: Int64) {
+    init(point: [Float], timestamp: Double) {
         self.type = DrawOperationType.pan
         self.point = point
         self.timestamp = timestamp
-        self.id = id
     }
 }
 
@@ -47,13 +42,11 @@ struct Point: DrawOperation {
     var type: DrawOperationType
     var point: [Float]
     var timestamp: Double
-    var id: Int64
 
-    init(point: [Float], timestamp: Double, id: Int64) {
+    init(point: [Float], timestamp: Double) {
         self.type = DrawOperationType.point
         self.point = point
         self.timestamp = timestamp
-        self.id = id
     }
 }
 
@@ -63,40 +56,34 @@ struct PenDown: DrawOperation {
     var lineWidth: Float
     var timestamp: Double
     var mode: String
-    var id: Int64
 
-    init(color: [Float], lineWidth: Float, timestamp: Double, mode: String, id: Int64) {
+    init(color: [Float], lineWidth: Float, timestamp: Double, mode: String) {
         self.type = DrawOperationType.penDown
         self.color = color
         self.lineWidth = lineWidth
         self.timestamp = timestamp
         self.mode = mode
-        self.id = id
     }
 }
 
 struct PenUp: DrawOperation {
     var type: DrawOperationType
     var timestamp: Double = 0
-    var id: Int64
 
-    init(timestamp: Double, id: Int64) {
+    init(timestamp: Double) {
         self.type = DrawOperationType.penUp
         self.timestamp = timestamp
-        self.id = id
     }
 }
 
 struct AudioClip: DrawOperation {
     var type: DrawOperationType
     var timestamp: Double
-    var id: Int64
     var audioSamples: [Int16]
 
-    init(timestamp: Double, id: Int64, audioSamples: [Int16]) {
+    init(timestamp: Double, audioSamples: [Int16]) {
         self.type = DrawOperationType.audioClip
         self.timestamp = timestamp
-        self.id = id
         self.audioSamples = audioSamples
     }
 }
