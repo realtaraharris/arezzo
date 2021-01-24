@@ -26,8 +26,7 @@ extension ViewController {
             }
         }
 
-        let timestamps = Timestamps(timestamps: Array(self.drawOperationCollector.timestamps))
-        var timestampIterator = timestamps.makeIterator()
+        var timestampIterator = self.drawOperationCollector.getTimestampIterator(firstTimestamp: 0, startPosition: self.startPosition, endPosition: self.endPosition)
 
         let (firstTime, _) = timestampIterator.next()!
         let startTime = CFAbsoluteTimeGetCurrent()

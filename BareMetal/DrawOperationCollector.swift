@@ -37,6 +37,20 @@ class DrawOperationCollector {
         self.filename = getDocumentsDirectory().appendingPathComponent("BareMetalOutput.json")
     }
 
+    func getTimestampIterator(firstTimestamp _: Int64, startPosition: Double, endPosition: Double) -> TimestampIterator {
+        let first = self.timestamps.first!
+        let last = self.timestamps.last!
+
+        let total = last - first
+        let targetTimestampStart = (total * startPosition) + first
+        let targetTimestampEnd = (total * endPosition) + first
+
+        let startIndex = self.timestamps.firstIndex(where: { $0 >= targetTimestampStart })!
+        let endIndex = self.timestamps.firstIndex(where: { $0 >= targetTimestampEnd })!
+
+        return Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
+    }
+
     func addOp(op: DrawOperation) {
         self.opList.append(op)
         self.timestamps.append(op.timestamp)

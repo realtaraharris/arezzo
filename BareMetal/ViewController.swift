@@ -53,6 +53,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var mode: String = "draw"
     private var width: CGFloat = 0.0
     private var height: CGFloat = 0.0
+    var startPosition: Double = 0.0
+    var endPosition: Double = 1.0
 
     var queue: AudioQueueRef?
     var recordingState: RecordingState
@@ -250,6 +252,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func setPlaybackPosition(_ playbackPosition: Float) {
         print("playback position:", playbackPosition)
+        self.startPosition = Double(playbackPosition)
+        self.endPosition = 1.0
     }
 
     final func generateVerts(endTimestamp: Double) {

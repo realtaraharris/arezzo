@@ -163,8 +163,8 @@ class Toolbar: UIViewController {
         let toolbarWidth: CGFloat = 880
         let toolbarHeight: CGFloat = 120
         let playbackSlider = UISlider()
-        playbackSlider.minimumValue = 0
-        playbackSlider.maximumValue = 100
+        playbackSlider.minimumValue = 0.0
+        playbackSlider.maximumValue = 1.0
         playbackSlider.translatesAutoresizingMaskIntoConstraints = false
         playbackSlider.addTarget(self, action: #selector(playbackSliderChanged), for: .valueChanged)
         let margin: CGFloat = 20
