@@ -29,3 +29,7 @@ var audioFormat = AudioStreamBasicDescription(
 
 // PCM buffer size: sample rate * number of channels * bytes per channel * duration of the buffer
 let bufferByteSize: Int = Int(Double(Int(SAMPLE_RATE) * CHANNEL_COUNT * MemoryLayout<Int16>.size) * BUFFER_DURATION)
+
+func calcBufferOffset(timeOffset: Float64) -> Int {
+    Int(timeOffset * Double(CHANNEL_COUNT) * SAMPLE_RATE)
+}

@@ -26,7 +26,14 @@ extension ViewController {
             }
         }
 
-        var timestampIterator = self.drawOperationCollector.getTimestampIterator(firstTimestamp: 0, startPosition: self.startPosition, endPosition: self.endPosition)
+        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+
+        let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
+        let firstTimestamp = self.drawOperationCollector.timestamps[0]
+        let timeOffset = firstPlaybackTimestamp - firstTimestamp
+
+        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
 
         let (firstTime, _) = timestampIterator.next()!
         let startTime = CFAbsoluteTimeGetCurrent()
