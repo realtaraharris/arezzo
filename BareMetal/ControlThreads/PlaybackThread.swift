@@ -47,7 +47,7 @@ extension ViewController {
             // TODO: update at lower rate than 120 Hz
             let position = current / finalTime
             DispatchQueue.main.async {
-                self.newToolbar.playbackSlider!.value = Float(position)
+                self.toolbar.playbackSlider!.value = Float(position)
             }
 
             if nextTime == -1 {

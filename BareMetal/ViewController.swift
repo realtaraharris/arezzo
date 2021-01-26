@@ -81,7 +81,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
-    public var newToolbar: Toolbar
+    public var toolbar: Toolbar
     private let capEdges = 21
 
     private var points: [[Float]] = []
@@ -115,7 +115,7 @@ class ViewController: UIViewController, ToolbarDelegate {
          drawOperationCollector.commitProvisionalOps()
          */
 
-        self.newToolbar = Toolbar()
+        self.toolbar = Toolbar()
 
         super.init(coder: aDecoder)
     }
@@ -138,8 +138,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.setupRender()
 
-        self.newToolbar.delegate = self
-        view.addSubview(self.newToolbar.view)
+        self.toolbar.delegate = self
+        view.addSubview(self.toolbar.view)
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
@@ -179,7 +179,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     @objc func stopPlayUI() {
-        self.newToolbar.togglePlaying()
+        self.toolbar.togglePlaying()
     }
 
     func triggerProgrammaticCapture() {
