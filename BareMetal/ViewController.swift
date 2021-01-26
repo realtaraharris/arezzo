@@ -81,7 +81,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
-    private var newToolbar: Toolbar
+    public var newToolbar: Toolbar
     private let capEdges = 21
 
     private var points: [[Float]] = []

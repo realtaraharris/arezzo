@@ -63,6 +63,8 @@ class Toolbar: UIViewController {
     var restoreButton: UIButton?
     var clearButton: UIButton?
 
+    var playbackSlider: UISlider?
+
     override func loadView() {
         view = ToolbarView()
     }
@@ -90,6 +92,10 @@ class Toolbar: UIViewController {
 
         if clearButton == nil {
             clearButton = UIButton(type: .system)
+        }
+
+        if playbackSlider == nil {
+            playbackSlider = UISlider()
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -162,13 +168,13 @@ class Toolbar: UIViewController {
 
         let toolbarWidth: CGFloat = 880
         let toolbarHeight: CGFloat = 120
-        let playbackSlider = UISlider()
-        playbackSlider.minimumValue = 0.0
-        playbackSlider.maximumValue = 1.0
-        playbackSlider.translatesAutoresizingMaskIntoConstraints = false
-        playbackSlider.addTarget(self, action: #selector(playbackSliderChanged), for: .valueChanged)
+
+        playbackSlider!.minimumValue = 0.0
+        playbackSlider!.maximumValue = 1.0
+        playbackSlider!.translatesAutoresizingMaskIntoConstraints = false
+        playbackSlider!.addTarget(self, action: #selector(playbackSliderChanged), for: .valueChanged)
         let margin: CGFloat = 20
-        view.addSubview(playbackSlider)
+        view.addSubview(playbackSlider!)
 
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
@@ -203,9 +209,9 @@ class Toolbar: UIViewController {
             clearButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             clearButton!.widthAnchor.constraint(equalToConstant: 100.0),
 
-            playbackSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
-            playbackSlider.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -margin),
-            playbackSlider.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(margin * 2)),
+            playbackSlider!.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            playbackSlider!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -margin),
+            playbackSlider!.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(margin * 2)),
         ])
     }
 

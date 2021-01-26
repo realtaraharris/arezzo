@@ -26,7 +26,7 @@ extension ViewController {
             }
         }
 
-        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        let (startIndex, endIndex, targetTimestampStart, targetTimestampEnd) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
         var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
 
         let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
@@ -40,6 +40,15 @@ extension ViewController {
 
         func renderNext(_: CFRunLoopTimer?) {
             let (currentTime, nextTime) = timestampIterator.next()!
+
+            let current = currentTime - targetTimestampStart
+            let finalTime = targetTimestampEnd - targetTimestampStart
+
+            // TODO: update at lower rate than 120 Hz
+            let position = current / finalTime
+            DispatchQueue.main.async {
+                self.newToolbar.playbackSlider!.value = Float(position)
+            }
 
             if nextTime == -1 {
                 self.playingState.running = false
