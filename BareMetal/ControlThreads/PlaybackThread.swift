@@ -45,11 +45,8 @@ extension ViewController {
 
             let current = currentTime - firstTimestamp
 
-            // TODO: update at lower rate than 120 Hz
             let position = current / totalTime
-            DispatchQueue.main.async {
-                self.toolbar.playbackSlider!.value = Float(position)
-            }
+            self.playbackSliderPosition = Float(position) // runloop on main thread picks this up and updates the UI - see ViewController.swift
 
             if nextTime == -1 {
                 self.playingState.running = false

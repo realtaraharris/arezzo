@@ -92,6 +92,9 @@ class ViewController: UIViewController, ToolbarDelegate {
     public var playbackThread: Thread = Thread()
     public var recordingThread: Thread = Thread()
 
+    var playbackSliderPosition: Float = 0
+    var playbackSliderTimer: CFRunLoopTimer?
+
     // For pencil interactions
     @available(iOS 12.1, *)
     private lazy var pencilInteraction = UIPencilInteraction()
@@ -201,11 +204,21 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.playingState.lastIndexRead = 0
         self.playbackThread = Thread(target: self, selector: #selector(self.playback(thread:)), object: nil)
         self.playbackThread.start()
+
+        func updatePlaybackSlider(_: CFRunLoopTimer?) {
+            self.toolbar.playbackSlider!.value = self.playbackSliderPosition
+        }
+
+        let sliderUpdateInterval: CFTimeInterval = 1 / 60 // seconds
+        self.playbackSliderTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, CFAbsoluteTimeGetCurrent(), sliderUpdateInterval, 0, 0, updatePlaybackSlider)
+        RunLoop.current.add(self.playbackSliderTimer!, forMode: .common)
     }
 
     public func stopPlaying() {
         self.playing = false
         self.playbackThread.cancel()
+
+        CFRunLoopTimerInvalidate(self.playbackSliderTimer)
     }
 
     public func startRecording() {
