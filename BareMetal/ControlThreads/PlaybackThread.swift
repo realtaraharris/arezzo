@@ -31,22 +31,16 @@ extension ViewController {
 
         let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
         let firstTimestamp = self.drawOperationCollector.timestamps[0]
-        let lastTimestamp = self.drawOperationCollector.timestamps[self.drawOperationCollector.timestamps.count - 1]
         let timeOffset = firstPlaybackTimestamp - firstTimestamp
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
+        let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
 
         let (firstTime, _) = timestampIterator.next()!
         let startTime = CFAbsoluteTimeGetCurrent()
-        let totalTime = lastTimestamp - firstTimestamp
 
         func renderNext(_: CFRunLoopTimer?) {
             let (currentTime, nextTime) = timestampIterator.next()!
-
-            let current = currentTime - firstTimestamp
-
-            let position = current / totalTime
-            self.playbackSliderPosition = Float(position) // runloop on main thread picks this up and updates the UI - see ViewController.swift
 
             if nextTime == -1 {
                 self.playingState.running = false
@@ -65,13 +59,22 @@ extension ViewController {
 
         check(AudioQueueStart(self.queue!, nil))
 
+        func updateSliderPosition() {
+            let current: Float = Float(self.playingState.lastIndexRead)
+            let position: Float = current / totalAudioLength
+            self.playbackSliderPosition = Float(position) // runloop on main thread picks this up and updates the UI - see ViewController.swift
+        }
+
         repeat {
             CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
+            updateSliderPosition()
+
         } while !self.playbackThread.isCancelled && self.playingState.running
 
         if !self.playbackThread.isCancelled {
             // delay to ensure queue emits all buffered audio
             CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
+            updateSliderPosition()
         }
 
         self.playing = false
