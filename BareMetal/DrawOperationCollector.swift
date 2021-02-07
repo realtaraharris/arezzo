@@ -6,6 +6,7 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
+import BinaryCoder
 import Foundation
 import Metal
 
@@ -34,7 +35,7 @@ class DrawOperationCollector {
 
     init(device: MTLDevice) {
         self.device = device
-        self.filename = getDocumentsDirectory().appendingPathComponent("BareMetalOutput.json")
+        self.filename = getDocumentsDirectory().appendingPathComponent("BareMetalOutput.bin")
     }
 
     func getTimestampIndices(startPosition: Double, endPosition: Double) -> (startIndex: Int, endIndex: Int) {
@@ -110,6 +111,31 @@ class DrawOperationCollector {
         let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
 
         do {
+            let binaryData: [UInt8] = try BinaryEncoder.encode(wrappedItems)
+            FileManager.default.createFile(atPath: self.filename.path, contents: Data(binaryData))
+        } catch {
+            print(error)
+        }
+    }
+
+    func deserialize() {
+        do {
+            let savedData = try Data(contentsOf: self.filename)
+            let decoded = try BinaryDecoder(data: [UInt8](savedData)).decode([DrawOperationWrapper].self)
+
+            self.opList = decoded.map {
+                self.addOp(op: $0.drawOperation)
+                return $0.drawOperation
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    func serializeJson() {
+        let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
+
+        do {
             let jsonData = try JSONEncoder().encode(wrappedItems)
             let jsonString = String(data: jsonData, encoding: .utf8)!
             try jsonString.write(to: self.filename, atomically: true, encoding: String.Encoding.utf8)
@@ -118,7 +144,7 @@ class DrawOperationCollector {
         }
     }
 
-    func deserialize() {
+    func deserializeJson() {
         do {
             let jsonString = try String(contentsOf: self.filename, encoding: .utf8)
             let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)

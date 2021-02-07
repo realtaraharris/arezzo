@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "BinaryCoder",
+        "repositoryURL": "https://github.com/tgu/BinaryCoder",
+        "state": {
+          "branch": null,
+          "revision": "906e9678012191c85f990995660e2614dd0abd0f",
+          "version": "1.1.0"
+        }
+      },
+      {
         "package": "Dynamic",
         "repositoryURL": "https://github.com/mhdhejazi/Dynamic.git",
         "state": {

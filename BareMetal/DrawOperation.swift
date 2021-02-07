@@ -6,9 +6,10 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
+import BinaryCoder
 import Foundation
 
-protocol DrawOperation: Codable {
+protocol DrawOperation: BinaryCodable {
     var type: DrawOperationType { get }
     var timestamp: Double { get }
 }
@@ -88,7 +89,7 @@ struct AudioClip: DrawOperation {
     }
 }
 
-enum DrawOperationType: String, Codable {
+enum DrawOperationType: String, BinaryCodable {
     case line, pan, point, penDown, penUp, audioClip
 
     var metatype: DrawOperation.Type {
@@ -113,7 +114,7 @@ struct DrawOperationWrapper {
     var drawOperation: DrawOperation
 }
 
-extension DrawOperationWrapper: Codable {
+extension DrawOperationWrapper: BinaryCodable {
     private enum CodingKeys: CodingKey {
         case type, drawOperation
     }

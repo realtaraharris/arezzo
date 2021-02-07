@@ -40,6 +40,7 @@
 		5088323D2559DBE70001E5A2 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5088323C2559DBE70001E5A2 /* ErrorHandler.swift */; };
 		508832422559DC100001E5A2 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508832412559DC100001E5A2 /* Recording.swift */; };
 		5088324A255B39620001E5A2 /* AudioDeviceFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50883249255B39620001E5A2 /* AudioDeviceFinder.swift */; };
+		50A3B10F25D448E1003FBB93 /* BinaryCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50A3B10E25D448E1003FBB93 /* BinaryCoder */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
 		50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A70124A67F87000F3B93 /* ViewController.swift */; };
@@ -131,6 +132,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				50A3B10F25D448E1003FBB93 /* BinaryCoder in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -306,6 +308,7 @@
 			);
 			name = BareMetal;
 			packageProductDependencies = (
+				50A3B10E25D448E1003FBB93 /* BinaryCoder */,
 			);
 			productName = BareMetal;
 			productReference = 50C2A6FA24A67F87000F3B93 /* BareMetal.app */;
@@ -348,6 +351,7 @@
 			mainGroup = 50C2A6F124A67F87000F3B93;
 			packageReferences = (
 				505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */,
+				50A3B10D25D448E1003FBB93 /* XCRemoteSwiftPackageReference "BinaryCoder" */,
 			);
 			productRefGroup = 50C2A6FB24A67F87000F3B93 /* Products */;
 			projectDirPath = "";
@@ -638,6 +642,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -693,6 +698,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -824,6 +830,14 @@
 				kind = branch;
 			};
 		};
+		50A3B10D25D448E1003FBB93 /* XCRemoteSwiftPackageReference "BinaryCoder" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tgu/BinaryCoder";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -831,6 +845,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */;
 			productName = Dynamic;
+		};
+		50A3B10E25D448E1003FBB93 /* BinaryCoder */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 50A3B10D25D448E1003FBB93 /* XCRemoteSwiftPackageReference "BinaryCoder" */;
+			productName = BinaryCoder;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
