@@ -63,6 +63,7 @@ class Toolbar: UIViewController {
     var restoreButton: UIButton?
     var clearButton: UIButton?
 
+    var exportButton: UIButton?
     var playbackSlider: UISlider?
 
     override func loadView() {
@@ -96,6 +97,10 @@ class Toolbar: UIViewController {
 
         if playbackSlider == nil {
             playbackSlider = UISlider()
+        }
+
+        if exportButton == nil {
+            exportButton = UIButton(type: .system)
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -166,7 +171,7 @@ class Toolbar: UIViewController {
         thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
         view.addSubview(thicknessSlider)
 
-        let toolbarWidth: CGFloat = 880
+        let toolbarWidth: CGFloat = 1000
         let toolbarHeight: CGFloat = 120
 
         playbackSlider!.minimumValue = 0.0
@@ -175,6 +180,15 @@ class Toolbar: UIViewController {
         playbackSlider!.addTarget(self, action: #selector(playbackSliderChanged), for: .valueChanged)
         let margin: CGFloat = 20
         view.addSubview(playbackSlider!)
+
+        exportButton!.translatesAutoresizingMaskIntoConstraints = false
+        exportButton!.backgroundColor = UIColor.darkGray
+        exportButton!.layer.cornerRadius = cornerRadius
+        exportButton!.clipsToBounds = true
+        exportButton!.titleEdgeInsets = titleEdgeInsets
+        exportButton!.setTitle("Export", for: .normal)
+        exportButton!.addTarget(self, action: #selector(export), for: .touchUpInside)
+        view.addSubview(exportButton!)
 
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
@@ -212,6 +226,10 @@ class Toolbar: UIViewController {
             playbackSlider!.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
             playbackSlider!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -margin),
             playbackSlider!.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(margin * 2)),
+
+            exportButton!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
+            exportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            exportButton!.widthAnchor.constraint(equalToConstant: 100.0),
         ])
     }
 
@@ -266,6 +284,10 @@ class Toolbar: UIViewController {
 
     @objc func clear() {
         delegate?.clear()
+    }
+
+    @objc func export() {
+        print("export!")
     }
 
     @objc func thicknessSliderChanged(_ sender: UISlider!) {
