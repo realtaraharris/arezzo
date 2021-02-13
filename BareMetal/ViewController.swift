@@ -31,6 +31,20 @@ class RenderedShape {
 }
 
 class ViewController: UIViewController, ToolbarDelegate {
+    func startExport() {
+        let outputUrl = getDocumentsDirectory().appendingPathComponent("BareMetalVideo.m4v")
+        let screenScale = UIScreen.main.scale
+        let outputSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
+
+        // let outputSize = CGSize(width: 320, height: 200)
+        self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
+        self.mvr!.startRecording()
+    }
+
+    func endExport() {
+        self.mvr!.endRecording {}
+    }
+
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
 
@@ -59,6 +73,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var queue: AudioQueueRef?
     var recordingState: RecordingState
     var playingState: PlayingState
+
+    var mvr: MetalVideoRecorder?
 
     @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
@@ -132,7 +148,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.metalLayer.device = self.device
         self.metalLayer.pixelFormat = .bgra8Unorm
-        self.metalLayer.framebufferOnly = true
+        self.metalLayer.framebufferOnly = false
         self.metalLayer.frame = view.layer.frame
 
         let screenScale = UIScreen.main.scale
@@ -385,6 +401,12 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         renderCommandEncoder.endEncoding()
         commandBuffer.present(drawable)
+
+        let texture = drawable.texture
+        commandBuffer.addCompletedHandler { _ in
+            self.mvr?.writeFrame(forTexture: texture)
+        }
+
         // NB: you can pass in a time to present the finished image:
         // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
         commandBuffer.commit()

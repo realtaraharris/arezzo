@@ -23,6 +23,7 @@ class MetalVideoRecorder {
         do {
             self.assetWriter = try AVAssetWriter(outputURL: url, fileType: AVFileType.m4v)
         } catch {
+            print("Error creating video output file: \(url.absoluteString)")
             return nil
         }
 

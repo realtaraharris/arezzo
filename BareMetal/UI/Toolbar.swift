@@ -23,6 +23,9 @@ protocol ToolbarDelegate {
     func restore()
     func clear()
 
+    func startExport()
+    func endExport()
+
     func setLineWidth(_ lineWidth: Float)
     func setPlaybackPosition(_ playbackPosition: Float)
 }
@@ -63,7 +66,9 @@ class Toolbar: UIViewController {
     var restoreButton: UIButton?
     var clearButton: UIButton?
 
-    var exportButton: UIButton?
+    var startExportButton: UIButton?
+    var endExportButton: UIButton?
+
     var playbackSlider: UISlider?
 
     override func loadView() {
@@ -99,8 +104,12 @@ class Toolbar: UIViewController {
             playbackSlider = UISlider()
         }
 
-        if exportButton == nil {
-            exportButton = UIButton(type: .system)
+        if startExportButton == nil {
+            startExportButton = UIButton(type: .system)
+        }
+
+        if endExportButton == nil {
+            endExportButton = UIButton(type: .system)
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -181,14 +190,23 @@ class Toolbar: UIViewController {
         let margin: CGFloat = 20
         view.addSubview(playbackSlider!)
 
-        exportButton!.translatesAutoresizingMaskIntoConstraints = false
-        exportButton!.backgroundColor = UIColor.darkGray
-        exportButton!.layer.cornerRadius = cornerRadius
-        exportButton!.clipsToBounds = true
-        exportButton!.titleEdgeInsets = titleEdgeInsets
-        exportButton!.setTitle("Export", for: .normal)
-        exportButton!.addTarget(self, action: #selector(export), for: .touchUpInside)
-        view.addSubview(exportButton!)
+        startExportButton!.translatesAutoresizingMaskIntoConstraints = false
+        startExportButton!.backgroundColor = UIColor.darkGray
+        startExportButton!.layer.cornerRadius = cornerRadius
+        startExportButton!.clipsToBounds = true
+        startExportButton!.titleEdgeInsets = titleEdgeInsets
+        startExportButton!.setTitle("Start Export", for: .normal)
+        startExportButton!.addTarget(self, action: #selector(startExport), for: .touchUpInside)
+        view.addSubview(startExportButton!)
+
+        endExportButton!.translatesAutoresizingMaskIntoConstraints = false
+        endExportButton!.backgroundColor = UIColor.darkGray
+        endExportButton!.layer.cornerRadius = cornerRadius
+        endExportButton!.clipsToBounds = true
+        endExportButton!.titleEdgeInsets = titleEdgeInsets
+        endExportButton!.setTitle("End Export", for: .normal)
+        endExportButton!.addTarget(self, action: #selector(endExport), for: .touchUpInside)
+        view.addSubview(endExportButton!)
 
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
@@ -227,9 +245,13 @@ class Toolbar: UIViewController {
             playbackSlider!.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -margin),
             playbackSlider!.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(margin * 2)),
 
-            exportButton!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
-            exportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            exportButton!.widthAnchor.constraint(equalToConstant: 100.0),
+            startExportButton!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
+            startExportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            startExportButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            endExportButton!.leadingAnchor.constraint(equalTo: startExportButton!.trailingAnchor, constant: margin),
+            endExportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            endExportButton!.widthAnchor.constraint(equalToConstant: 100.0),
         ])
     }
 
@@ -286,8 +308,12 @@ class Toolbar: UIViewController {
         delegate?.clear()
     }
 
-    @objc func export() {
-        print("export!")
+    @objc func startExport() {
+        delegate?.startExport()
+    }
+
+    @objc func endExport() {
+        delegate?.endExport()
     }
 
     @objc func thicknessSliderChanged(_ sender: UISlider!) {
