@@ -33,17 +33,59 @@ class RenderedShape {
 class ViewController: UIViewController, ToolbarDelegate {
     func startExport() {
         let outputUrl = getDocumentsDirectory().appendingPathComponent("BareMetalVideo.m4v")
+
+        do {
+            try FileManager.default.removeItem(at: outputUrl)
+        } catch let error as NSError {
+            print("Error: \(error.domain)")
+        }
+
         let screenScale = UIScreen.main.scale
         let outputSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
 
         // let outputSize = CGSize(width: 320, height: 200)
         self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
         self.mvr!.startRecording()
-    }
 
-    func endExport() {
+        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+
+        let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
+        let firstTimestamp = self.drawOperationCollector.timestamps[0]
+        let timeOffset = firstPlaybackTimestamp - firstTimestamp
+
+        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
+        let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
+
+        let (firstTime, _) = timestampIterator.next()!
+        let startTime = CFAbsoluteTimeGetCurrent()
+
+        print("firstTime:", firstTime, "startTime:", startTime)
+
+        func renderNext() {
+            let (currentTime, nextTime) = timestampIterator.next()!
+
+            print("currentTime:", currentTime, "nextTime:", nextTime)
+
+            if nextTime == -1 {
+                self.playingState.running = false
+                return
+            }
+
+            self.render(endTimestamp: currentTime, present: false)
+
+            let fireDate = startTime + nextTime - firstTime
+        }
+        self.playingState.running = true
+
+        while self.playingState.running {
+            renderNext()
+        }
+
         self.mvr!.endRecording {}
     }
+
+    func endExport() {}
 
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
