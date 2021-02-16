@@ -272,7 +272,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         print("CLEAR")
         self.drawOperationCollector.clear()
         let timestamp = getCurrentTimestamp()
-        self.render(endTimestamp: timestamp)
+        self.render(endTimestamp: timestamp, present: true)
     }
 
     public func setLineWidth(_ lineWidth: Float) {
@@ -355,7 +355,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                      options: .storageModeShared)
     }
 
-    final func render(endTimestamp: Double) {
+    final func render(endTimestamp: Double, present: Bool) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -400,11 +400,14 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         renderCommandEncoder.endEncoding()
-        commandBuffer.present(drawable)
 
-        let texture = drawable.texture
-        commandBuffer.addCompletedHandler { _ in
-            self.mvr?.writeFrame(forTexture: texture)
+        if present {
+            commandBuffer.present(drawable)
+        } else {
+            let texture = drawable.texture
+            commandBuffer.addCompletedHandler { _ in
+                self.mvr?.writeFrame(forTexture: texture)
+            }
         }
 
         // NB: you can pass in a time to present the finished image:
@@ -449,7 +452,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.panStart = currentPoint
         }
 
-        self.render(endTimestamp: timestamp)
+        self.render(endTimestamp: timestamp, present: true)
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -473,7 +476,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             print("invalid mode: \(self.mode)")
         }
 
-        self.render(endTimestamp: timestamp)
+        self.render(endTimestamp: timestamp, present: true)
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -494,7 +497,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.panPosition = CGPoint(x: self.panPosition.x + panDelta.x, y: self.panPosition.y + panDelta.y)
         }
 
-        self.render(endTimestamp: timestamp)
+        self.render(endTimestamp: timestamp, present: true)
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
@@ -502,6 +505,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard self.recording else { return }
 
         let timestamp = getCurrentTimestamp()
-        self.render(endTimestamp: timestamp)
+        self.render(endTimestamp: timestamp, present: true)
     }
 }
