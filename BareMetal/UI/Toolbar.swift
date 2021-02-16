@@ -24,7 +24,6 @@ protocol ToolbarDelegate {
     func clear()
 
     func startExport()
-    func endExport()
 
     func setLineWidth(_ lineWidth: Float)
     func setPlaybackPosition(_ playbackPosition: Float)
@@ -67,7 +66,6 @@ class Toolbar: UIViewController {
     var clearButton: UIButton?
 
     var startExportButton: UIButton?
-    var endExportButton: UIButton?
 
     var playbackSlider: UISlider?
 
@@ -106,10 +104,6 @@ class Toolbar: UIViewController {
 
         if startExportButton == nil {
             startExportButton = UIButton(type: .system)
-        }
-
-        if endExportButton == nil {
-            endExportButton = UIButton(type: .system)
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -199,15 +193,6 @@ class Toolbar: UIViewController {
         startExportButton!.addTarget(self, action: #selector(startExport), for: .touchUpInside)
         view.addSubview(startExportButton!)
 
-        endExportButton!.translatesAutoresizingMaskIntoConstraints = false
-        endExportButton!.backgroundColor = UIColor.darkGray
-        endExportButton!.layer.cornerRadius = cornerRadius
-        endExportButton!.clipsToBounds = true
-        endExportButton!.titleEdgeInsets = titleEdgeInsets
-        endExportButton!.setTitle("End Export", for: .normal)
-        endExportButton!.addTarget(self, action: #selector(endExport), for: .touchUpInside)
-        view.addSubview(endExportButton!)
-
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 100, y: 100, width: toolbarWidth, height: toolbarHeight)
@@ -248,10 +233,6 @@ class Toolbar: UIViewController {
             startExportButton!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
             startExportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             startExportButton!.widthAnchor.constraint(equalToConstant: 100.0),
-
-            endExportButton!.leadingAnchor.constraint(equalTo: startExportButton!.trailingAnchor, constant: margin),
-            endExportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            endExportButton!.widthAnchor.constraint(equalToConstant: 100.0),
         ])
     }
 
@@ -310,10 +291,6 @@ class Toolbar: UIViewController {
 
     @objc func startExport() {
         delegate?.startExport()
-    }
-
-    @objc func endExport() {
-        delegate?.endExport()
     }
 
     @objc func thicknessSliderChanged(_ sender: UISlider!) {

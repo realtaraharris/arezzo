@@ -85,8 +85,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.mvr!.endRecording {}
     }
 
-    func endExport() {}
-
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
 
