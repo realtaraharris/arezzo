@@ -44,6 +44,19 @@ class MetalVideoRecorder {
                                                                                 sourcePixelBufferAttributes: sourcePixelBufferAttributes)
 
         self.assetWriter.add(self.assetWriterVideoInput)
+
+        let audioOutputSettings = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVNumberOfChannelsKey: 2,
+            AVSampleRateKey: 44100.0,
+            AVEncoderBitRateKey: 192_000,
+        ] as [String: Any]
+
+        let audioInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioOutputSettings)
+        audioInput.expectsMediaDataInRealTime = false
+
+//        audioInput.append()
+        self.assetWriter.add(audioInput)
     }
 
     func startRecording() {
