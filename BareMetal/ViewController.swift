@@ -8,6 +8,7 @@
 
 import AudioToolbox
 import Combine
+import CoreMedia
 import Foundation
 import Metal
 import QuartzCore
@@ -30,22 +31,28 @@ class RenderedShape {
     }
 }
 
+extension FileManager {
+    func removePossibleItem(at url: URL) {
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            fatalError("\(error)")
+        }
+    }
+}
+
 class ViewController: UIViewController, ToolbarDelegate {
     func startExport() {
         let outputUrl = getDocumentsDirectory().appendingPathComponent("BareMetalVideo.m4v")
 
-        do {
-            try FileManager.default.removeItem(at: outputUrl)
-        } catch let error as NSError {
-            print("Error: \(error.domain)")
-        }
+        FileManager.default.removePossibleItem(at: outputUrl)
 
         let screenScale = UIScreen.main.scale
         let outputSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
 
-        // let outputSize = CGSize(width: 320, height: 200)
         self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
-        self.mvr!.startRecording()
 
         let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
         var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
@@ -54,29 +61,35 @@ class ViewController: UIViewController, ToolbarDelegate {
         let firstTimestamp = self.drawOperationCollector.timestamps[0]
         let timeOffset = firstPlaybackTimestamp - firstTimestamp
 
+        self.mvr!.startRecording()
+
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
         let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
 
-        let (firstTime, _) = timestampIterator.next()!
-        let startTime = CFAbsoluteTimeGetCurrent()
+//        let (firstTime, _) = timestampIterator.next()!
+//        let startTime = CFAbsoluteTimeGetCurrent()
 
-        print("firstTime:", firstTime, "startTime:", startTime)
+//        print("firstTime:", firstTime, "startTime:", startTime)
 
         func renderNext() {
             let (currentTime, nextTime) = timestampIterator.next()!
 
-            print("currentTime:", currentTime, "nextTime:", nextTime)
+//            print("currentTime:", currentTime, "nextTime:", nextTime)
 
             if nextTime == -1 {
                 self.playingState.running = false
                 return
             }
 
-            self.render(endTimestamp: currentTime, present: false)
+            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, present: false)
 
-            let fireDate = startTime + nextTime - firstTime
+//            let fireDate = startTime + nextTime - firstTime
         }
         self.playingState.running = true
+
+        let samples = createAudio(sampleBytes: self.drawOperationCollector.audioData, startFrm: 0, nFrames: self.drawOperationCollector.audioData.count / 2, sampleRate: 44100.0, numChannels: 2)
+
+        self.mvr!.writeAudio(samples: samples!)
 
         while self.playingState.running {
             renderNext()
@@ -395,7 +408,67 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                      options: .storageModeShared)
     }
 
-    final func render(endTimestamp: Double, present: Bool) {
+    final func renderOffline(firstTimestamp: Double, endTimestamp: Double, present _: Bool) {
+        let textureDescriptor = MTLTextureDescriptor()
+        textureDescriptor.textureType = .type2DArray
+        textureDescriptor.pixelFormat = .bgra8Unorm
+        textureDescriptor.width = Int(self.width * 2)
+        textureDescriptor.height = Int(self.height * 2)
+        textureDescriptor.arrayLength = 1
+        textureDescriptor.usage = [.shaderRead, .shaderWrite]
+        let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
+
+        print("endTimestamp:", endTimestamp)
+
+        let renderPassDescriptor = MTLRenderPassDescriptor()
+        renderPassDescriptor.colorAttachments[0].texture = texture
+        renderPassDescriptor.colorAttachments[0].loadAction = .clear
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
+
+        self.generateVerts(endTimestamp: endTimestamp)
+
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+        guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
+        renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
+
+        for index in 0 ..< self.renderedShapes.count {
+            let rs: RenderedShape = self.renderedShapes[index]
+            let instanceCount = (rs.endIndex - rs.startIndex) / 2
+            renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
+            renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
+            renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
+
+            renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.drawIndexedPrimitives(
+                type: .triangleStrip,
+                indexCount: 4,
+                indexType: MTLIndexType.uint32,
+                indexBuffer: self.segmentIndexBuffer,
+                indexBufferOffset: 0,
+                instanceCount: instanceCount
+            )
+
+            renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.drawIndexedPrimitives(
+                type: .triangleStrip,
+                indexCount: self.capEdges,
+                indexType: MTLIndexType.uint32,
+                indexBuffer: self.capIndexBuffer,
+                indexBufferOffset: 0,
+                instanceCount: instanceCount + 1 // + 1 for the last cap
+            )
+        }
+
+        renderCommandEncoder.endEncoding()
+
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+        self.mvr?.writeFrame(forTexture: texture, timestamp: endTimestamp - firstTimestamp)
+    }
+
+    final func render(endTimestamp: Double, present _: Bool) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -441,21 +514,11 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         renderCommandEncoder.endEncoding()
 
-        if present {
-            commandBuffer.present(drawable)
-        } else {
-            let texture = drawable.texture
-            commandBuffer.addCompletedHandler { _ in
-                self.mvr?.writeFrame(forTexture: texture)
-            }
-        }
-
-        // NB: you can pass in a time to present the finished image:
-        // present(drawable: drawable, atTime presentationTime: CFTimeInterval)
+        commandBuffer.present(drawable)
         commandBuffer.commit()
 
-        let captureManager = MTLCaptureManager.shared()
-        captureManager.stopCapture()
+        // let captureManager = MTLCaptureManager.shared()
+        // captureManager.stopCapture()
     }
 
     final func transform(_ point: CGPoint) -> [Float] {

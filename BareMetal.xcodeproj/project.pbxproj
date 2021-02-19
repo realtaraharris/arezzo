@@ -28,6 +28,7 @@
 		50323189257028270050C298 /* Timestamps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323188257028270050C298 /* Timestamps.swift */; };
 		5032318F257583A10050C298 /* PlaybackThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5032318E257583A10050C298 /* PlaybackThread.swift */; };
 		50323194257597840050C298 /* RecordingThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323193257597840050C298 /* RecordingThread.swift */; };
+		504F5D4025DCD28000EC6034 /* MakeSampleBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */; };
 		505074352531A73D0011C9C9 /* BareMetalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505074342531A73D0011C9C9 /* BareMetalTests.swift */; };
 		5050743F25321BBF0011C9C9 /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
@@ -83,6 +84,7 @@
 		5032318E257583A10050C298 /* PlaybackThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackThread.swift; sourceTree = "<group>"; };
 		50323193257597840050C298 /* RecordingThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingThread.swift; sourceTree = "<group>"; };
 		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeSampleBuffer.swift; sourceTree = "<group>"; };
 		505074322531A73D0011C9C9 /* BareMetalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505074342531A73D0011C9C9 /* BareMetalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalTests.swift; sourceTree = "<group>"; };
 		505074362531A73D0011C9C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 				50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */,
 				50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */,
 				50C2A70124A67F87000F3B93 /* ViewController.swift */,
+				504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */,
 				500DB82D253CF6F900A30A0D /* Geometry.swift */,
 				50CCCB9B24EE245E0085F134 /* Utillities.swift */,
 				5077578B24D8D7E0000C3D42 /* OrderedSet.swift */,
@@ -452,6 +455,7 @@
 				50323189257028270050C298 /* Timestamps.swift in Sources */,
 				50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */,
 				508832352559DBC70001E5A2 /* Playback.swift in Sources */,
+				504F5D4025DCD28000EC6034 /* MakeSampleBuffer.swift in Sources */,
 				50596397253FB73D00FF8B29 /* Shape.swift in Sources */,
 				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,
 				500DB82E253CF6F900A30A0D /* Geometry.swift in Sources */,

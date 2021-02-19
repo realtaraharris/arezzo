@@ -28,16 +28,18 @@ TODO:
 - [x] audio recording
 - [x] audio playback
 
+- [x] no end cap bug: caps are not perfectly normal to start/end line segments
+
+- [x] round line caps
+- [x] identify hook on pen missing, use it to push a `PenUp`
+
+- [ ] zoom feature
 - [ ] handle screen rotation correctly
 - [ ] undo feature
 
-- [x] no end cap bug: caps are not perfectly normal to start/end line segments
-- [ ] unit tests on quadratic, cubic beziers
-
-- [x] round line caps
-- [ ] quadtree structure to store beziers
-- [ ] zoom feature
-- [x] identify hook on pen missing, use it to push a `PenUp`
+- [ ] color picker
+- [ ] video export feature
+- [ ] playback multiple layers
 
 - [ ] allow viewer to pan away from where the playback panning position is, without stopping playback (Erin asked for this one) 
 - [ ] allow user to change background color, consider eliminating lightest and darkest colors from palette
