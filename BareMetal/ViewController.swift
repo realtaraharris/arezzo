@@ -61,7 +61,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         let firstTimestamp = self.drawOperationCollector.timestamps[0]
         let timeOffset = firstPlaybackTimestamp - firstTimestamp
 
-        self.mvr!.startRecording()
+        self.mvr!.startRecording(firstTimestamp)
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
         let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
@@ -81,21 +81,26 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, present: false)
+            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime)
 
 //            let fireDate = startTime + nextTime - firstTime
         }
         self.playingState.running = true
 
-        let samples = createAudio(sampleBytes: self.drawOperationCollector.audioData, startFrm: 0, nFrames: self.drawOperationCollector.audioData.count / 2, sampleRate: 44100.0, numChannels: 2)
-
-        self.mvr!.writeAudio(samples: samples!)
-
         while self.playingState.running {
             renderNext()
         }
 
-        self.mvr!.endRecording {}
+        for op in self.drawOperationCollector.opList {
+            if op.type != .audioClip { continue }
+            let audioClip = op as! AudioClip
+            let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: 44100.0, numChannels: 2)
+            self.mvr!.writeAudio(samples: samples!)
+        }
+
+        self.mvr!.endRecording {
+            print("recording finished")
+        }
     }
 
     var device: MTLDevice!
@@ -408,7 +413,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                      options: .storageModeShared)
     }
 
-    final func renderOffline(firstTimestamp: Double, endTimestamp: Double, present _: Bool) {
+    final func renderOffline(firstTimestamp _: Double, endTimestamp: Double) {
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = .type2DArray
         textureDescriptor.pixelFormat = .bgra8Unorm
@@ -417,8 +422,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         textureDescriptor.arrayLength = 1
         textureDescriptor.usage = [.shaderRead, .shaderWrite]
         let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
-
-        print("endTimestamp:", endTimestamp)
 
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
@@ -465,7 +468,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
-        self.mvr?.writeFrame(forTexture: texture, timestamp: endTimestamp - firstTimestamp)
+
+        self.mvr?.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
     final func render(endTimestamp: Double, present _: Bool) {

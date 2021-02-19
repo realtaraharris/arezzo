@@ -11,7 +11,7 @@
 import CoreMedia
 import Foundation
 
-let TIMESCALE: Int32 = 800
+let TIMESCALE: Int32 = 6000
 
 func createAudio(sampleBytes: UnsafeRawPointer, startFrm: Double, nFrames: Int, sampleRate: Float64, numChannels: UInt32) -> CMSampleBuffer? {
     let bytesPerFrame = UInt32(2 * numChannels)
@@ -50,9 +50,7 @@ func createAudio(sampleBytes: UnsafeRawPointer, startFrm: Double, nFrames: Int, 
     status = CMAudioFormatDescriptionCreate(allocator: kCFAllocatorDefault, asbd: &asbd, layoutSize: 0, layout: nil, magicCookieSize: 0, magicCookie: nil, extensions: nil, formatDescriptionOut: &formatDesc)
     assert(status == noErr)
 
-    print("AUDIO TIMESTAMP:", startFrm)
-    let presentationTimestamp = CMTimeMake(value: Int64(startFrm), timescale: TIMESCALE)
-    print("line 52 presentationTimestamp:", presentationTimestamp)
+    let presentationTimestamp = CMTimeMakeWithSeconds(startFrm, preferredTimescale: TIMESCALE)
 
     var sampleBuffer: CMSampleBuffer?
     status = CMAudioSampleBufferCreateReadyWithPacketDescriptions(
