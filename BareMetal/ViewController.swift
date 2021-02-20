@@ -64,17 +64,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.mvr!.startRecording(firstTimestamp)
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-        let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
-
-//        let (firstTime, _) = timestampIterator.next()!
-//        let startTime = CFAbsoluteTimeGetCurrent()
-
-//        print("firstTime:", firstTime, "startTime:", startTime)
+//        let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
 
         func renderNext() {
             let (currentTime, nextTime) = timestampIterator.next()!
-
-//            print("currentTime:", currentTime, "nextTime:", nextTime)
 
             if nextTime == -1 {
                 self.playingState.running = false
@@ -83,19 +76,19 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime)
 
-//            let fireDate = startTime + nextTime - firstTime
+            for op in self.drawOperationCollector.opList {
+                if op.type != .audioClip { continue }
+                if op.timestamp != currentTime { continue }
+                let audioClip = op as! AudioClip
+                print("writing audio clip at timestamp:", op.timestamp)
+                let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
+                self.mvr!.writeAudio(samples: samples!)
+            }
         }
         self.playingState.running = true
 
         while self.playingState.running {
             renderNext()
-        }
-
-        for op in self.drawOperationCollector.opList {
-            if op.type != .audioClip { continue }
-            let audioClip = op as! AudioClip
-            let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: 44100.0, numChannels: 2)
-            self.mvr!.writeAudio(samples: samples!)
         }
 
         self.mvr!.endRecording {

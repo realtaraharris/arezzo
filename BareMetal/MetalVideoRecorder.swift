@@ -77,14 +77,11 @@ class MetalVideoRecorder {
         while !self.audioInput.isReadyForMoreMediaData {}
         let ok = self.audioInput.append(samples)
         if !ok {
-            print("audio append failed")
-            print("error: ", self.assetWriter.error)
+            print("audio append failed. error: ", self.assetWriter.error as Any)
         }
     }
 
     func writeFrame(forTexture texture: MTLTexture, timestamp: Double) {
-//        print("VIDEO TIMESTAMP:", timestamp)
-
         while !self.assetWriterVideoInput.isReadyForMoreMediaData {}
 
         let sourcePixelBufferAttributes = [
@@ -103,6 +100,10 @@ class MetalVideoRecorder {
             sourcePixelBufferAttributes as CFDictionary,
             &pixelBuffer
         )
+
+        if pixelBufferStatus != kCVReturnSuccess {
+            print("error in pixelBufferStatus:", pixelBufferStatus)
+        }
 
         CVPixelBufferLockBaseAddress(pixelBuffer!, [])
         let pixelBufferBytes = CVPixelBufferGetBaseAddress(pixelBuffer!)!

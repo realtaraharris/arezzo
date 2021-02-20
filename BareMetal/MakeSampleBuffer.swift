@@ -13,8 +13,8 @@ import Foundation
 
 let TIMESCALE: Int32 = 6000
 
-func createAudio(sampleBytes: UnsafeRawPointer, startFrm: Double, nFrames: Int, sampleRate: Float64, numChannels: UInt32) -> CMSampleBuffer? {
-    let bytesPerFrame = UInt32(2 * numChannels)
+func createAudio(sampleBytes: UnsafeRawPointer, startFrm: Double, nFrames: Int, sampleRate _: Float64, numChannels _: UInt32) -> CMSampleBuffer? {
+    let bytesPerFrame = BYTES_PER_FRAME
     let blockSize = nFrames * Int(bytesPerFrame)
 
     var block: CMBlockBuffer?
@@ -34,17 +34,7 @@ func createAudio(sampleBytes: UnsafeRawPointer, startFrm: Double, nFrames: Int, 
     CMBlockBufferReplaceDataBytes(with: sampleBytes, blockBuffer: block!, offsetIntoDestination: 0, dataLength: blockSize)
     assert(status == kCMBlockBufferNoErr)
 
-    var asbd = AudioStreamBasicDescription(
-        mSampleRate: sampleRate,
-        mFormatID: kAudioFormatLinearPCM,
-        mFormatFlags: kLinearPCMFormatFlagIsSignedInteger,
-        mBytesPerPacket: bytesPerFrame,
-        mFramesPerPacket: 1,
-        mBytesPerFrame: bytesPerFrame,
-        mChannelsPerFrame: numChannels,
-        mBitsPerChannel: 16,
-        mReserved: 0
-    )
+    var asbd = audioFormat
 
     var formatDesc: CMAudioFormatDescription?
     status = CMAudioFormatDescriptionCreate(allocator: kCFAllocatorDefault, asbd: &asbd, layoutSize: 0, layout: nil, magicCookieSize: 0, magicCookie: nil, extensions: nil, formatDescriptionOut: &formatDesc)
