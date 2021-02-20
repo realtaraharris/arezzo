@@ -11,6 +11,10 @@
 import AVKit
 import Foundation
 
+func CMTimeFromTimeInterval (_ timeInterval: TimeInterval) -> CMTime {
+    return CMTime(seconds: timeInterval, preferredTimescale: 1000000)
+}
+
 class MetalVideoRecorder {
     private var assetWriter: AVAssetWriter
     private var assetWriterVideoInput: AVAssetWriterInput
@@ -50,6 +54,7 @@ class MetalVideoRecorder {
             kCVPixelBufferWidthKey as String: size.width,
             kCVPixelBufferHeightKey as String: size.height,
             kCVPixelBufferMetalCompatibilityKey as String: true,
+            kCVPixelBufferIOSurfacePropertiesKey as String: [String: String]()
         ]
 
         self.size = size
@@ -64,7 +69,7 @@ class MetalVideoRecorder {
 
     func startRecording(_ timestamp: Double) {
         self.assetWriter.startWriting()
-        let sourceTime = CMTimeMakeWithSeconds(timestamp, preferredTimescale: TIMESCALE)
+        let sourceTime = CMTimeFromTimeInterval(timestamp)
         self.assetWriter.startSession(atSourceTime: sourceTime)
     }
 
@@ -114,7 +119,7 @@ class MetalVideoRecorder {
 
         texture.getBytes(pixelBufferBytes, bytesPerRow: bytesPerRow, from: region, mipmapLevel: 0)
 
-        let presentationTime = CMTimeMakeWithSeconds(timestamp, preferredTimescale: TIMESCALE)
+        let presentationTime = CMTimeFromTimeInterval(timestamp)
 
         assetWriterPixelBufferInput.append(pixelBuffer!, withPresentationTime: presentationTime)
 
