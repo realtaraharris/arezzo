@@ -66,6 +66,7 @@ class Toolbar: UIViewController {
     var clearButton: UIButton?
 
     var startExportButton: UIButton?
+    var exportProgressIndicator: UIProgressView?
 
     var playbackSlider: UISlider?
 
@@ -104,6 +105,10 @@ class Toolbar: UIViewController {
 
         if startExportButton == nil {
             startExportButton = UIButton(type: .system)
+        }
+
+        if exportProgressIndicator == nil {
+            exportProgressIndicator = UIProgressView()
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -193,9 +198,13 @@ class Toolbar: UIViewController {
         startExportButton!.addTarget(self, action: #selector(startExport), for: .touchUpInside)
         view.addSubview(startExportButton!)
 
+        exportProgressIndicator!.translatesAutoresizingMaskIntoConstraints = false
+        exportProgressIndicator!.isHidden = true
+        view.addSubview(exportProgressIndicator!)
+
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
-        view.frame = CGRect(x: 100, y: 100, width: toolbarWidth, height: toolbarHeight)
+        view.frame = CGRect(x: 12, y: 40, width: toolbarWidth, height: toolbarHeight)
 
         NSLayoutConstraint.activate([
             thicknessSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
@@ -233,6 +242,10 @@ class Toolbar: UIViewController {
             startExportButton!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
             startExportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             startExportButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            exportProgressIndicator!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
+            exportProgressIndicator!.topAnchor.constraint(equalTo: startExportButton!.bottomAnchor, constant: 5),
+            exportProgressIndicator!.widthAnchor.constraint(equalToConstant: 100.0),
         ])
     }
 

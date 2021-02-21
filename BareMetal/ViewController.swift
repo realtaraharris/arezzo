@@ -45,12 +45,22 @@ extension FileManager {
 
 class ViewController: UIViewController, ToolbarDelegate {
     func startExport() {
+        let screenScale = UIScreen.main.scale
+        let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
+
+        self.toolbar.startExportButton?.setTitle("Exporting", for: .normal)
+        self.toolbar.startExportButton?.isEnabled = false
+        self.toolbar.exportProgressIndicator?.isHidden = false
+
+        DispatchQueue.global().async {
+            self.actuallyDoExport(outputSize)
+        }
+    }
+
+    func actuallyDoExport(_ outputSize: CGSize) {
         let outputUrl = getDocumentsDirectory().appendingPathComponent("BareMetalVideo.m4v")
 
         FileManager.default.removePossibleItem(at: outputUrl)
-
-        let screenScale = UIScreen.main.scale
-        let outputSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
 
         self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
 
@@ -64,7 +74,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.mvr!.startRecording(firstTimestamp)
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-//        let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
+
+        let frameCount: Float = Float(self.drawOperationCollector.timestamps.count)
+        var framesRendered = 0
 
         func renderNext() {
             let (currentTime, nextTime) = timestampIterator.next()!
@@ -77,12 +89,15 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime)
 
             for op in self.drawOperationCollector.opList {
-                if op.type != .audioClip { continue }
-                if op.timestamp != currentTime { continue }
+                if op.type != .audioClip || op.timestamp != currentTime { continue }
                 let audioClip = op as! AudioClip
-                print("writing audio clip at timestamp:", op.timestamp)
                 let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
                 self.mvr!.writeAudio(samples: samples!)
+            }
+
+            DispatchQueue.main.async {
+                self.toolbar.exportProgressIndicator?.progress = Float(framesRendered) / frameCount
+                framesRendered += 1
             }
         }
         self.playingState.running = true
@@ -92,7 +107,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         self.mvr!.endRecording {
-            print("recording finished")
+            DispatchQueue.main.async {
+                self.toolbar.startExportButton?.setTitle("Start Export", for: .normal)
+                self.toolbar.startExportButton?.isEnabled = true
+                self.toolbar.exportProgressIndicator?.isHidden = true
+                self.toolbar.exportProgressIndicator?.progress = 0
+            }
         }
     }
 
