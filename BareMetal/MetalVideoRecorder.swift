@@ -11,8 +11,8 @@
 import AVKit
 import Foundation
 
-func CMTimeFromTimeInterval (_ timeInterval: TimeInterval) -> CMTime {
-    return CMTime(seconds: timeInterval, preferredTimescale: 1000000)
+func CMTimeFromTimeInterval(_ timeInterval: TimeInterval) -> CMTime {
+    CMTime(seconds: timeInterval, preferredTimescale: 1_000_000)
 }
 
 class MetalVideoRecorder {
@@ -54,7 +54,7 @@ class MetalVideoRecorder {
             kCVPixelBufferWidthKey as String: size.width,
             kCVPixelBufferHeightKey as String: size.height,
             kCVPixelBufferMetalCompatibilityKey as String: true,
-            kCVPixelBufferIOSurfacePropertiesKey as String: [String: String]()
+            kCVPixelBufferIOSurfacePropertiesKey as String: [String: String](),
         ]
 
         self.size = size

@@ -47,7 +47,7 @@ extension ViewController {
                 return
             }
 
-            self.render(endTimestamp: currentTime, present: true)
+            self.render(endTimestamp: currentTime)
 
             let fireDate = startTime + nextTime - firstTime
             let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
