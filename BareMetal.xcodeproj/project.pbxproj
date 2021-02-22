@@ -204,6 +204,7 @@
 			isa = PBXGroup;
 			children = (
 				50E88406257989B200BB6321 /* Constants.swift */,
+				504EFD9124C7DED5008F9334 /* README.md */,
 				50C2A6FC24A67F87000F3B93 /* BareMetal */,
 				505074332531A73D0011C9C9 /* BareMetalTests */,
 				505963AC2543A81F00FF8B29 /* BareMetalUITests */,
@@ -239,7 +240,6 @@
 				5077578B24D8D7E0000C3D42 /* OrderedSet.swift */,
 				50C2A70B24A67F8A000F3B93 /* Info.plist */,
 				50C2A71124A68667000F3B93 /* Shaders.metal */,
-				504EFD9124C7DED5008F9334 /* README.md */,
 				501E676C24D730D10032C7BD /* LargePalette.swift */,
 				50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */,
 				50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */,
