@@ -41,7 +41,6 @@
 		5088323D2559DBE70001E5A2 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5088323C2559DBE70001E5A2 /* ErrorHandler.swift */; };
 		508832422559DC100001E5A2 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508832412559DC100001E5A2 /* Recording.swift */; };
 		5088324A255B39620001E5A2 /* AudioDeviceFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50883249255B39620001E5A2 /* AudioDeviceFinder.swift */; };
-		50A3B10F25D448E1003FBB93 /* BinaryCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50A3B10E25D448E1003FBB93 /* BinaryCoder */; };
 		50A3B12925D6F8E3003FBB93 /* MetalVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
@@ -51,6 +50,7 @@
 		50C2A70A24A67F8A000F3B93 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50C2A70824A67F8A000F3B93 /* LaunchScreen.storyboard */; };
 		50C2A71224A68667000F3B93 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A71124A68667000F3B93 /* Shaders.metal */; };
 		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
+		50D7EA7E25E4B15500A2AC3D /* BinaryCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50D7EA7D25E4B15500A2AC3D /* BinaryCoder */; };
 		50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E696E2256CBE4400C271D8 /* AudioStream.swift */; };
 		50E88407257989B200BB6321 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E88406257989B200BB6321 /* Constants.swift */; };
@@ -136,7 +136,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				50A3B10F25D448E1003FBB93 /* BinaryCoder in Frameworks */,
+				50D7EA7E25E4B15500A2AC3D /* BinaryCoder in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,7 +314,7 @@
 			);
 			name = BareMetal;
 			packageProductDependencies = (
-				50A3B10E25D448E1003FBB93 /* BinaryCoder */,
+				50D7EA7D25E4B15500A2AC3D /* BinaryCoder */,
 			);
 			productName = BareMetal;
 			productReference = 50C2A6FA24A67F87000F3B93 /* BareMetal.app */;
@@ -357,7 +357,7 @@
 			mainGroup = 50C2A6F124A67F87000F3B93;
 			packageReferences = (
 				505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */,
-				50A3B10D25D448E1003FBB93 /* XCRemoteSwiftPackageReference "BinaryCoder" */,
+				50D7EA7C25E4B15500A2AC3D /* XCRemoteSwiftPackageReference "BinaryCoder" */,
 			);
 			productRefGroup = 50C2A6FB24A67F87000F3B93 /* Products */;
 			projectDirPath = "";
@@ -840,12 +840,12 @@
 				kind = branch;
 			};
 		};
-		50A3B10D25D448E1003FBB93 /* XCRemoteSwiftPackageReference "BinaryCoder" */ = {
+		50D7EA7C25E4B15500A2AC3D /* XCRemoteSwiftPackageReference "BinaryCoder" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/tgu/BinaryCoder";
+			repositoryURL = "https://github.com/maxharris9/BinaryCoder";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.0;
+				minimumVersion = 1.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -856,9 +856,9 @@
 			package = 505963C42546196F00FF8B29 /* XCRemoteSwiftPackageReference "Dynamic" */;
 			productName = Dynamic;
 		};
-		50A3B10E25D448E1003FBB93 /* BinaryCoder */ = {
+		50D7EA7D25E4B15500A2AC3D /* BinaryCoder */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 50A3B10D25D448E1003FBB93 /* XCRemoteSwiftPackageReference "BinaryCoder" */;
+			package = 50D7EA7C25E4B15500A2AC3D /* XCRemoteSwiftPackageReference "BinaryCoder" */;
 			productName = BinaryCoder;
 		};
 /* End XCSwiftPackageProductDependency section */

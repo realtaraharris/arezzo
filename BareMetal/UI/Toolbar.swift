@@ -63,6 +63,7 @@ class Toolbar: UIViewController {
 
     var saveButton: UIButton?
     var restoreButton: UIButton?
+    var restoreProgressIndicator: UIProgressView?
     var clearButton: UIButton?
 
     var startExportButton: UIButton?
@@ -93,6 +94,10 @@ class Toolbar: UIViewController {
 
         if restoreButton == nil {
             restoreButton = UIButton(type: .system)
+        }
+
+        if restoreProgressIndicator == nil {
+            restoreProgressIndicator = UIProgressView()
         }
 
         if clearButton == nil {
@@ -163,6 +168,10 @@ class Toolbar: UIViewController {
         restoreButton!.addTarget(self, action: #selector(restore), for: .touchUpInside)
         view.addSubview(restoreButton!)
 
+        restoreProgressIndicator!.translatesAutoresizingMaskIntoConstraints = false
+        restoreProgressIndicator!.isHidden = true
+        view.addSubview(restoreProgressIndicator!)
+
         clearButton!.translatesAutoresizingMaskIntoConstraints = false
         clearButton!.backgroundColor = UIColor.darkGray
         clearButton!.layer.cornerRadius = cornerRadius
@@ -230,6 +239,10 @@ class Toolbar: UIViewController {
             restoreButton!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: margin),
             restoreButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             restoreButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            restoreProgressIndicator!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: margin),
+            restoreProgressIndicator!.topAnchor.constraint(equalTo: restoreButton!.bottomAnchor, constant: 5),
+            restoreProgressIndicator!.widthAnchor.constraint(equalToConstant: 100.0),
 
             clearButton!.leadingAnchor.constraint(equalTo: restoreButton!.trailingAnchor, constant: margin),
             clearButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),

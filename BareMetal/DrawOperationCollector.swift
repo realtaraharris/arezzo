@@ -19,6 +19,8 @@ func getDocumentsDirectory() -> URL {
     return paths[0]
 }
 
+extension BinaryDecoder {}
+
 class DrawOperationCollector {
     var opList: [DrawOperation] = []
     var shapeList: [Shape] = []
@@ -118,10 +120,11 @@ class DrawOperationCollector {
         }
     }
 
-    func deserialize() {
+    func deserialize(_ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
         do {
             let savedData = try Data(contentsOf: self.filename)
-            let decoded = try BinaryDecoder(data: [UInt8](savedData)).decode([DrawOperationWrapper].self)
+            let decoder = BinaryDecoder(data: [UInt8](savedData), progressCallback: progressCallback)
+            let decoded = try decoder.decode([DrawOperationWrapper].self)
 
             self.opList = decoded.map {
                 self.addOp(op: $0.drawOperation)

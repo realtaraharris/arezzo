@@ -3,11 +3,11 @@
     "pins": [
       {
         "package": "BinaryCoder",
-        "repositoryURL": "https://github.com/tgu/BinaryCoder",
+        "repositoryURL": "https://github.com/maxharris9/BinaryCoder",
         "state": {
           "branch": null,
-          "revision": "906e9678012191c85f990995660e2614dd0abd0f",
-          "version": "1.1.0"
+          "revision": "32f846b59e90fad50d30ee3a503ad0dbff56b620",
+          "version": "1.1.1"
         }
       },
       {

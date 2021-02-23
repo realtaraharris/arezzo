@@ -335,8 +335,33 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func restore() {
-        print("RESTORE")
-        self.drawOperationCollector.deserialize()
+        self.toolbar.restoreButton?.setTitle("Restoring", for: .normal)
+        self.toolbar.restoreButton?.isEnabled = false
+        self.toolbar.restoreProgressIndicator?.isHidden = false
+        DispatchQueue.global().async {
+            let minimumStep: Float = 0.01 // 0.01 is 1%, adjust to taste
+            var prevProgress: Float = 0.0
+
+            func progressCallback(todoCount: Int, todo: Int) {
+                let progress = Float(todoCount) / Float(todo)
+                let delta = progress - prevProgress
+
+                // we end up here once for each byte processed, so we need to limit the rate
+                if delta >= minimumStep {
+                    DispatchQueue.main.async { // this operation is relatively expensive
+                        self.toolbar.restoreProgressIndicator?.progress = progress
+                        prevProgress = progress
+                    }
+                }
+            }
+            self.drawOperationCollector.deserialize(progressCallback)
+            DispatchQueue.main.async {
+                self.toolbar.restoreButton?.setTitle("Restore", for: .normal)
+                self.toolbar.restoreButton?.isEnabled = true
+                self.toolbar.restoreProgressIndicator?.isHidden = true
+                self.toolbar.restoreProgressIndicator?.progress = 0
+            }
+        }
     }
 
     func clear() {
