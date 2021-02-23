@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/maxharris9/BinaryCoder",
         "state": {
           "branch": null,
-          "revision": "32f846b59e90fad50d30ee3a503ad0dbff56b620",
-          "version": "1.1.1"
+          "revision": "03bb2804721a247aa6d6f4db0c5d65ee401abb3c",
+          "version": "1.1.2"
         }
       },
       {
@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/mhdhejazi/Dynamic.git",
         "state": {
           "branch": "master",
-          "revision": "ab9a2570862d54aed2663691bb767f881226a12f",
+          "revision": "ac8f7530b2c5ea75f9a71a450ceec86d7fbdd862",
           "version": null
         }
       }

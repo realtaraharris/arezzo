@@ -123,7 +123,7 @@ class DrawOperationCollector {
     func deserialize(_ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
         do {
             let savedData = try Data(contentsOf: self.filename)
-            let decoder = BinaryDecoder(data: [UInt8](savedData), progressCallback: progressCallback)
+            let decoder = BinaryDecoder(data: [UInt8](savedData), progressCallback: progressCallback, steps: 100)
             let decoded = try decoder.decode([DrawOperationWrapper].self)
 
             self.opList = decoded.map {

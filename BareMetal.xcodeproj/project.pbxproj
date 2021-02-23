@@ -845,7 +845,7 @@
 			repositoryURL = "https://github.com/maxharris9/BinaryCoder";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.1;
+				minimumVersion = 1.1.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
