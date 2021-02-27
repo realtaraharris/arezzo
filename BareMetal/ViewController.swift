@@ -331,7 +331,19 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func save() {
         print("SAVE")
-        self.drawOperationCollector.serialize()
+        DispatchQueue.global().async {
+            DispatchQueue.main.async {
+                self.toolbar.saveIndicator?.startAnimating()
+                self.toolbar.saveButton?.isEnabled = false
+                self.toolbar.saveButton?.setTitle("Saving", for: UIControl.State.normal)
+            }
+            self.drawOperationCollector.serialize()
+            DispatchQueue.main.async {
+                self.toolbar.saveIndicator?.stopAnimating()
+                self.toolbar.saveButton?.isEnabled = true
+                self.toolbar.saveButton?.setTitle("Save", for: UIControl.State.normal)
+            }
+        }
     }
 
     func restore() {

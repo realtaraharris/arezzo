@@ -62,6 +62,8 @@ class Toolbar: UIViewController {
     var drawModeButton: UIButton?
 
     var saveButton: UIButton?
+    var saveIndicator: UIActivityIndicatorView?
+
     var restoreButton: UIButton?
     var restoreProgressIndicator: UIProgressView?
     var clearButton: UIButton?
@@ -90,6 +92,10 @@ class Toolbar: UIViewController {
 
         if saveButton == nil {
             saveButton = UIButton(type: .system)
+        }
+
+        if saveIndicator == nil {
+            saveIndicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
         }
 
         if restoreButton == nil {
@@ -158,6 +164,10 @@ class Toolbar: UIViewController {
         saveButton!.setTitle("Save", for: .normal)
         saveButton!.addTarget(self, action: #selector(save), for: .touchUpInside)
         view.addSubview(saveButton!)
+
+        saveIndicator!.translatesAutoresizingMaskIntoConstraints = false
+        saveIndicator!.clipsToBounds = true
+        view.addSubview(saveIndicator!)
 
         restoreButton!.translatesAutoresizingMaskIntoConstraints = false
         restoreButton!.backgroundColor = UIColor.darkGray
@@ -236,11 +246,16 @@ class Toolbar: UIViewController {
             saveButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             saveButton!.widthAnchor.constraint(equalToConstant: 80.0),
 
-            restoreButton!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: margin),
+            saveIndicator!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: 5.0),
+            saveIndicator!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            saveIndicator!.widthAnchor.constraint(equalToConstant: 25.0),
+            saveIndicator!.heightAnchor.constraint(equalToConstant: 30.0),
+
+            restoreButton!.leadingAnchor.constraint(equalTo: saveIndicator!.trailingAnchor, constant: 5.0),
             restoreButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             restoreButton!.widthAnchor.constraint(equalToConstant: 100.0),
 
-            restoreProgressIndicator!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: margin),
+            restoreProgressIndicator!.leadingAnchor.constraint(equalTo: saveIndicator!.trailingAnchor, constant: 5.0),
             restoreProgressIndicator!.topAnchor.constraint(equalTo: restoreButton!.bottomAnchor, constant: 5),
             restoreProgressIndicator!.widthAnchor.constraint(equalToConstant: 100.0),
 
