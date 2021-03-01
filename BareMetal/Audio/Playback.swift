@@ -26,6 +26,9 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
         return
     }
 
+    print("player.pointee.running:", player.pointee.running)
+    if player.pointee.running == false { return }
+
     let bytesPerChannel = MemoryLayout<Int16>.size
     let sliceStart = player.pointee.lastIndexRead
     let sliceEnd = min(player.pointee.audioData.count, player.pointee.lastIndexRead + bufferByteSize / bytesPerChannel)

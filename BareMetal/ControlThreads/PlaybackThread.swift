@@ -40,6 +40,12 @@ extension ViewController {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         func renderNext(_: CFRunLoopTimer?) {
+            if self.playbackThread.isCancelled {
+                self.playingState.running = false
+                check(AudioQueueStop(self.queue!, true))
+                check(AudioQueueDispose(self.queue!, true))
+                return
+            }
             let (currentTime, nextTime) = timestampIterator.next()!
 
             if nextTime == -1 {
@@ -77,8 +83,8 @@ extension ViewController {
             updateSliderPosition()
         }
 
+        self.playingState.running = false
         self.playing = false
-        performSelector(onMainThread: #selector(self.stopPlayUI), with: nil, waitUntilDone: false)
 
         check(AudioQueueStop(self.queue!, true))
         check(AudioQueueDispose(self.queue!, true))

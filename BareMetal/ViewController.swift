@@ -304,7 +304,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     public func stopPlaying() {
         self.playing = false
         self.playbackThread.cancel()
-
+        print("playback thread cancelled")
         CFRunLoopTimerInvalidate(self.playbackSliderTimer)
     }
 
