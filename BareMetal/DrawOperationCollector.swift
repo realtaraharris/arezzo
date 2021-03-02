@@ -40,6 +40,16 @@ class DrawOperationCollector {
         self.filename = getDocumentsDirectory().appendingPathComponent("BareMetalOutput.bin")
     }
 
+    func getTimestamp(position: Double) -> Double {
+        let first = self.timestamps.first!
+        let last = self.timestamps.last!
+
+        let total = last - first
+        let targetTimestamp = (total * position) + first
+        let targetTimestampIndex = self.timestamps.firstIndex(where: { $0 >= targetTimestamp })!
+        return self.timestamps[targetTimestampIndex]
+    }
+
     func getTimestampIndices(startPosition: Double, endPosition: Double) -> (startIndex: Int, endIndex: Int) {
         let first = self.timestamps.first!
         let last = self.timestamps.last!

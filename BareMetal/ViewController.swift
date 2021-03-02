@@ -289,19 +289,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.playingState.audioData = self.drawOperationCollector.audioData
         self.playingState.lastIndexRead = 0
         self.playback()
-
-        func updatePlaybackSlider(_: CFRunLoopTimer?) {
-            self.toolbar.playbackSlider!.value = self.playbackSliderPosition
-        }
-
-        let sliderUpdateInterval: CFTimeInterval = 1 / 60 // seconds
-        self.playbackSliderTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, CFAbsoluteTimeGetCurrent(), sliderUpdateInterval, 0, 0, updatePlaybackSlider)
-        RunLoop.current.add(self.playbackSliderTimer!, forMode: .common)
     }
 
     public func stopPlaying() {
         self.playing = false
-        CFRunLoopTimerInvalidate(self.playbackSliderTimer)
     }
 
     public func startRecording() {
@@ -376,7 +367,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func setPlaybackPosition(_ playbackPosition: Float) {
-        print("playback position:", playbackPosition)
+        self.stopPlaying()
+        self.render(endTimestamp: self.drawOperationCollector.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
     }

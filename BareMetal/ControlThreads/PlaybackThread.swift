@@ -55,7 +55,7 @@ extension ViewController {
             self.render(endTimestamp: currentTime)
             let current: Float = Float(self.playingState.lastIndexRead)
             let position: Float = current / totalAudioLength
-            self.playbackSliderPosition = Float(position) // runloop on main thread picks this up and updates the UI - see ViewController.swift
+            self.toolbar.playbackSlider!.value = Float(position)
 
             let fireDate = startTime + nextTime - firstTime
             let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
