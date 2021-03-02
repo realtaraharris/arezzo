@@ -176,7 +176,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var panStart: CGPoint = .zero
     private var panEnd: CGPoint = .zero
     private var panPosition: CGPoint = .zero
-    public var playbackThread: Thread = Thread()
     public var recordingThread: Thread = Thread()
 
     var playbackSliderPosition: Float = 0
@@ -289,8 +288,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.playing = true
         self.playingState.audioData = self.drawOperationCollector.audioData
         self.playingState.lastIndexRead = 0
-        self.playbackThread = Thread(target: self, selector: #selector(self.playback(thread:)), object: nil)
-        self.playbackThread.start()
+        self.playback()
 
         func updatePlaybackSlider(_: CFRunLoopTimer?) {
             self.toolbar.playbackSlider!.value = self.playbackSliderPosition
@@ -303,8 +301,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func stopPlaying() {
         self.playing = false
-        self.playbackThread.cancel()
-        print("playback thread cancelled")
         CFRunLoopTimerInvalidate(self.playbackSliderTimer)
     }
 
