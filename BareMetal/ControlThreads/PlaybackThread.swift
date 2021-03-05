@@ -10,7 +10,7 @@ import AudioToolbox
 import Foundation
 
 extension ViewController {
-    func playback() {
+    func playback(runNumber: Int) {
         check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
 
         var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
@@ -41,8 +41,6 @@ extension ViewController {
 
         func renderNext(_: CFRunLoopTimer?) {
             if !self.playing {
-                check(AudioQueueStop(self.queue!, true))
-                check(AudioQueueDispose(self.queue!, true))
                 return
             }
             let (currentTime, nextTime) = timestampIterator.next()!
@@ -52,14 +50,17 @@ extension ViewController {
                 return
             }
 
+            if runNumber < self.currentRunNumber { return }
+            self.currentRunNumber = runNumber
+
             self.render(endTimestamp: currentTime)
             let current: Float = Float(self.playingState.lastIndexRead)
             let position: Float = current / totalAudioLength
-            self.toolbar.playbackSlider!.value = Float(position)
+            self.toolbar.playbackSlider!.setValue(Float(position), animated: false)
 
             let fireDate = startTime + nextTime - firstTime
-            let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
-            RunLoop.current.add(timer!, forMode: .common)
+            self.nextRenderTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
+            RunLoop.current.add(nextRenderTimer!, forMode: .common)
         }
 
         let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, startTime, 0, 0, 0, renderNext)

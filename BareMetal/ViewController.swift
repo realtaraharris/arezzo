@@ -146,6 +146,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playingState: PlayingState
 
     var mvr: MetalVideoRecorder?
+    var nextRenderTimer: CFRunLoopTimer?
+
+    var runNumber: Int = 0
+    var currentRunNumber: Int = 0
 
     @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
@@ -288,10 +292,14 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.playing = true
         self.playingState.audioData = self.drawOperationCollector.audioData
         self.playingState.lastIndexRead = 0
-        self.playback()
+        self.playback(runNumber: self.runNumber)
+        self.runNumber += 1
     }
 
     public func stopPlaying() {
+        CFRunLoopTimerInvalidate(self.nextRenderTimer)
+        check(AudioQueueStop(self.queue!, true))
+        check(AudioQueueDispose(self.queue!, true))
         self.playing = false
     }
 
@@ -367,10 +375,16 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func setPlaybackPosition(_ playbackPosition: Float) {
-        self.stopPlaying()
+        let wasPlaying = self.playing
+        if self.playing {
+            self.stopPlaying()
+        }
         self.render(endTimestamp: self.drawOperationCollector.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
+        if wasPlaying {
+            self.startPlaying()
+        }
     }
 
     final func generateVerts(endTimestamp: Double) {
