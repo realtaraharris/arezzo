@@ -9,6 +9,8 @@
 import AudioToolbox
 import Foundation
 
+@available(iOS 14.0, *)
+@available(macCatalyst 14.0, *)
 extension ViewController {
     @objc func recording(thread _: Thread) {
         var queue: AudioQueueRef?

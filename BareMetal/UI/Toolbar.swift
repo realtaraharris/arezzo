@@ -19,6 +19,8 @@ protocol ToolbarDelegate {
     func setDrawMode()
     func setPanMode()
 
+    func setColor(color: UIColor)
+
     func save()
     func restore()
     func clear()
@@ -51,6 +53,8 @@ class ToolbarView: UIView {
     }
 }
 
+@available(iOS 14.0, *)
+@available(macCatalyst 14.0, *)
 class Toolbar: UIViewController {
     var delegate: ToolbarDelegate?
     var recording: Bool = false
@@ -72,6 +76,16 @@ class Toolbar: UIViewController {
     var exportProgressIndicator: UIProgressView?
 
     var playbackSlider: UISlider?
+
+    var colorPicker: UIColorPickerViewController?
+    var colorSampleView: UIButton!
+
+    @objc func pickColor(_: Any) {
+        let colorPicker = UIColorPickerViewController()
+        colorPicker.delegate = self
+        colorPicker.selectedColor = colorSampleView.backgroundColor ?? UIColor.black
+        self.present(colorPicker, animated: true, completion: nil)
+    }
 
     override func loadView() {
         view = ToolbarView()
@@ -120,6 +134,10 @@ class Toolbar: UIViewController {
 
         if exportProgressIndicator == nil {
             exportProgressIndicator = UIProgressView()
+        }
+
+        if colorSampleView == nil {
+            colorSampleView = UIButton()
         }
 
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
@@ -221,6 +239,14 @@ class Toolbar: UIViewController {
         exportProgressIndicator!.isHidden = true
         view.addSubview(exportProgressIndicator!)
 
+        colorSampleView!.translatesAutoresizingMaskIntoConstraints = false
+        colorSampleView!.backgroundColor = UIColor.red
+        colorSampleView!.layer.cornerRadius = cornerRadius
+        colorSampleView!.clipsToBounds = true
+        colorSampleView!.titleEdgeInsets = titleEdgeInsets
+        colorSampleView!.addTarget(self, action: #selector(pickColor), for: .touchUpInside)
+        view.addSubview(colorSampleView!)
+
         view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 12, y: 40, width: toolbarWidth, height: toolbarHeight)
@@ -238,7 +264,11 @@ class Toolbar: UIViewController {
             drawModeButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             drawModeButton!.widthAnchor.constraint(equalToConstant: 80.0),
 
-            recordButton!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: margin),
+            colorSampleView!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: margin),
+            colorSampleView!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            colorSampleView!.widthAnchor.constraint(equalToConstant: 33.0),
+
+            recordButton!.leadingAnchor.constraint(equalTo: colorSampleView!.trailingAnchor, constant: margin),
             recordButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             recordButton!.widthAnchor.constraint(equalToConstant: 150.0),
 
@@ -351,4 +381,15 @@ class Toolbar: UIViewController {
             sender.setTranslation(CGPoint(x: 0, y: 0), in: viewToDrag)
         }
     }
+}
+
+@available(iOS 14.0, *)
+@available(macCatalyst 14.0, *)
+extension Toolbar: UIColorPickerViewControllerDelegate {
+    func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
+        colorSampleView.backgroundColor = viewController.selectedColor
+        delegate?.setColor(color: viewController.selectedColor)
+    }
+
+    func colorPickerViewControllerDidFinish(_: UIColorPickerViewController) {}
 }

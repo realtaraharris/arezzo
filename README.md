@@ -37,8 +37,8 @@ TODO:
 - [ ] handle screen rotation correctly
 - [ ] undo feature
 
-- [ ] color picker
-- [ ] video export feature
+- [x] color picker
+- [x] video export feature
 - [ ] playback multiple layers
 
 - [ ] allow viewer to pan away from where the playback panning position is, without stopping playback (Erin asked for this one) 

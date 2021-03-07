@@ -43,7 +43,19 @@ extension FileManager {
     }
 }
 
+@available(iOS 14.0, *)
+@available(macCatalyst 14.0, *)
 class ViewController: UIViewController, ToolbarDelegate {
+    func setColor(color: UIColor) {
+        let tempy = [
+            Float(color.cgColor.components![0]),
+            Float(color.cgColor.components![1]),
+            Float(color.cgColor.components![2]),
+            Float(color.cgColor.components![3]),
+        ]
+        self.selectedColor = tempy
+    }
+
     func startExport() {
         let screenScale = UIScreen.main.scale
         let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
@@ -151,7 +163,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
 
-    @available(iOS 9.1, *)
     public enum TouchType: Equatable, CaseIterable {
         case finger, pencil
 
@@ -165,13 +176,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-    @available(iOS 9.1, *)
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
     private var lastTimestampDrawn: Double = 0
     private var uiRects: [String: CGRect] = [:]
     private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
+
     public var toolbar: Toolbar
     private let capEdges = 21
 
@@ -186,7 +197,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playbackSliderTimer: CFRunLoopTimer?
 
     // For pencil interactions
-    @available(iOS 12.1, *)
     private lazy var pencilInteraction = UIPencilInteraction()
 
     required init?(coder aDecoder: NSCoder) {
@@ -586,9 +596,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.recording, let touch = touches.first else { return }
 
-        if #available(iOS 9.1, *) {
-            guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
-        }
+        guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
         let timestamp = getCurrentTimestamp()
 
@@ -609,9 +617,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.recording, let touch = touches.first else { return }
 
-        if #available(iOS 9.1, *) {
-            guard allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
-        }
+        guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
         let timestamp = getCurrentTimestamp()
 

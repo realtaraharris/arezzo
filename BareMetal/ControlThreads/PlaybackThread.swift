@@ -9,6 +9,8 @@
 import AudioToolbox
 import Foundation
 
+@available(iOS 14.0, *)
+@available(macCatalyst 14.0, *)
 extension ViewController {
     func playback(runNumber: Int) {
         check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
