@@ -81,10 +81,10 @@ class Toolbar: UIViewController {
     var colorSampleView: UIButton!
 
     @objc func pickColor(_: Any) {
-        let colorPicker = UIColorPickerViewController()
-        colorPicker.delegate = self
-        colorPicker.selectedColor = colorSampleView.backgroundColor ?? UIColor.black
-        self.present(colorPicker, animated: true, completion: nil)
+        colorPicker = UIColorPickerViewController()
+        colorPicker!.delegate = self
+        colorPicker!.selectedColor = colorSampleView.backgroundColor ?? UIColor.black
+        self.view.window?.rootViewController!.present(colorPicker!, animated: true, completion: nil)
     }
 
     override func loadView() {
@@ -148,7 +148,6 @@ class Toolbar: UIViewController {
         let titleEdgeInsets = UIEdgeInsets(top: 2, left: 5, bottom: 2, right: 5)
 
         recordButton!.translatesAutoresizingMaskIntoConstraints = false
-        recordButton!.backgroundColor = UIColor.darkGray
         recordButton!.layer.cornerRadius = cornerRadius
         recordButton!.clipsToBounds = true
         recordButton!.titleEdgeInsets = titleEdgeInsets
@@ -157,7 +156,6 @@ class Toolbar: UIViewController {
         view.addSubview(recordButton!)
 
         playButton!.translatesAutoresizingMaskIntoConstraints = false
-        playButton!.backgroundColor = UIColor.darkGray
         playButton!.layer.cornerRadius = cornerRadius
         playButton!.clipsToBounds = true
         playButton!.titleEdgeInsets = titleEdgeInsets
@@ -166,7 +164,6 @@ class Toolbar: UIViewController {
         view.addSubview(playButton!)
 
         drawModeButton!.translatesAutoresizingMaskIntoConstraints = false
-        drawModeButton!.backgroundColor = UIColor.darkGray
         drawModeButton!.layer.cornerRadius = cornerRadius
         drawModeButton!.clipsToBounds = true
         drawModeButton!.titleEdgeInsets = titleEdgeInsets
@@ -175,7 +172,6 @@ class Toolbar: UIViewController {
         view.addSubview(drawModeButton!)
 
         saveButton!.translatesAutoresizingMaskIntoConstraints = false
-        saveButton!.backgroundColor = UIColor.darkGray
         saveButton!.layer.cornerRadius = cornerRadius
         saveButton!.clipsToBounds = true
         saveButton!.titleEdgeInsets = titleEdgeInsets
@@ -188,7 +184,6 @@ class Toolbar: UIViewController {
         view.addSubview(saveIndicator!)
 
         restoreButton!.translatesAutoresizingMaskIntoConstraints = false
-        restoreButton!.backgroundColor = UIColor.darkGray
         restoreButton!.layer.cornerRadius = cornerRadius
         restoreButton!.clipsToBounds = true
         restoreButton!.titleEdgeInsets = titleEdgeInsets
@@ -201,7 +196,6 @@ class Toolbar: UIViewController {
         view.addSubview(restoreProgressIndicator!)
 
         clearButton!.translatesAutoresizingMaskIntoConstraints = false
-        clearButton!.backgroundColor = UIColor.darkGray
         clearButton!.layer.cornerRadius = cornerRadius
         clearButton!.clipsToBounds = true
         clearButton!.titleEdgeInsets = titleEdgeInsets
@@ -216,7 +210,7 @@ class Toolbar: UIViewController {
         thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
         view.addSubview(thicknessSlider)
 
-        let toolbarWidth: CGFloat = 1000
+        let toolbarWidth: CGFloat = 1100
         let toolbarHeight: CGFloat = 120
 
         playbackSlider!.minimumValue = 0.0
@@ -227,7 +221,6 @@ class Toolbar: UIViewController {
         view.addSubview(playbackSlider!)
 
         startExportButton!.translatesAutoresizingMaskIntoConstraints = false
-        startExportButton!.backgroundColor = UIColor.darkGray
         startExportButton!.layer.cornerRadius = cornerRadius
         startExportButton!.clipsToBounds = true
         startExportButton!.titleEdgeInsets = titleEdgeInsets
@@ -389,6 +382,7 @@ extension Toolbar: UIColorPickerViewControllerDelegate {
     func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
         colorSampleView.backgroundColor = viewController.selectedColor
         delegate?.setColor(color: viewController.selectedColor)
+        viewController.dismiss(animated: true, completion: {})
     }
 
     func colorPickerViewControllerDidFinish(_: UIColorPickerViewController) {}
