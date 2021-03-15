@@ -20,6 +20,8 @@ struct TimestampIterator: IteratorProtocol {
     private let values: [Double]
     private var index: Int?
 
+    var count: Int { self.values.count }
+
     init(_ values: [Double]) {
         self.values = values
     }

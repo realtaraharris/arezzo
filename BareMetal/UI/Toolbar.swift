@@ -260,6 +260,7 @@ class Toolbar: UIViewController {
             colorSampleView!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: margin),
             colorSampleView!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             colorSampleView!.widthAnchor.constraint(equalToConstant: 33.0),
+            colorSampleView!.heightAnchor.constraint(equalToConstant: 20.0),
 
             recordButton!.leadingAnchor.constraint(equalTo: colorSampleView!.trailingAnchor, constant: margin),
             recordButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
@@ -272,7 +273,6 @@ class Toolbar: UIViewController {
             saveIndicator!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: 5.0),
             saveIndicator!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
             saveIndicator!.widthAnchor.constraint(equalToConstant: 25.0),
-            saveIndicator!.heightAnchor.constraint(equalToConstant: 30.0),
 
             restoreButton!.leadingAnchor.constraint(equalTo: saveIndicator!.trailingAnchor, constant: 5.0),
             restoreButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),

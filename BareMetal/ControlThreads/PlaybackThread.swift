@@ -13,6 +13,10 @@ import Foundation
 @available(macCatalyst 14.0, *)
 extension ViewController {
     func playback(runNumber: Int) {
+        guard self.drawOperationCollector.timestamps.count > 0 else {
+            return
+        }
+
         check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
 
         var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
@@ -31,23 +35,51 @@ extension ViewController {
         let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
         var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
 
-        let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
-        let firstTimestamp = self.drawOperationCollector.timestamps[0]
-        let timeOffset = firstPlaybackTimestamp - firstTimestamp
+        let recordedCursor = self.drawOperationCollector.timestamps[startIndex]
+        let recordedStart = self.drawOperationCollector.timestamps[0]
+        let timeOffset = recordedCursor - recordedStart
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-        let totalAudioLength: Float = Float(self.drawOperationCollector.audioData.count)
+
+        guard timestampIterator.count > 0 else { return }
+
+        let timeStart = self.drawOperationCollector.timestamps[0]
+        let timeEnd = self.drawOperationCollector.timestamps[self.drawOperationCollector.timestamps.count - 1]
+
+        let timeDelta = timeEnd - timeStart
 
         let (firstTime, _) = timestampIterator.next()!
-        let startTime = CFAbsoluteTimeGetCurrent()
+        let playbackStart = CFAbsoluteTimeGetCurrent()
+
+        /*
+                   0         a   a'       b
+          recorded |---------|===,========|---------|
+          playback |---------------------------------------|===,========|---------|
+                   0                                       c   c'
+
+          timeDelta = b - a
+          currentPct = (c'-c + a'-a)/timeDelta
+
+          where
+            c' = playbackCursor
+            c = playbackStart
+            a' = recordedCursor
+            a = recordedStart
+         */
 
         func renderNext(_: CFRunLoopTimer?) {
+            let playbackCursor = CFAbsoluteTimeGetCurrent()
+            let position: Float = Float((playbackCursor - playbackStart + recordedCursor - recordedStart) / timeDelta)
+
+            self.toolbar.playbackSlider!.setValue(Float(position), animated: false)
+
             if !self.playing {
                 return
             }
             let (currentTime, nextTime) = timestampIterator.next()!
 
             if nextTime == -1 {
+                self.toolbar.playbackSlider!.setValue(1.0, animated: false)
                 self.playingState.running = false
                 return
             }
@@ -56,16 +88,14 @@ extension ViewController {
             self.currentRunNumber = runNumber
 
             self.render(endTimestamp: currentTime)
-            let current: Float = Float(self.playingState.lastIndexRead)
-            let position: Float = current / totalAudioLength
-            self.toolbar.playbackSlider!.setValue(Float(position), animated: false)
 
-            let fireDate = startTime + nextTime - firstTime
+            let fireDate = playbackStart + nextTime - firstTime
+
             self.nextRenderTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
             RunLoop.current.add(nextRenderTimer!, forMode: .common)
         }
 
-        let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, startTime, 0, 0, 0, renderNext)
+        let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, renderNext)
         RunLoop.current.add(timer!, forMode: .common)
 
         check(AudioQueueStart(self.queue!, nil))

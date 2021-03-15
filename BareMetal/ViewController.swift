@@ -307,6 +307,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func stopPlaying() {
+        guard self.nextRenderTimer != nil else {
+            self.playing = false
+            return
+        }
         CFRunLoopTimerInvalidate(self.nextRenderTimer)
         check(AudioQueueStop(self.queue!, true))
         check(AudioQueueDispose(self.queue!, true))
@@ -389,6 +393,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         if self.playing {
             self.stopPlaying()
         }
+        if self.drawOperationCollector.timestamps.count == 0 { return }
         self.render(endTimestamp: self.drawOperationCollector.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
