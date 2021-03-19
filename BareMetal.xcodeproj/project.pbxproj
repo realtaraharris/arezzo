@@ -51,6 +51,7 @@
 		50C2A71224A68667000F3B93 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A71124A68667000F3B93 /* Shaders.metal */; };
 		50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
 		50D7EA7E25E4B15500A2AC3D /* BinaryCoder in Frameworks */ = {isa = PBXBuildFile; productRef = 50D7EA7D25E4B15500A2AC3D /* BinaryCoder */; };
+		50DEB4D82602F01C00854D72 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50DEB4D72602F01C00854D72 /* Images.xcassets */; };
 		50E0F2EA2501B9D90054D91F /* DrawOperationCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */; };
 		50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E696E2256CBE4400C271D8 /* AudioStream.swift */; };
 		50E88407257989B200BB6321 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E88406257989B200BB6321 /* Constants.swift */; };
@@ -110,6 +111,7 @@
 		50C2A70B24A67F8A000F3B93 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50C2A71124A68667000F3B93 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
+		50DEB4D72602F01C00854D72 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperationCollector.swift; sourceTree = "<group>"; };
 		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
 		50E88406257989B200BB6321 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 				50596396253FB73D00FF8B29 /* Shape.swift */,
 				50323188257028270050C298 /* Timestamps.swift */,
 				50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */,
+				50DEB4D72602F01C00854D72 /* Images.xcassets */,
 			);
 			path = BareMetal;
 			sourceTree = "<group>";
@@ -391,6 +394,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				50C2A70A24A67F8A000F3B93 /* LaunchScreen.storyboard in Resources */,
+				50DEB4D82602F01C00854D72 /* Images.xcassets in Resources */,
 				50C2A70724A67F8A000F3B93 /* Assets.xcassets in Resources */,
 				50C2A70524A67F87000F3B93 /* Main.storyboard in Resources */,
 			);
@@ -718,8 +722,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = BareMetal/BareMetal.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetal/Info.plist;
@@ -730,7 +735,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
+				PRODUCT_BUNDLE_IDENTIFIER = org.maxharris.BareMetal.universal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
@@ -743,8 +748,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = BareMetal/BareMetal.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = BareMetal/Info.plist;
@@ -755,7 +761,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = test.BareMetal;
+				PRODUCT_BUNDLE_IDENTIFIER = org.maxharris.BareMetal.universal;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
