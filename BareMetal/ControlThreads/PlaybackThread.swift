@@ -71,7 +71,7 @@ extension ViewController {
             let playbackCursor = CFAbsoluteTimeGetCurrent()
             let position: Float = Float((playbackCursor - playbackStart + recordedCursor - recordedStart) / timeDelta)
 
-            self.toolbar.playbackSlider!.setValue(Float(position), animated: false)
+            self.toolbar.playbackSlider!.setValueEx(value: position)
 
             if !self.playing {
                 return
@@ -79,7 +79,7 @@ extension ViewController {
             let (currentTime, nextTime) = timestampIterator.next()!
 
             if nextTime == -1 {
-                self.toolbar.playbackSlider!.setValue(1.0, animated: false)
+                self.toolbar.playbackSlider!.setValueEx(value: 1.0)
                 self.playingState.running = false
                 return
             }
