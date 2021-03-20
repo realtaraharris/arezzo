@@ -1,3 +1,4 @@
 .DS_Store
 BareMetal.xcodeproj/project.xcworkspace/**
 BareMetal.xcodeproj/xcuserdata/**
+muter_logs/**

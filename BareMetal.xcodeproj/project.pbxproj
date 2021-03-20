@@ -86,7 +86,6 @@
 		50323188257028270050C298 /* Timestamps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timestamps.swift; sourceTree = "<group>"; };
 		5032318E257583A10050C298 /* PlaybackThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackThread.swift; sourceTree = "<group>"; };
 		50323193257597840050C298 /* RecordingThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingThread.swift; sourceTree = "<group>"; };
-		504EFD9124C7DED5008F9334 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeSampleBuffer.swift; sourceTree = "<group>"; };
 		505074322531A73D0011C9C9 /* BareMetalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BareMetalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		505074342531A73D0011C9C9 /* BareMetalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BareMetalTests.swift; sourceTree = "<group>"; };
@@ -114,6 +113,7 @@
 		50C2A71124A68667000F3B93 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
 		50DEB4D72602F01C00854D72 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		50DEB4FB260668AC00854D72 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = /Users/max/maxharris.org/baremetal/README.md; sourceTree = "<absolute>"; };
 		50E0F2E92501B9D90054D91F /* DrawOperationCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperationCollector.swift; sourceTree = "<group>"; };
 		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
 		50E88406257989B200BB6321 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -207,8 +207,8 @@
 		50C2A6F124A67F87000F3B93 = {
 			isa = PBXGroup;
 			children = (
+				50DEB4FB260668AC00854D72 /* README.md */,
 				50E88406257989B200BB6321 /* Constants.swift */,
-				504EFD9124C7DED5008F9334 /* README.md */,
 				50C2A6FC24A67F87000F3B93 /* BareMetal */,
 				505074332531A73D0011C9C9 /* BareMetalTests */,
 				505963AC2543A81F00FF8B29 /* BareMetalUITests */,
@@ -420,7 +420,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nmuter --output-xcode\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nmuter --files-to-mutate BareMetal/DrawOperationCollector.swift --output-xcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

@@ -1,0 +1,18 @@
+{
+  "arguments" : [
+    "-project",
+    "BareMetal.xcodeproj",
+    "-scheme",
+    "BareMetal",
+    "-destination",
+    "platform=macOS",
+    "test"
+  ],
+  "exclude" : [
+
+  ],
+  "excludeCalls" : [
+
+  ],
+  "executable" : "\/usr\/bin\/xcodebuild"
+}

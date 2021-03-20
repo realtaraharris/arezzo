@@ -1,5 +1,14 @@
 #  README
 
+## prerequisites
+
+muter v15
+```
+git clone https://github.com/muter-mutation-testing/muter.git
+cd muter
+make install
+```
+
 ## before committing
 
 `swiftformat **/* --swiftversion 5.1.3 --self insert`
