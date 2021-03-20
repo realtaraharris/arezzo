@@ -54,12 +54,12 @@ class ToolbarView: UIView {
 }
 
 extension UISlider {
-    func setValueEx (value: Float) {
+    func setValueEx(value: Float) {
         let pixelPerPercent = 1 / self.frame.maxX
 
         let delta = value - self.value
 
-        if (CGFloat(delta) >= pixelPerPercent || value == 1.0) {
+        if CGFloat(delta) >= pixelPerPercent || value == 1.0 {
             self.setValue(value, animated: false)
         }
     }

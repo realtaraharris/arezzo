@@ -208,16 +208,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.recordingState = RecordingState(running: false, drawOperationCollector: self.drawOperationCollector)
         self.playingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
-        /*
-         drawOperationCollector.beginProvisionalOps()
-         drawOperationCollector.addOp(PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: Date().toMilliseconds(), id: 0))
-         drawOperationCollector.addOp(Point(point: [310, 645], timestamp: Date().toMilliseconds(), id: 1))
-         drawOperationCollector.addOp(Point(point: [284.791, 429.16245], timestamp: Date().toMilliseconds(), id: 1))
-         drawOperationCollector.addOp(Point(point: [800, 100], timestamp: Date().toMilliseconds(), id: 1))
-         drawOperationCollector.addOp(PenUp(timestamp: Date().toMilliseconds(), id: 4))
-         drawOperationCollector.commitProvisionalOps()
-         */
-
         self.toolbar = Toolbar()
 
         super.init(coder: aDecoder)

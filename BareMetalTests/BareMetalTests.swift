@@ -60,10 +60,32 @@ class BareMetalTests: XCTestCase {
         XCTAssertEqual(capIndicesEven, [7, 0, 6, 1, 5, 2, 4, 3])
     }
 
-//    func testPerformanceExample() throws {
-//        // This is an example of a performance test case.
-//        measure {
-//            // Put the code you want to measure the time of here.
-//        }
-//    }
+    func testCollector() {
+        let device: MTLDevice = MTLCreateSystemDefaultDevice()!
+
+        let drawOperationCollector = DrawOperationCollector(device: device)
+
+        XCTAssertEqual(drawOperationCollector.opList.count, 0)
+
+        drawOperationCollector.beginProvisionalOps()
+        drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "draw"))
+        drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "pan"))
+        drawOperationCollector.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.cancelProvisionalOps()
+
+        // ensure that provisional ops are destroyed when cancelled
+        XCTAssertEqual(drawOperationCollector.opList.count, 0)
+
+        drawOperationCollector.beginProvisionalOps()
+        drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "draw"))
+        drawOperationCollector.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.commitProvisionalOps()
+        XCTAssertEqual(drawOperationCollector.opList.count, 5)
+    }
 }

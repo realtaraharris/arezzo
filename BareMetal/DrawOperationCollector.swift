@@ -25,14 +25,16 @@ class DrawOperationCollector {
     var opList: [DrawOperation] = []
     var shapeList: [Shape] = []
     var provisionalShapeIndex = 0
+    var provisionalOpIndex = 0
+    var provisionalTimestampIndex = 0
     var device: MTLDevice
     var activeColor: [Float] = []
     var currentLineWidth = DEFAULT_LINE_WIDTH
     var currentId: Int = 0
-    var mode: String = "draw"
+
     var penState: PenState = .down
     var audioData: [Int16] = []
-    var timestamps = OrderedSet<Double>()
+    var timestamps: [Double] = []
     var filename: URL
 
     init(device: MTLDevice) {
@@ -102,21 +104,32 @@ class DrawOperationCollector {
 
     func beginProvisionalOps() {
         self.provisionalShapeIndex = self.shapeList.count
+        self.provisionalOpIndex = self.opList.count
+        self.provisionalTimestampIndex = self.timestamps.count
     }
 
     func commitProvisionalOps() {
         self.provisionalShapeIndex = self.shapeList.count
+        self.provisionalOpIndex = self.opList.count
+        self.provisionalTimestampIndex = self.timestamps.count
     }
 
     func cancelProvisionalOps() {
         self.shapeList.removeSubrange(self.provisionalShapeIndex ..< self.shapeList.count)
+        self.opList.removeSubrange(self.provisionalOpIndex ..< self.opList.count)
+        self.timestamps.removeSubrange(self.provisionalTimestampIndex ..< self.timestamps.count)
     }
 
     func clear() {
-        self.opList = []
         self.shapeList = []
+        self.opList = []
+        self.timestamps = []
+
         self.audioData = []
-        self.timestamps = OrderedSet<Double>()
+
+        self.provisionalShapeIndex = 0
+        self.provisionalOpIndex = 0
+        self.provisionalTimestampIndex = 0
     }
 
     func serialize() {

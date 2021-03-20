@@ -47,11 +47,3 @@ struct TimestampIterator: IteratorProtocol {
         return nil
     }
 }
-
-/*
- var timestamps = Timestamps(timestamps: [getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp(), getCurrentTimestamp()])
-
- for timestamp in timestamps {
-     print(timestamp)
- }
- */
