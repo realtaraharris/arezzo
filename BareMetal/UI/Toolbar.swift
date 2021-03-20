@@ -96,7 +96,7 @@ class Toolbar: UIViewController {
         colorPicker = UIColorPickerViewController()
         colorPicker!.delegate = self
         colorPicker!.selectedColor = colorSampleView.backgroundColor ?? UIColor.black
-        self.view.window?.rootViewController!.present(colorPicker!, animated: true, completion: nil)
+        self.view.window?.rootViewController!.present(colorPicker!, animated: false, completion: nil)
     }
 
     override func loadView() {
@@ -394,7 +394,7 @@ extension Toolbar: UIColorPickerViewControllerDelegate {
     func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
         colorSampleView.backgroundColor = viewController.selectedColor
         delegate?.setColor(color: viewController.selectedColor)
-        viewController.dismiss(animated: true, completion: {})
+        viewController.dismiss(animated: false, completion: {})
     }
 
     func colorPickerViewControllerDidFinish(_: UIColorPickerViewController) {}
