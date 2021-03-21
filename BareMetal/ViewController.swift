@@ -369,6 +369,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func clear() {
         print("CLEAR")
+        self.panStart = .zero
+        self.panEnd = .zero
+        self.panPosition = .zero
+
         self.drawOperationCollector.clear()
         let timestamp = getCurrentTimestamp()
         self.render(endTimestamp: timestamp)
