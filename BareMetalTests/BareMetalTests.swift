@@ -68,16 +68,28 @@ class BareMetalTests: XCTestCase {
         XCTAssertEqual(drawOperationCollector.opList.count, 0)
 
         drawOperationCollector.beginProvisionalOps()
+        drawOperationCollector.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []))
         drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "draw"))
         drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
         drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
         drawOperationCollector.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "pan"))
         drawOperationCollector.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()))
         drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+
+        XCTAssertEqual(drawOperationCollector.opList[0].type, .audioClip)
+        XCTAssertEqual(drawOperationCollector.opList[1].type, .penDown)
+        XCTAssertEqual(drawOperationCollector.opList[2].type, .point)
+        XCTAssertEqual(drawOperationCollector.opList[3].type, .penUp)
+        XCTAssertEqual(drawOperationCollector.opList[4].type, .penDown)
+        XCTAssertEqual(drawOperationCollector.opList[5].type, .pan)
+        XCTAssertEqual(drawOperationCollector.opList[6].type, .penUp)
+
         drawOperationCollector.cancelProvisionalOps()
 
         // ensure that provisional ops are destroyed when cancelled
         XCTAssertEqual(drawOperationCollector.opList.count, 0)
+        XCTAssertEqual(drawOperationCollector.shapeList.count, 0)
+        XCTAssertEqual(drawOperationCollector.timestamps.count, 0)
 
         drawOperationCollector.beginProvisionalOps()
         drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "draw"))
@@ -85,7 +97,19 @@ class BareMetalTests: XCTestCase {
         drawOperationCollector.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()))
         drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
         drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+
         drawOperationCollector.commitProvisionalOps()
+        drawOperationCollector.cancelProvisionalOps()
+
+        // ensure that commited ops are retained post-cancellation
         XCTAssertEqual(drawOperationCollector.opList.count, 5)
+        XCTAssertEqual(drawOperationCollector.shapeList.count, 1)
+        XCTAssertEqual(drawOperationCollector.timestamps.count, 5)
+
+        XCTAssertEqual(drawOperationCollector.opList[0].type, .penDown)
+        XCTAssertEqual(drawOperationCollector.opList[1].type, .point)
+        XCTAssertEqual(drawOperationCollector.opList[2].type, .point)
+        XCTAssertEqual(drawOperationCollector.opList[3].type, .point)
+        XCTAssertEqual(drawOperationCollector.opList[4].type, .penUp)
     }
 }
