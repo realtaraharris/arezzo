@@ -39,8 +39,8 @@ class ToolbarView: UIView {
             let translation = CGPoint(x: p1.x - p0.x, y: p1.y - p0.y)
             center = CGPoint(x: center.x + translation.x, y: center.y + translation.y)
 
-            // effectively cancels the touch we've just handled
-            self.touchesEnded([UITouch()], with: UIEvent())
+            // cancel the touches here or the view below will get drawn on
+            touchesCancelled(touches, with: event)
         }
     }
 }
