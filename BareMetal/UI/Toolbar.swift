@@ -32,24 +32,16 @@ protocol ToolbarDelegate {
 }
 
 class ToolbarView: UIView {
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        let frameRect = CGRect(x: 0, y: 0,
-                               width: frame.size.width,
-                               height: frame.size.height)
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let touch = touches.first {
+            let p1 = touch.location(in: self.superview)
+            let p0 = touch.previousLocation(in: self.superview)
+            let translation = CGPoint(x: p1.x - p0.x, y: p1.y - p0.y)
+            center = CGPoint(x: center.x + translation.x, y: center.y + translation.y)
 
-        if frameRect.contains(point) {
-//            print("frame: \(frame), \(point)")
-            return true
+            // effectively cancels the touch we've just handled
+            self.touchesEnded([UITouch()], with: UIEvent())
         }
-
-        for subview in subviews as [UIView] {
-            if !subview.isHidden, subview.alpha > 0, subview.isUserInteractionEnabled, subview.point(inside: convert(point, to: subview), with: event) {
-//                print("point: true")
-                return true
-            }
-        }
-//        print("point: false")
-        return false
     }
 }
 
@@ -90,12 +82,14 @@ class Toolbar: UIViewController {
     var playbackSlider: UISlider?
 
     var colorPicker: UIColorPickerViewController?
-    var colorSampleView: UIButton!
+    var colorSampleView: UIButton?
 
     @objc func pickColor(_: Any) {
-        colorPicker = UIColorPickerViewController()
+        if (colorPicker == nil) {
+            colorPicker = UIColorPickerViewController()
+        }
         colorPicker!.delegate = self
-        colorPicker!.selectedColor = colorSampleView.backgroundColor ?? UIColor.black
+        colorPicker!.selectedColor = colorSampleView!.backgroundColor ?? UIColor.black
         self.view.window?.rootViewController!.present(colorPicker!, animated: false, completion: nil)
     }
 
@@ -151,10 +145,6 @@ class Toolbar: UIViewController {
         if colorSampleView == nil {
             colorSampleView = UIButton()
         }
-
-        let gesture = UIPanGestureRecognizer(target: self, action: #selector(panView(_:)))
-        gesture.cancelsTouchesInView = true
-        view.addGestureRecognizer(gesture)
 
         let cornerRadius: CGFloat = 10.0
         let titleEdgeInsets = UIEdgeInsets(top: 2, left: 5, bottom: 2, right: 5)
@@ -376,23 +366,13 @@ class Toolbar: UIViewController {
     @objc func playbackSliderChanged(_ sender: UISlider!) {
         delegate?.setPlaybackPosition(sender.value)
     }
-
-    @objc func panView(_ sender: UIPanGestureRecognizer) {
-        let translation = sender.translation(in: view)
-
-        if let viewToDrag = sender.view {
-            viewToDrag.center = CGPoint(x: viewToDrag.center.x + translation.x,
-                                        y: viewToDrag.center.y + translation.y)
-            sender.setTranslation(CGPoint(x: 0, y: 0), in: viewToDrag)
-        }
-    }
 }
 
 @available(iOS 14.0, *)
 @available(macCatalyst 14.0, *)
 extension Toolbar: UIColorPickerViewControllerDelegate {
     func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
-        colorSampleView.backgroundColor = viewController.selectedColor
+        colorSampleView!.backgroundColor = viewController.selectedColor
         delegate?.setColor(color: viewController.selectedColor)
         viewController.dismiss(animated: false, completion: {})
     }
