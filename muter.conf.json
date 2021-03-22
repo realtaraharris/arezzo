@@ -1,9 +1,9 @@
 {
   "arguments" : [
     "-project",
-    "BareMetal.xcodeproj",
+    "Arezzo.xcodeproj",
     "-scheme",
-    "BareMetal",
+    "Arezzo",
     "-destination",
     "platform=macOS",
     "test"

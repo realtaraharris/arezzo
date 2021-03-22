@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "ViewController.generateVerts():ViewController.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.pointBuffers">
+            </PersistentString>
+            <PersistentString
+               value = "bezierData.count">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "QuadraticBezierTesselator.dumpTriangleStrip():AdaptiveBezier.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "tmp0">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "ViewController.recording(thread:):ViewController.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "thread">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "ArezzoUITests.testExample():ArezzoUITests.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "app.buttons">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "recursiveQuadraticBezier(x1:y1:x2:y2:x3:y3:level:points:):AdaptiveBezier.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "mDistanceToleranceSquare * (dx * dx + dy * dy)">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "toTriangleStrip(thickness:miterLimit:p0:p1:p2:p3:output:):AdaptiveBezier.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "tmp0.x">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "ViewController.viewDidLoad():ViewController.swift">
+      </ContextState>
+      <ContextState
+         contextName = "toTriangleStripTwoPoints(thickness:miterLimit:p0:p1:output:):AdaptiveBezier.swift">
+      </ContextState>
+      <ContextState
+         contextName = "ViewController.touchesMoved(_:with:):ViewController.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.view.frame.size.width">
+            </PersistentString>
+            <PersistentString
+               value = "self.view.frame.size.height">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
