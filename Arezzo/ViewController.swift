@@ -231,7 +231,11 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.setupRender()
 
-        self.toolbar.delegate = self
+//        self.toolbar.delegate = self
+        self.toolbar.recordingVC.delegate = self
+        self.toolbar.playbackVC.delegate = self
+        self.toolbar.editingVC.delegate = self
+
         view.addSubview(self.toolbar.view)
 
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
@@ -272,7 +276,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     @objc func stopPlayUI() {
-        self.toolbar.togglePlaying()
+//        self.toolbar.togglePlaying()
     }
 
     func triggerProgrammaticCapture() {
