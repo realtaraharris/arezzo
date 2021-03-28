@@ -20,53 +20,35 @@ class RecordingViewController: UIViewController {
     var recording: Bool = false
     var mode: String = "draw"
 
+    override func loadView() {
+        self.view = UIStackView()
+    }
+
     override func viewDidLoad() {
+        let stackView = self.view as! UIStackView
+        stackView.alignment = .fill
+        stackView.spacing = 10.0
+        stackView.axis = .horizontal
+
         configureButton(self.recordButton, UIImage(systemName: "record.circle")!)
         self.recordButton.addTarget(self, action: #selector(self.record), for: .touchUpInside)
-        view.addSubview(self.recordButton)
+        stackView.addArrangedSubview(self.recordButton)
 
         configureButton(self.panButton, UIImage(systemName: "hand.raised")!)
         self.panButton.addTarget(self, action: #selector(self.pan), for: .touchUpInside)
-        view.addSubview(self.panButton)
+        stackView.addArrangedSubview(self.panButton)
 
         configureButton(self.zoomButton, UIImage(systemName: "plus.magnifyingglass")!)
         self.zoomButton.addTarget(self, action: #selector(self.zoom), for: .touchUpInside)
-        view.addSubview(self.zoomButton)
+        stackView.addArrangedSubview(self.zoomButton)
 
         configureButton(self.undoButton, UIImage(systemName: "arrow.uturn.backward")!)
         self.undoButton.addTarget(self, action: #selector(self.undo), for: .touchUpInside)
-        view.addSubview(self.undoButton)
+        stackView.addArrangedSubview(self.undoButton)
 
         configureButton(self.redoButton, UIImage(systemName: "arrow.uturn.forward")!)
         self.redoButton.addTarget(self, action: #selector(self.redo), for: .touchUpInside)
-        view.addSubview(self.redoButton)
-
-        NSLayoutConstraint.activate([
-            self.recordButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
-            self.recordButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.recordButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.recordButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.panButton.leadingAnchor.constraint(equalTo: self.recordButton.trailingAnchor, constant: margin),
-            self.panButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.panButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.panButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.zoomButton.leadingAnchor.constraint(equalTo: self.panButton.trailingAnchor, constant: 0),
-            self.zoomButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.zoomButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.zoomButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.undoButton.leadingAnchor.constraint(equalTo: self.zoomButton.trailingAnchor, constant: margin),
-            self.undoButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.undoButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.undoButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.redoButton.leadingAnchor.constraint(equalTo: self.undoButton.trailingAnchor, constant: 0),
-            self.redoButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.redoButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.redoButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-        ])
+        stackView.addArrangedSubview(self.redoButton)
     }
 
     @objc func record() {
@@ -88,7 +70,7 @@ class RecordingViewController: UIViewController {
             self.delegate?.setPanMode()
         }
 
-        self.panButton.setImage(
+        self.panButton.setBackgroundImage(
             self.mode == "draw" ? UIImage(systemName: "hand.raised") : UIImage(systemName: "pencil"), for: .normal
         )
 

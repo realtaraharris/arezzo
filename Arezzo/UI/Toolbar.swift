@@ -70,19 +70,25 @@ extension UISlider {
 }
 
 extension Toolbar {
-    func add(_ child: UIViewController) {
+    func removeAllArrangedChildren() {
+        for child in self.children {
+            self.removeArrangedChild(child)
+        }
+    }
+
+    func addArrangedChild(_ child: UIViewController) {
         addChild(child)
-        stackView.addArrangedSubview(child.view)
+        self.stackView.addArrangedSubview(child.view)
         child.didMove(toParent: self)
     }
 
-    func remove(_ child: UIViewController) {
+    func removeArrangedChild(_ child: UIViewController) {
         guard child.parent != nil else {
             return
         }
 
         child.willMove(toParent: nil)
-        stackView.removeArrangedSubview(child.view)
+        self.stackView.removeArrangedSubview(child.view)
         child.view.removeFromSuperview()
         child.removeFromParent()
     }
@@ -127,6 +133,7 @@ class Toolbar: UIViewController {
     let recordingVC = RecordingViewController()
     let editingVC = EditingViewController()
     let playbackVC = PlaybackViewController()
+    let colorPaletteVC = ColorPaletteViewController()
 
     var recordButton: UIButton?
     var playButton: UIButton?
@@ -174,70 +181,59 @@ class Toolbar: UIViewController {
         self.stackView.axis = .horizontal
         self.stackView.distribution = .fill
         self.stackView.addArrangedSubview(paddingStackView)
+        self.stackView.spacing = 10.0
 
-        self.add(self.recordingVC)
-
-        if self.recordButton == nil {
-            self.recordButton = UIButton(type: .system)
-        }
-
-        if self.playButton == nil {
-            self.playButton = UIButton(type: .system)
-        }
-
-        if self.drawModeButton == nil {
-            self.drawModeButton = UIButton(type: .system)
-        }
-
-        if self.saveButton == nil {
-            self.saveButton = UIButton(type: .system)
-        }
-
-        if self.saveIndicator == nil {
-            self.saveIndicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
-        }
-
-        if self.restoreButton == nil {
-            self.restoreButton = UIButton(type: .system)
-        }
-
-        if self.restoreProgressIndicator == nil {
-            self.restoreProgressIndicator = UIProgressView()
-        }
-
-        if self.clearButton == nil {
-            self.clearButton = UIButton(type: .system)
-        }
-
-        if self.startExportButton == nil {
-            self.startExportButton = UIButton(type: .system)
-        }
-
-        if self.exportProgressIndicator == nil {
-            self.exportProgressIndicator = UIProgressView()
-        }
-
-        if self.colorSampleView == nil {
-            self.colorSampleView = UIButton()
-        }
+        self.addArrangedChild(self.recordingVC)
+        self.addArrangedChild(self.colorPaletteVC)
+        self.stackView.addArrangedSubview(UIView()) // padding view
+        self.stackView.distribution = .fill
 
         /*
-         recordButton!.translatesAutoresizingMaskIntoConstraints = false
-         recordButton!.layer.cornerRadius = cornerRadius
-         recordButton!.clipsToBounds = true
-         recordButton!.titleEdgeInsets = titleEdgeInsets
-         recordButton!.setTitle("\(!recording ? "Start" : "Stop") Recording", for: .normal)
-         recordButton!.addTarget(self, action: #selector(toggleRecording), for: .touchUpInside)
-         view.addSubview(recordButton!)
+         if self.recordButton == nil {
+             self.recordButton = UIButton(type: .system)
+         }
 
-         playButton!.translatesAutoresizingMaskIntoConstraints = false
-         playButton!.layer.cornerRadius = cornerRadius
-         playButton!.clipsToBounds = true
-         playButton!.titleEdgeInsets = titleEdgeInsets
-         playButton!.setTitle("\(!recording ? "Start" : "Stop") Playing", for: .normal)
-         playButton!.addTarget(self, action: #selector(togglePlaying), for: .touchUpInside)
-         view.addSubview(playButton!)
+         if self.playButton == nil {
+             self.playButton = UIButton(type: .system)
+         }
 
+         if self.drawModeButton == nil {
+             self.drawModeButton = UIButton(type: .system)
+         }
+
+         if self.saveButton == nil {
+             self.saveButton = UIButton(type: .system)
+         }
+
+         if self.saveIndicator == nil {
+             self.saveIndicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
+         }
+
+         if self.restoreButton == nil {
+             self.restoreButton = UIButton(type: .system)
+         }
+
+         if self.restoreProgressIndicator == nil {
+             self.restoreProgressIndicator = UIProgressView()
+         }
+
+         if self.clearButton == nil {
+             self.clearButton = UIButton(type: .system)
+         }
+
+         if self.startExportButton == nil {
+             self.startExportButton = UIButton(type: .system)
+         }
+
+         if self.exportProgressIndicator == nil {
+             self.exportProgressIndicator = UIProgressView()
+         }
+
+         if self.colorSampleView == nil {
+             self.colorSampleView = UIButton()
+         } */
+
+        /*
          saveButton!.translatesAutoresizingMaskIntoConstraints = false
          saveButton!.layer.cornerRadius = cornerRadius
          saveButton!.clipsToBounds = true
@@ -304,30 +300,26 @@ class Toolbar: UIViewController {
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 12, y: 40, width: toolbarWidth, height: toolbarHeight)
 
+        self.stackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(self.stackView)
-        self.setupConstraints()
+
+        NSLayoutConstraint.activate([
+            self.stackView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 10.0),
+            self.stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10.0),
+            self.stackView.widthAnchor.constraint(equalToConstant: toolbarWidth - 10.0 * 2),
+            self.stackView.heightAnchor.constraint(equalToConstant: toolbarHeight - 10.0 * 2),
+        ])
+
         /*
                 NSLayoutConstraint.activate([
                     thicknessSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
                     thicknessSlider.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
                     thicknessSlider.widthAnchor.constraint(equalToConstant: 80.0),
 
-                    playButton!.leadingAnchor.constraint(equalTo: thicknessSlider.trailingAnchor, constant: margin),
-                    playButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-                    playButton!.widthAnchor.constraint(equalToConstant: 130.0),
-
-                    drawModeButton!.leadingAnchor.constraint(equalTo: playButton!.trailingAnchor, constant: margin),
-                    drawModeButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-                    drawModeButton!.widthAnchor.constraint(equalToConstant: 80.0),
-
                     colorSampleView!.leadingAnchor.constraint(equalTo: drawModeButton!.trailingAnchor, constant: margin),
                     colorSampleView!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
                     colorSampleView!.widthAnchor.constraint(equalToConstant: 33.0),
                     colorSampleView!.heightAnchor.constraint(equalToConstant: 20.0),
-
-                    recordButton!.leadingAnchor.constraint(equalTo: colorSampleView!.trailingAnchor, constant: margin),
-                    recordButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-                    recordButton!.widthAnchor.constraint(equalToConstant: 150.0),
 
                     saveButton!.leadingAnchor.constraint(equalTo: recordButton!.trailingAnchor, constant: margin),
                     saveButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
@@ -360,67 +352,30 @@ class Toolbar: UIViewController {
          */
     }
 
-    private func setupConstraints() {
-        self.modeSelector.translatesAutoresizingMaskIntoConstraints = false
-        self.stackView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            self.stackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            self.stackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            self.stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            self.stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            self.stackView.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor),
-        ])
-    }
+    private func setupConstraints() {}
 
     @objc func segmentControl(_ segmentedControl: UISegmentedControl) {
         switch segmentedControl.selectedSegmentIndex {
         case 0:
-            self.add(self.recordingVC)
-            self.remove(self.editingVC)
-            self.remove(self.playbackVC)
+            self.removeAllArrangedChildren()
+            self.addArrangedChild(self.recordingVC)
+            self.addArrangedChild(self.colorPaletteVC)
+            self.stackView.addArrangedSubview(UIView()) // padding view
         case 1:
-            self.remove(self.recordingVC)
-            self.add(self.editingVC)
-            self.remove(self.playbackVC)
+            self.removeAllArrangedChildren()
+            self.addArrangedChild(self.editingVC)
+            self.addArrangedChild(self.colorPaletteVC)
+            self.stackView.addArrangedSubview(UIView()) // padding view
         case 2:
-            self.remove(self.recordingVC)
-            self.remove(self.editingVC)
-            self.add(self.playbackVC)
+            self.removeAllArrangedChildren()
+            self.addArrangedChild(self.playbackVC)
+            self.stackView.addArrangedSubview(UIView()) // padding view
         default:
             break
         }
     }
 
     /*
-     @objc func toggleRecording() {
-         print("toggleRecording()")
-         if !recording {
-             delegate?.startRecording()
-         } else {
-             delegate?.stopRecording()
-         }
-
-         recordButton!.setTitle("\(recording ? "Start" : "Stop") Recording", for: .normal)
-         recording = !recording
-     }
-
-     @objc func togglePlaying() {
-         print("togglePlaying()")
-         if !playing {
-             delegate?.startPlaying()
-         } else {
-             delegate?.stopPlaying()
-         }
-
-         playButton!.setTitle("\(playing ? "Start" : "Stop") Playing", for: .normal)
-         playing = !playing
-     }
-
-     @objc func toggleDrawMode() {
-
-     }
-
      @objc func save() {
          delegate?.save()
      }
@@ -440,7 +395,6 @@ class Toolbar: UIViewController {
      @objc func thicknessSliderChanged(_ sender: UISlider!) {
          delegate?.setLineWidth(sender.value)
      }
-
       */
 }
 

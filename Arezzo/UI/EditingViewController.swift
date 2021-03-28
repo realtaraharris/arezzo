@@ -14,26 +14,22 @@ class EditingViewController: UIViewController {
     var lassoButton: UIButton = UIButton(type: .custom)
     var delegate: ToolbarDelegate?
 
+    override func loadView() {
+        self.view = UIStackView()
+    }
+
     override func viewDidLoad() {
+        let stackView = self.view as! UIStackView
+        stackView.alignment = .fill
+        stackView.axis = .horizontal
+
         configureButton(self.pencilButton, UIImage(systemName: "pencil")!)
         self.pencilButton.addTarget(self, action: #selector(self.togglePencil), for: .touchUpInside)
-        view.addSubview(self.pencilButton)
+        stackView.addArrangedSubview(self.pencilButton)
 
         configureButton(self.lassoButton, UIImage(systemName: "lasso")!)
         self.lassoButton.addTarget(self, action: #selector(self.toggleLasso), for: .touchUpInside)
-        view.addSubview(self.lassoButton)
-
-        NSLayoutConstraint.activate([
-            self.pencilButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
-            self.pencilButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.pencilButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.pencilButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.lassoButton.leadingAnchor.constraint(equalTo: self.pencilButton.trailingAnchor, constant: margin),
-            self.lassoButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.lassoButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.lassoButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-        ])
+        stackView.addArrangedSubview(self.lassoButton)
     }
 
     @objc func togglePencil() {

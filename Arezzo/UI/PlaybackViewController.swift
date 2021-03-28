@@ -17,36 +17,28 @@ class PlaybackViewController: UIViewController {
     var playing: Bool = false
     var playbackSlider: UISlider = UISlider()
 
+    override func loadView() {
+        self.view = UIStackView()
+    }
+
     override func viewDidLoad() {
+        let stackView = self.view as! UIStackView
+        stackView.alignment = .fill
+        stackView.axis = .horizontal
+
         configureButton(self.playbackButton, UIImage(systemName: "play.fill")!)
         self.playbackButton.addTarget(self, action: #selector(self.togglePlayback), for: .touchUpInside)
-        view.addSubview(self.playbackButton)
+        stackView.addArrangedSubview(self.playbackButton)
 
         configureButton(self.fastForwardButton, UIImage(systemName: "forward.fill")!)
         self.fastForwardButton.addTarget(self, action: #selector(self.toggleFastForward), for: .touchUpInside)
-        view.addSubview(self.fastForwardButton)
+        stackView.addArrangedSubview(self.fastForwardButton)
 
         self.playbackSlider.minimumValue = 0.0
         self.playbackSlider.maximumValue = 1.0
         self.playbackSlider.translatesAutoresizingMaskIntoConstraints = false
         self.playbackSlider.addTarget(self, action: #selector(self.playbackSliderChanged), for: .valueChanged)
-        view.addSubview(self.playbackSlider)
-
-        NSLayoutConstraint.activate([
-            self.playbackButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
-            self.playbackButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.playbackButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.playbackButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.fastForwardButton.leadingAnchor.constraint(equalTo: self.playbackButton.trailingAnchor, constant: margin),
-            self.fastForwardButton.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
-            self.fastForwardButton.widthAnchor.constraint(equalToConstant: buttonWidth),
-            self.fastForwardButton.heightAnchor.constraint(equalToConstant: buttonHeight),
-
-            self.playbackSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
-            self.playbackSlider.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -margin),
-            self.playbackSlider.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -(margin * 2)),
-        ])
+        stackView.addArrangedSubview(self.playbackSlider)
     }
 
     @objc func togglePlayback() {
@@ -57,7 +49,6 @@ class PlaybackViewController: UIViewController {
             self.delegate?.stopPlaying()
         }
 
-//        playButton!.setTitle("\(playing ? "Start" : "Stop") Playing", for: .normal)
         self.playing = !self.playing
     }
 
