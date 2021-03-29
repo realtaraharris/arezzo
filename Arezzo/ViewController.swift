@@ -216,6 +216,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     @objc override func viewDidLoad() {
         super.viewDidLoad()
 
+        self.view.backgroundColor = .black // without this, event handlers don't fire, not sure why yet
         self.translation = .zero // [0, 0]
 
         // Do any additional setup after loading the view.
