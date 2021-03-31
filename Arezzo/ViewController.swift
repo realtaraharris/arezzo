@@ -236,6 +236,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.recordingVC.delegate = self
         self.toolbar.playbackVC.delegate = self
         self.toolbar.editingVC.delegate = self
+        self.toolbar.colorPaletteVC.delegate = self
 
         view.addSubview(self.toolbar.view)
 
