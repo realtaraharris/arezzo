@@ -45,7 +45,7 @@ protocol ToolbarDelegate {
     func setPlaybackPosition(_ playbackPosition: Float)
 }
 
-class ToolbarView: UIView {
+class ToolbarView: UIControl {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let p1 = touch.location(in: self.superview)
@@ -54,7 +54,7 @@ class ToolbarView: UIView {
             center = CGPoint(x: center.x + translation.x, y: center.y + translation.y)
 
             // cancel the touches here or the view below will get drawn on
-            touchesCancelled(touches, with: event)
+            self.cancelTracking(with: event)
         }
     }
 }
