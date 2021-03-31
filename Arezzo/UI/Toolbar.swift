@@ -94,28 +94,6 @@ extension Toolbar {
     }
 }
 
-/*
- // needed to fix alignment bugs on macOS
- extension UIImage {
-     func imageWithInsets(_ insets: UIEdgeInsets) -> UIImage? {
-         UIGraphicsBeginImageContextWithOptions(
-             CGSize(width: self.size.width + insets.left + insets.right,
-                    height: self.size.height + insets.top + insets.bottom), false, self.scale
-         )
-         _ = UIGraphicsGetCurrentContext()
-         let origin = CGPoint(x: insets.left, y: insets.top)
-         self.draw(at: origin)
-         let imageWithInsets = UIGraphicsGetImageFromCurrentImageContext()
-         UIGraphicsEndImageContext()
-         return imageWithInsets
-     }
-
-     func imageWithTopInset(_ top: CGFloat) -> UIImage? {
-         self.imageWithInsets(UIEdgeInsets(top: top, left: 0, bottom: 0, right: 0))
-     }
- }
- */
-
 @available(iOS 14.0, *)
 @available(macCatalyst 14.0, *)
 class Toolbar: UIViewController {
@@ -130,37 +108,13 @@ class Toolbar: UIViewController {
 
     private var stackView = UIStackView()
 
+    let documentVC = DocumentViewController()
     let recordingVC = RecordingViewController()
     let editingVC = EditingViewController()
     let playbackVC = PlaybackViewController()
     let colorPaletteVC = ColorPaletteViewController()
 
-    var recordButton: UIButton?
-    var playButton: UIButton?
-    var drawModeButton: UIButton?
-
-    var saveButton: UIButton?
-    var saveIndicator: UIActivityIndicatorView?
-
-    var restoreButton: UIButton?
-    var restoreProgressIndicator: UIProgressView?
     var clearButton: UIButton?
-
-    var startExportButton: UIButton?
-    var exportProgressIndicator: UIProgressView?
-
-    var colorPicker: UIColorPickerViewController?
-    var colorSampleView: UIButton?
-
-    /*
-     @objc func pickColor(_: Any) {
-         if (colorPicker == nil) {
-             colorPicker = UIColorPickerViewController()
-         }
-         colorPicker!.delegate = self
-         colorPicker!.selectedColor = colorSampleView!.backgroundColor ?? UIColor.black
-         self.view.window?.rootViewController!.present(colorPicker!, animated: false, completion: nil)
-     }*/
 
     override func loadView() {
         view = ToolbarView()
@@ -183,81 +137,12 @@ class Toolbar: UIViewController {
         self.stackView.addArrangedSubview(paddingStackView)
         self.stackView.spacing = 10.0
 
+        self.addArrangedChild(self.documentVC)
         self.addArrangedChild(self.recordingVC)
         self.addArrangedChild(self.colorPaletteVC)
-        self.stackView.addArrangedSubview(UIView()) // padding view
         self.stackView.distribution = .fill
 
         /*
-         if self.recordButton == nil {
-             self.recordButton = UIButton(type: .system)
-         }
-
-         if self.playButton == nil {
-             self.playButton = UIButton(type: .system)
-         }
-
-         if self.drawModeButton == nil {
-             self.drawModeButton = UIButton(type: .system)
-         }
-
-         if self.saveButton == nil {
-             self.saveButton = UIButton(type: .system)
-         }
-
-         if self.saveIndicator == nil {
-             self.saveIndicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
-         }
-
-         if self.restoreButton == nil {
-             self.restoreButton = UIButton(type: .system)
-         }
-
-         if self.restoreProgressIndicator == nil {
-             self.restoreProgressIndicator = UIProgressView()
-         }
-
-         if self.clearButton == nil {
-             self.clearButton = UIButton(type: .system)
-         }
-
-         if self.startExportButton == nil {
-             self.startExportButton = UIButton(type: .system)
-         }
-
-         if self.exportProgressIndicator == nil {
-             self.exportProgressIndicator = UIProgressView()
-         }
-
-         if self.colorSampleView == nil {
-             self.colorSampleView = UIButton()
-         } */
-
-        /*
-         saveButton!.translatesAutoresizingMaskIntoConstraints = false
-         saveButton!.layer.cornerRadius = cornerRadius
-         saveButton!.clipsToBounds = true
-         saveButton!.titleEdgeInsets = titleEdgeInsets
-         saveButton!.setTitle("Save", for: .normal)
-         saveButton!.addTarget(self, action: #selector(save), for: .touchUpInside)
-         view.addSubview(saveButton!)
-
-         saveIndicator!.translatesAutoresizingMaskIntoConstraints = false
-         saveIndicator!.clipsToBounds = true
-         view.addSubview(saveIndicator!)
-
-         restoreButton!.translatesAutoresizingMaskIntoConstraints = false
-         restoreButton!.layer.cornerRadius = cornerRadius
-         restoreButton!.clipsToBounds = true
-         restoreButton!.titleEdgeInsets = titleEdgeInsets
-         restoreButton!.setTitle("Restore", for: .normal)
-         restoreButton!.addTarget(self, action: #selector(restore), for: .touchUpInside)
-         view.addSubview(restoreButton!)
-
-         restoreProgressIndicator!.translatesAutoresizingMaskIntoConstraints = false
-         restoreProgressIndicator!.isHidden = true
-         view.addSubview(restoreProgressIndicator!)
-
          clearButton!.translatesAutoresizingMaskIntoConstraints = false
          clearButton!.layer.cornerRadius = cornerRadius
          clearButton!.clipsToBounds = true
@@ -272,26 +157,6 @@ class Toolbar: UIViewController {
          thicknessSlider.translatesAutoresizingMaskIntoConstraints = false
          thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
          view.addSubview(thicknessSlider)
-
-         startExportButton!.translatesAutoresizingMaskIntoConstraints = false
-         startExportButton!.layer.cornerRadius = cornerRadius
-         startExportButton!.clipsToBounds = true
-         startExportButton!.titleEdgeInsets = titleEdgeInsets
-         startExportButton!.setTitle("Start Export", for: .normal)
-         startExportButton!.addTarget(self, action: #selector(startExport), for: .touchUpInside)
-         view.addSubview(startExportButton!)
-
-         exportProgressIndicator!.translatesAutoresizingMaskIntoConstraints = false
-         exportProgressIndicator!.isHidden = true
-         view.addSubview(exportProgressIndicator!)
-
-         colorSampleView!.translatesAutoresizingMaskIntoConstraints = false
-         colorSampleView!.backgroundColor = UIColor.red
-         colorSampleView!.layer.cornerRadius = cornerRadius
-         colorSampleView!.clipsToBounds = true
-         colorSampleView!.titleEdgeInsets = titleEdgeInsets
-         colorSampleView!.addTarget(self, action: #selector(pickColor), for: .touchUpInside)
-         view.addSubview(colorSampleView!)
          */
         let toolbarWidth: CGFloat = 800
         let toolbarHeight: CGFloat = 120
@@ -352,44 +217,30 @@ class Toolbar: UIViewController {
          */
     }
 
-    private func setupConstraints() {}
-
     @objc func segmentControl(_ segmentedControl: UISegmentedControl) {
         switch segmentedControl.selectedSegmentIndex {
         case 0:
             self.removeAllArrangedChildren()
+            self.addArrangedChild(self.documentVC)
             self.addArrangedChild(self.recordingVC)
             self.addArrangedChild(self.colorPaletteVC)
-            self.stackView.addArrangedSubview(UIView()) // padding view
         case 1:
             self.removeAllArrangedChildren()
+            self.addArrangedChild(self.documentVC)
             self.addArrangedChild(self.editingVC)
             self.addArrangedChild(self.colorPaletteVC)
-            self.stackView.addArrangedSubview(UIView()) // padding view
         case 2:
             self.removeAllArrangedChildren()
+            self.addArrangedChild(self.documentVC)
             self.addArrangedChild(self.playbackVC)
-            self.stackView.addArrangedSubview(UIView()) // padding view
         default:
             break
         }
     }
 
     /*
-     @objc func save() {
-         delegate?.save()
-     }
-
-     @objc func restore() {
-         delegate?.restore()
-     }
-
      @objc func clear() {
          delegate?.clear()
-     }
-
-     @objc func startExport() {
-         delegate?.startExport()
      }
 
      @objc func thicknessSliderChanged(_ sender: UISlider!) {
@@ -397,17 +248,3 @@ class Toolbar: UIViewController {
      }
       */
 }
-
-/*
- @available(iOS 14.0, *)
- @available(macCatalyst 14.0, *)
- extension Toolbar: UIColorPickerViewControllerDelegate {
-     func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
-         colorSampleView!.backgroundColor = viewController.selectedColor
-         delegate?.setColor(color: viewController.selectedColor)
-         viewController.dismiss(animated: false, completion: {})
-     }
-
-     func colorPickerViewControllerDidFinish(_: UIColorPickerViewController) {}
- }
- */

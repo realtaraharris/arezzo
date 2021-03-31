@@ -60,9 +60,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         let screenScale = UIScreen.main.scale
         let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
 
-        self.toolbar.startExportButton?.setTitle("Exporting", for: .normal)
-        self.toolbar.startExportButton?.isEnabled = false
-        self.toolbar.exportProgressIndicator?.isHidden = false
+        self.toolbar.documentVC.startExportButton.setTitle("Exporting", for: .normal)
+        self.toolbar.documentVC.startExportButton.isEnabled = false
+        self.toolbar.documentVC.exportProgressIndicator.isHidden = false
 
         DispatchQueue.global().async {
             self.actuallyDoExport(outputSize)
@@ -108,7 +108,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             }
 
             DispatchQueue.main.async {
-                self.toolbar.exportProgressIndicator?.progress = Float(framesRendered) / frameCount
+                self.toolbar.documentVC.exportProgressIndicator.progress = Float(framesRendered) / frameCount
                 framesRendered += 1
             }
         }
@@ -120,10 +120,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.mvr!.endRecording {
             DispatchQueue.main.async {
-                self.toolbar.startExportButton?.setTitle("Start Export", for: .normal)
-                self.toolbar.startExportButton?.isEnabled = true
-                self.toolbar.exportProgressIndicator?.isHidden = true
-                self.toolbar.exportProgressIndicator?.progress = 0
+                self.toolbar.documentVC.startExportButton.setTitle("Start Export", for: .normal)
+                self.toolbar.documentVC.startExportButton.isEnabled = true
+                self.toolbar.documentVC.exportProgressIndicator.isHidden = true
+                self.toolbar.documentVC.exportProgressIndicator.progress = 0
             }
         }
     }
@@ -337,37 +337,37 @@ class ViewController: UIViewController, ToolbarDelegate {
         print("SAVE")
         DispatchQueue.global().async {
             DispatchQueue.main.async {
-                self.toolbar.saveIndicator?.startAnimating()
-                self.toolbar.saveButton?.isEnabled = false
-                self.toolbar.saveButton?.setTitle("Saving", for: UIControl.State.normal)
+                self.toolbar.documentVC.saveIndicator.startAnimating()
+                self.toolbar.documentVC.saveButton.isEnabled = false
+                self.toolbar.documentVC.saveButton.setTitle("Saving", for: UIControl.State.normal)
             }
             self.drawOperationCollector.serialize()
             DispatchQueue.main.async {
-                self.toolbar.saveIndicator?.stopAnimating()
-                self.toolbar.saveButton?.isEnabled = true
-                self.toolbar.saveButton?.setTitle("Save", for: UIControl.State.normal)
+                self.toolbar.documentVC.saveIndicator.stopAnimating()
+                self.toolbar.documentVC.saveButton.isEnabled = true
+                self.toolbar.documentVC.saveButton.setTitle("Save", for: UIControl.State.normal)
             }
         }
     }
 
     func restore() {
-        self.toolbar.restoreButton?.setTitle("Restoring", for: .normal)
-        self.toolbar.restoreButton?.isEnabled = false
-        self.toolbar.restoreProgressIndicator?.isHidden = false
+        self.toolbar.documentVC.restoreButton.setTitle("Restoring", for: .normal)
+        self.toolbar.documentVC.restoreButton.isEnabled = false
+        self.toolbar.documentVC.restoreProgressIndicator.isHidden = false
         DispatchQueue.global().async {
             func progressCallback(todoCount: Int, todo: Int) {
                 let progress = Float(todoCount) / Float(todo)
 
                 DispatchQueue.main.async {
-                    self.toolbar.restoreProgressIndicator?.progress = progress
+                    self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
             self.drawOperationCollector.deserialize(progressCallback)
             DispatchQueue.main.async {
-                self.toolbar.restoreButton?.setTitle("Restore", for: .normal)
-                self.toolbar.restoreButton?.isEnabled = true
-                self.toolbar.restoreProgressIndicator?.isHidden = true
-                self.toolbar.restoreProgressIndicator?.progress = 0
+                self.toolbar.documentVC.restoreButton.setTitle("Restore", for: .normal)
+                self.toolbar.documentVC.restoreButton.isEnabled = true
+                self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
+                self.toolbar.documentVC.restoreProgressIndicator.progress = 0
             }
         }
     }

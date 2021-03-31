@@ -45,6 +45,7 @@
 		5088323D2559DBE70001E5A2 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5088323C2559DBE70001E5A2 /* ErrorHandler.swift */; };
 		508832422559DC100001E5A2 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508832412559DC100001E5A2 /* Recording.swift */; };
 		5088324A255B39620001E5A2 /* AudioDeviceFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50883249255B39620001E5A2 /* AudioDeviceFinder.swift */; };
+		50971277261429C900DB39FE /* DocumentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50971276261429C900DB39FE /* DocumentViewController.swift */; };
 		50A3B12925D6F8E3003FBB93 /* MetalVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
@@ -108,6 +109,7 @@
 		508832412559DC100001E5A2 /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
 		50883249255B39620001E5A2 /* AudioDeviceFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceFinder.swift; sourceTree = "<group>"; };
 		5095390D24C6224B00A861CB /* AdaptiveBezier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveBezier.swift; sourceTree = "<group>"; };
+		50971276261429C900DB39FE /* DocumentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentViewController.swift; sourceTree = "<group>"; };
 		50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalVideoRecorder.swift; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* Arezzo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Arezzo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 			isa = PBXGroup;
 			children = (
 				501C58EF24FEC273001972F1 /* Toolbar.swift */,
+				50971276261429C900DB39FE /* DocumentViewController.swift */,
 				5005C23C260A518600DFE391 /* RecordingViewController.swift */,
 				5005C246260A7EFA00DFE391 /* PlaybackViewController.swift */,
 				5005C24C260BCC6600DFE391 /* EditingViewController.swift */,
@@ -486,6 +489,7 @@
 				5077578C24D8D7E0000C3D42 /* OrderedSet.swift in Sources */,
 				50323194257597840050C298 /* RecordingThread.swift in Sources */,
 				5032318F257583A10050C298 /* PlaybackThread.swift in Sources */,
+				50971277261429C900DB39FE /* DocumentViewController.swift in Sources */,
 				50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */,
 				50A3B12925D6F8E3003FBB93 /* MetalVideoRecorder.swift in Sources */,
 			);
