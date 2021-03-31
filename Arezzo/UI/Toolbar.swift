@@ -11,6 +11,8 @@ import UIKit
 
 func configureButton(_ button: UIButton, _ icon: UIImage) {
     button.translatesAutoresizingMaskIntoConstraints = false
+    button.widthAnchor.constraint(equalToConstant: 44.0).isActive = true
+    button.heightAnchor.constraint(equalToConstant: 44.0).isActive = true
     button.layer.cornerRadius = 0.0
     button.clipsToBounds = true
     button.tintColor = .black
@@ -161,9 +163,11 @@ class Toolbar: UIViewController {
         let toolbarWidth: CGFloat = 800
         let toolbarHeight: CGFloat = 120
 
-        view.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
+        view.backgroundColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.75)
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 12, y: 40, width: toolbarWidth, height: toolbarHeight)
+        view.layer.cornerRadius = 5.0
+        view.layer.masksToBounds = true
 
         self.stackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(self.stackView)
@@ -171,8 +175,6 @@ class Toolbar: UIViewController {
         NSLayoutConstraint.activate([
             self.stackView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 10.0),
             self.stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10.0),
-            self.stackView.widthAnchor.constraint(equalToConstant: toolbarWidth - 10.0 * 2),
-            self.stackView.heightAnchor.constraint(equalToConstant: toolbarHeight - 10.0 * 2),
         ])
 
         /*

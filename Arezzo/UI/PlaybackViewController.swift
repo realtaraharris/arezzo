@@ -24,15 +24,20 @@ class PlaybackViewController: UIViewController {
     override func viewDidLoad() {
         let stackView = self.view as! UIStackView
         stackView.alignment = .fill
-        stackView.axis = .horizontal
+        stackView.axis = .vertical
+
+        let buttonStack = UIStackView()
+        buttonStack.alignment = .fill
+        buttonStack.axis = .horizontal
 
         configureButton(self.playbackButton, UIImage(systemName: "play.fill")!)
         self.playbackButton.addTarget(self, action: #selector(self.togglePlayback), for: .touchUpInside)
-        stackView.addArrangedSubview(self.playbackButton)
+        buttonStack.addArrangedSubview(self.playbackButton)
 
         configureButton(self.fastForwardButton, UIImage(systemName: "forward.fill")!)
         self.fastForwardButton.addTarget(self, action: #selector(self.toggleFastForward), for: .touchUpInside)
-        stackView.addArrangedSubview(self.fastForwardButton)
+        buttonStack.addArrangedSubview(self.fastForwardButton)
+        stackView.addArrangedSubview(buttonStack)
 
         self.playbackSlider.minimumValue = 0.0
         self.playbackSlider.maximumValue = 1.0

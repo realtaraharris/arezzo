@@ -34,7 +34,7 @@ class RecordingViewController: UIViewController {
         self.recordButton.addTarget(self, action: #selector(self.record), for: .touchUpInside)
         stackView.addArrangedSubview(self.recordButton)
 
-        configureButton(self.panButton, UIImage(systemName: "hand.raised")!)
+        configureButton(self.panButton, UIImage(systemName: "pencil")!)
         self.panButton.addTarget(self, action: #selector(self.pan), for: .touchUpInside)
         stackView.addArrangedSubview(self.panButton)
 
@@ -54,8 +54,12 @@ class RecordingViewController: UIViewController {
     @objc func record() {
         print("toggling recording")
         if !self.recording {
+            self.recordButton.setBackgroundImage(UIImage(systemName: "stop.circle"), for: .normal)
+            self.recordButton.tintColor = self.view.tintColor
             self.delegate?.startRecording()
         } else {
+            self.recordButton.tintColor = .black
+            self.recordButton.setBackgroundImage(UIImage(systemName: "record.circle"), for: .normal)
             self.delegate?.stopRecording()
         }
 
