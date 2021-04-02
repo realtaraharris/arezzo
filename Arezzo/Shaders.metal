@@ -28,7 +28,7 @@ float2 screenSpaceToMetalSpace (float2 position, float width, float height) {
 }
 
 vertex VertexOut segment_vertex(
-    constant packed_float2* vertex_array[[buffer(0)]],
+    constant packed_float2 *vertex_array[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
     constant packed_float2 *points[[buffer(3)]],
@@ -56,7 +56,7 @@ vertex VertexOut segment_vertex(
 }
 
 vertex VertexOut cap_vertex(
-    constant packed_float2* vertex_array[[buffer(0)]],
+    constant packed_float2 *vertex_array[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
     constant packed_float2 *points[[buffer(3)]],

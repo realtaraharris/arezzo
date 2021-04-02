@@ -16,12 +16,9 @@ class Shape {
     var colorBuffer: MTLBuffer!
     var widthBuffer: MTLBuffer!
     var type: String
-    var panPoints: [Float] = [] // only used when type == "Pan"
-    var id: Int
 
-    init(type: String, id: Int) {
+    init(type: String) {
         self.type = type
-        self.id = id
     }
 
     func addShapePoint(point: [Float], timestamp: Double, device: MTLDevice, color: [Float], lineWidth: Float) {

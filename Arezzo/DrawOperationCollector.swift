@@ -30,7 +30,6 @@ class DrawOperationCollector {
     var device: MTLDevice
     var activeColor: [Float] = []
     var currentLineWidth = DEFAULT_LINE_WIDTH
-    var currentId: Int = 0
 
     var penState: PenState = .down
     var audioData: [Int16] = []
@@ -81,11 +80,10 @@ class DrawOperationCollector {
             if penDownOp.mode == "draw" {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                self.shapeList.append(Shape(type: "Line", id: self.currentId))
+                self.shapeList.append(Shape(type: "Line"))
             } else if penDownOp.mode == "pan" {
-                self.shapeList.append(Shape(type: "Pan", id: self.currentId))
+                self.shapeList.append(Shape(type: "Pan"))
             }
-            self.currentId += 1
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan

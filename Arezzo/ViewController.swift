@@ -590,7 +590,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         return [
             (2.0 * x / frameWidth) + 1.0,
-            (2.0 * -y / frameHeight) - 1.0,
+            (-2.0 * y / frameHeight) - 1.0,
         ]
     }
 
