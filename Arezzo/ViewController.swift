@@ -624,13 +624,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         let timestamp = getCurrentTimestamp()
 
         let inputPoint = touch.location(in: view)
-        let translatedPoint = [Float(inputPoint.x + self.panPosition.x), Float(inputPoint.y + self.panPosition.y)]
+        let point = [Float(inputPoint.x + self.panPosition.x), Float(inputPoint.y + self.panPosition.y)]
         if self.mode == "draw" {
             self.drawOperationCollector.addOp(
-                op: Point(point: translatedPoint, timestamp: timestamp))
+                op: Point(point: point, timestamp: timestamp))
         } else if self.mode == "pan" {
             self.drawOperationCollector.addOp(
-                op: Pan(point: translatedPoint, timestamp: timestamp))
+                op: Pan(point: point, timestamp: timestamp))
         } else {
             print("invalid mode: \(self.mode)")
         }
