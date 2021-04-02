@@ -32,36 +32,36 @@ class DocumentViewController: UIViewController {
         self.saveButton.addTarget(self, action: #selector(self.save), for: .touchUpInside)
         stackView.addArrangedSubview(self.saveButton)
 
-        saveIndicator.translatesAutoresizingMaskIntoConstraints = false
-        saveIndicator.clipsToBounds = true
-        view.addSubview(saveIndicator)
+        self.saveIndicator.translatesAutoresizingMaskIntoConstraints = false
+        self.saveIndicator.clipsToBounds = true
+        view.addSubview(self.saveIndicator)
 
         configureButton(self.restoreButton, UIImage(systemName: "square.and.arrow.up")!)
         self.restoreButton.addTarget(self, action: #selector(self.restore), for: .touchUpInside)
         stackView.addArrangedSubview(self.restoreButton)
 
-        restoreProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
-        restoreProgressIndicator.isHidden = true
-        view.addSubview(restoreProgressIndicator)
+        self.restoreProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
+        self.restoreProgressIndicator.isHidden = true
+        view.addSubview(self.restoreProgressIndicator)
 
         configureButton(self.startExportButton, UIImage(systemName: "film")!)
         self.startExportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
         stackView.addArrangedSubview(self.startExportButton)
 
-        exportProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
-        exportProgressIndicator.isHidden = true
-        view.addSubview(exportProgressIndicator)
+        self.exportProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
+        self.exportProgressIndicator.isHidden = true
+        view.addSubview(self.exportProgressIndicator)
     }
 
     @objc func save() {
-        delegate?.save()
+        self.delegate?.save()
     }
 
     @objc func restore() {
-        delegate?.restore()
+        self.delegate?.restore()
     }
 
     @objc func export() {
-        delegate?.startExport()
+        self.delegate?.startExport()
     }
 }
