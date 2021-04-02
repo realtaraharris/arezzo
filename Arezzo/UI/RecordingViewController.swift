@@ -36,6 +36,7 @@ class RecordingViewController: UIViewController {
 
         configureButton(self.panButton, UIImage(systemName: "pencil")!)
         self.panButton.addTarget(self, action: #selector(self.pan), for: .touchUpInside)
+        self.panButton.tintColor = self.view.tintColor
         stackView.addArrangedSubview(self.panButton)
 
         configureButton(self.zoomButton, UIImage(systemName: "plus.magnifyingglass")!)

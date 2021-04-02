@@ -89,7 +89,7 @@ class DrawOperationCollector {
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
-            lastShape.addPanPoint(point: panOp.point, timestamp: panOp.timestamp)
+            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, device: self.device, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
         } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point

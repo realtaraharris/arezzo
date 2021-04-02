@@ -180,7 +180,6 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     private var lastTimestampDrawn: Double = 0
     private var uiRects: [String: CGRect] = [:]
-    private var translation: CGPoint = .zero // [Float] = [0.0, 0.0]
     var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
 
     public var toolbar: Toolbar
@@ -189,7 +188,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     private var points: [[Float]] = []
     private var indexData: [Float] = []
     private var panStart: CGPoint = .zero
-    private var panEnd: CGPoint = .zero
     private var panPosition: CGPoint = .zero
     public var recordingThread: Thread = Thread()
 
@@ -217,7 +215,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         super.viewDidLoad()
 
         self.view.backgroundColor = .black // without this, event handlers don't fire, not sure why yet
-        self.translation = .zero // [0, 0]
 
         // Do any additional setup after loading the view.
 
@@ -376,7 +373,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     func clear() {
         print("CLEAR")
         self.panStart = .zero
-        self.panEnd = .zero
         self.panPosition = .zero
 
         self.drawOperationCollector.clear()
@@ -405,15 +401,17 @@ class ViewController: UIViewController, ToolbarDelegate {
     final func generateVerts(endTimestamp: Double) {
         self.renderedShapes.removeAll(keepingCapacity: false)
 
-        self.translation = .zero
+        var translation: CGPoint = .zero
 
         for shape in self.drawOperationCollector.shapeList {
             if shape.type == "Pan" {
-                if shape.panPoints.count == 0 { continue }
+                if shape.geometry.count == 0 { continue }
+                let startX = shape.geometry[0]
+                let startY = shape.geometry[1]
                 let end = shape.getIndex(timestamp: endTimestamp)
                 if end >= 2 {
-                    self.translation.x += CGFloat(shape.panPoints[end - 2])
-                    self.translation.y += CGFloat(shape.panPoints[end - 1])
+                    translation.x += CGFloat(shape.geometry[end - 2] - startX)
+                    translation.y += CGFloat(shape.geometry[end - 1] - startY)
                 }
 
                 continue
@@ -436,7 +434,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             ))
         }
 
-        let tr = self.transform(self.translation)
+        let tr = self.transform(translation)
         let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: tr[0], y: tr[1])
         let uniform = Uniforms(width: Float(self.width), height: Float(self.height), modelViewMatrix: modelViewMatrix)
         let uniforms = [uniform]
@@ -611,9 +609,8 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                       timestamp: timestamp,
                                                       mode: self.mode))
 
-        let currentPoint = touch.location(in: view)
         if self.mode == "pan" {
-            self.panStart = currentPoint
+            self.panStart = touch.location(in: view)
         }
 
         self.render(endTimestamp: timestamp)
@@ -626,14 +623,14 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
 
-        let currentPoint = touch.location(in: view)
+        let inputPoint = touch.location(in: view)
+        let translatedPoint = [Float(inputPoint.x + self.panPosition.x), Float(inputPoint.y + self.panPosition.y)]
         if self.mode == "draw" {
             self.drawOperationCollector.addOp(
-                op: Point(point: [Float(currentPoint.x - self.panPosition.x), Float(currentPoint.y - self.panPosition.y)], timestamp: timestamp))
+                op: Point(point: translatedPoint, timestamp: timestamp))
         } else if self.mode == "pan" {
-            let delta: CGPoint = CGPoint(x: currentPoint.x - self.panStart.x, y: currentPoint.y - self.panStart.y)
             self.drawOperationCollector.addOp(
-                op: Pan(point: [Float(delta.x), Float(delta.y)], timestamp: timestamp))
+                op: Pan(point: translatedPoint, timestamp: timestamp))
         } else {
             print("invalid mode: \(self.mode)")
         }
@@ -650,13 +647,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp))
         self.drawOperationCollector.commitProvisionalOps()
 
-        let currentPoint = touch.location(in: view)
         if self.mode == "pan" {
-            self.panEnd = currentPoint
+            let panEnd = touch.location(in: view)
+            let panDelta = CGPoint(x: panEnd.x - self.panStart.x, y: panEnd.y - self.panStart.y)
 
-            let panDelta = CGPoint(x: self.panEnd.x - self.panStart.x, y: self.panEnd.y - self.panStart.y)
-
-            self.panPosition = CGPoint(x: self.panPosition.x + panDelta.x, y: self.panPosition.y + panDelta.y)
+            self.panPosition = CGPoint(x: self.panPosition.x - panDelta.x,
+                                       y: self.panPosition.y - panDelta.y)
         }
 
         self.render(endTimestamp: timestamp)

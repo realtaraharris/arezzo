@@ -22,7 +22,7 @@ struct Uniforms {
 
 float2 screenSpaceToMetalSpace (float2 position, float width, float height) {
     return float2(
-        (2.0f * position.x / width) - 2.0,
+        (2.0f * position.x / width) - 2.0f,
         (-2.0f * position.y / height) + 2.0f
     );
 }

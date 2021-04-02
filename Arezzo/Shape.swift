@@ -24,33 +24,9 @@ class Shape {
         self.id = id
     }
 
-    func addPanPoint(point: [Float], timestamp: Double) {
-        let panCount = self.panPoints.count
-        if panCount == 0 {
-            self.panPoints.append(contentsOf: point)
-            self.timestamp.append(timestamp)
-            return
-        }
-
-        assert(panCount % 2 == 0, "panCount should always be even")
-
-        let lastPanX = self.panPoints[panCount - 2]
-        let lastPanY = self.panPoints[panCount - 1]
-//        print("panCount:", panCount, point)
-
-        if lastPanX == point[0], lastPanY == point[1] {
-//            print("skippedd!!!!!")
-            return
-        }
-
-        self.panPoints.append(contentsOf: point)
-        self.timestamp.append(timestamp)
-    }
-
     func addShapePoint(point: [Float], timestamp: Double, device: MTLDevice, color: [Float], lineWidth: Float) {
         // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = self.geometry.count
-//        print("geometryCount:", geometryCount)
         if geometryCount == 0 {
             self.colorBuffer = device.makeBuffer(
                 bytes: color,
@@ -65,7 +41,6 @@ class Shape {
         } else if geometryCount >= 2,
             self.geometry[geometryCount - 2] == point[0],
             self.geometry[geometryCount - 1] == point[1] {
-//            print("skippedd!!!!!")
             return
         }
 
