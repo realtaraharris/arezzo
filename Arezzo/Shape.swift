@@ -22,7 +22,6 @@ class Shape {
     }
 
     func addShapePoint(point: [Float], timestamp: Double, device: MTLDevice, color: [Float], lineWidth: Float) {
-        // filter out duplicate points here so as to keep zero-length line segments out of the system
         let geometryCount = self.geometry.count
         if geometryCount == 0 {
             self.colorBuffer = device.makeBuffer(
@@ -35,20 +34,12 @@ class Shape {
                 length: 4,
                 options: .storageModeShared
             )
-        } else if geometryCount >= 2,
-            self.geometry[geometryCount - 2] == point[0],
-            self.geometry[geometryCount - 1] == point[1] {
-            return
         }
 
         self.timestamp.append(timestamp)
 
         self.geometry.append(contentsOf: point)
-        self.geometryBuffer = device.makeBuffer(
-            bytes: self.geometry,
-            length: self.geometry.count * 4,
-            options: .storageModeShared
-        )
+        self.geometryBuffer = device.makeBuffer(length: self.geometry.count * 4, options: MTLResourceOptions.cpuCacheModeWriteCombined)
     }
 
     func getIndex(timestamp: Double) -> Int {

@@ -425,10 +425,22 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             if start > end || start == end { continue }
 
+            let input = shape.geometry
+            var output: [Float] = []
+            for i in stride(from: 0, to: input.count - 1, by: 2) {
+                output.append(contentsOf: [input[i] - Float(translation.x), input[i+1] - Float(translation.y)])
+            }
+
+            let geometryBuffer = device.makeBuffer(
+                bytes: output,
+                length: output.count * 4,
+                options: .cpuCacheModeWriteCombined
+            )
+
             self.renderedShapes.append(RenderedShape(
                 startIndex: start,
                 endIndex: end,
-                geometryBuffer: shape.geometryBuffer,
+                geometryBuffer: geometryBuffer!,
                 colorBuffer: shape.colorBuffer,
                 widthBuffer: shape.widthBuffer
             ))
@@ -609,10 +621,6 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                       timestamp: timestamp,
                                                       mode: self.mode))
 
-        if self.mode == "pan" {
-            self.panStart = touch.location(in: view)
-        }
-
         self.render(endTimestamp: timestamp)
     }
 
@@ -624,7 +632,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         let timestamp = getCurrentTimestamp()
 
         let inputPoint = touch.location(in: view)
-        let point = [Float(inputPoint.x + self.panPosition.x), Float(inputPoint.y + self.panPosition.y)]
+        let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == "draw" {
             self.drawOperationCollector.addOp(
                 op: Point(point: point, timestamp: timestamp))
@@ -640,20 +648,12 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
-        guard self.recording, let touch = touches.first else { return }
+        guard self.recording else { return }
 
         let timestamp = getCurrentTimestamp()
 
         self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp))
         self.drawOperationCollector.commitProvisionalOps()
-
-        if self.mode == "pan" {
-            let panEnd = touch.location(in: view)
-            let panDelta = CGPoint(x: panEnd.x - self.panStart.x, y: panEnd.y - self.panStart.y)
-
-            self.panPosition = CGPoint(x: self.panPosition.x - panDelta.x,
-                                       y: self.panPosition.y - panDelta.y)
-        }
 
         self.render(endTimestamp: timestamp)
     }
