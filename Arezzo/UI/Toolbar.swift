@@ -160,7 +160,7 @@ class Toolbar: UIViewController {
          thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
          view.addSubview(thicknessSlider)
          */
-        let toolbarWidth: CGFloat = 800
+        let toolbarWidth: CGFloat = 900
         let toolbarHeight: CGFloat = 120
 
         view.backgroundColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.75)
