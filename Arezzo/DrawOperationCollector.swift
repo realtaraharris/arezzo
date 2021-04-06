@@ -34,11 +34,9 @@ class DrawOperationCollector {
     var penState: PenState = .down
     var audioData: [Int16] = []
     var timestamps: [Double] = []
-    var filename: URL
 
     init(device: MTLDevice) {
         self.device = device
-        self.filename = getDocumentsDirectory().appendingPathComponent("ArezzoOutput.bin")
     }
 
     func getTimestamp(position: Double) -> Double {
@@ -130,20 +128,23 @@ class DrawOperationCollector {
         self.provisionalTimestampIndex = 0
     }
 
-    func serialize() {
+    func serialize(filename: String) {
         let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
+        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
 
         do {
             let binaryData: [UInt8] = try BinaryEncoder.encode(wrappedItems)
-            FileManager.default.createFile(atPath: self.filename.path, contents: Data(binaryData))
+            FileManager.default.createFile(atPath: path.path, contents: Data(binaryData))
         } catch {
             print(error)
         }
     }
 
-    func deserialize(_ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
+    func deserialize(filename: String, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
+        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
+
         do {
-            let savedData = try Data(contentsOf: self.filename)
+            let savedData = try Data(contentsOf: path)
             let decoder = BinaryDecoder(data: [UInt8](savedData), progressCallback: progressCallback, steps: 100)
             let decoded = try decoder.decode([DrawOperationWrapper].self)
 
@@ -156,21 +157,24 @@ class DrawOperationCollector {
         }
     }
 
-    func serializeJson() {
+    func serializeJson(filename: String) {
         let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
+        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
         do {
             let jsonData = try JSONEncoder().encode(wrappedItems)
             let jsonString = String(data: jsonData, encoding: .utf8)!
-            try jsonString.write(to: self.filename, atomically: true, encoding: String.Encoding.utf8)
+            try jsonString.write(to: path, atomically: true, encoding: String.Encoding.utf8)
         } catch {
             print(error)
         }
     }
 
-    func deserializeJson() {
+    func deserializeJson(filename: String) {
+        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
+
         do {
-            let jsonString = try String(contentsOf: self.filename, encoding: .utf8)
+            let jsonString = try String(contentsOf: path, encoding: .utf8)
             let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)
 
             self.opList = decoded.map {

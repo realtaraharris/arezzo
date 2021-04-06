@@ -56,7 +56,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.selectedColor = tempy
     }
 
-    func startExport() {
+    func startExport(filename: String) {
         let screenScale = UIScreen.main.scale
         let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
 
@@ -65,12 +65,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.documentVC.exportProgressIndicator.isHidden = false
 
         DispatchQueue.global().async {
-            self.actuallyDoExport(outputSize)
+            self.actuallyDoExport(filename, outputSize)
         }
     }
 
-    func actuallyDoExport(_ outputSize: CGSize) {
-        let outputUrl = getDocumentsDirectory().appendingPathComponent("ArezzoVideo.m4v")
+    func actuallyDoExport(_ filename: String, _ outputSize: CGSize) {
+        let outputUrl = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("m4v")
 
         FileManager.default.removePossibleItem(at: outputUrl)
 
@@ -229,11 +229,11 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.setupRender()
 
-//        self.toolbar.delegate = self
         self.toolbar.recordingVC.delegate = self
         self.toolbar.playbackVC.delegate = self
         self.toolbar.editingVC.delegate = self
         self.toolbar.colorPaletteVC.delegate = self
+        self.toolbar.documentVC.delegate = self
 
         view.addSubview(self.toolbar.view)
 
@@ -331,7 +331,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.mode = "pan"
     }
 
-    func save() {
+    func save(filename: String) {
         print("SAVE")
         DispatchQueue.global().async {
             DispatchQueue.main.async {
@@ -339,7 +339,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.toolbar.documentVC.saveButton.isEnabled = false
                 self.toolbar.documentVC.saveButton.setTitle("Saving", for: UIControl.State.normal)
             }
-            self.drawOperationCollector.serialize()
+            self.drawOperationCollector.serialize(filename: filename)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.saveIndicator.stopAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = true
@@ -348,7 +348,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
-    func restore() {
+    func restore(filename: String) {
         self.toolbar.documentVC.restoreButton.setTitle("Restoring", for: .normal)
         self.toolbar.documentVC.restoreButton.isEnabled = false
         self.toolbar.documentVC.restoreProgressIndicator.isHidden = false
@@ -360,7 +360,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                     self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
-            self.drawOperationCollector.deserialize(progressCallback)
+            self.drawOperationCollector.deserialize(filename: filename, progressCallback)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.setTitle("Restore", for: .normal)
                 self.toolbar.documentVC.restoreButton.isEnabled = true
@@ -428,10 +428,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             let input = shape.geometry
             var output: [Float] = []
             for i in stride(from: 0, to: input.count - 1, by: 2) {
-                output.append(contentsOf: [input[i] - Float(translation.x), input[i+1] - Float(translation.y)])
+                output.append(contentsOf: [input[i] - Float(translation.x), input[i + 1] - Float(translation.y)])
             }
 
-            let geometryBuffer = device.makeBuffer(
+            let geometryBuffer = self.device.makeBuffer(
                 bytes: output,
                 length: output.count * 4,
                 options: .cpuCacheModeWriteCombined

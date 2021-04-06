@@ -8,14 +8,17 @@
 
 import Foundation
 import UIKit
+import UniformTypeIdentifiers
 
-class DocumentViewController: UIViewController {
+class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
+    var importButton: UIButton = UIButton(type: .custom)
     var saveButton: UIButton = UIButton(type: .custom)
     var restoreButton: UIButton = UIButton(type: .custom)
     var startExportButton: UIButton = UIButton(type: .custom)
     var saveIndicator: UIActivityIndicatorView = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
     var restoreProgressIndicator: UIProgressView = UIProgressView()
     var exportProgressIndicator: UIProgressView = UIProgressView()
+    var documentNameLabel: UITextField = UITextField()
 
     var delegate: ToolbarDelegate?
 
@@ -27,6 +30,10 @@ class DocumentViewController: UIViewController {
         let stackView = self.view as! UIStackView
         stackView.alignment = .fill
         stackView.axis = .horizontal
+
+        configureButton(self.importButton, UIImage(systemName: "plus.square.on.square")!)
+        self.importButton.addTarget(self, action: #selector(self.import), for: .touchUpInside)
+        stackView.addArrangedSubview(self.importButton)
 
         configureButton(self.saveButton, UIImage(systemName: "square.and.arrow.down")!)
         self.saveButton.addTarget(self, action: #selector(self.save), for: .touchUpInside)
@@ -51,17 +58,29 @@ class DocumentViewController: UIViewController {
         self.exportProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
         self.exportProgressIndicator.isHidden = true
         view.addSubview(self.exportProgressIndicator)
+
+        self.documentNameLabel.text = "Untitled"
+        stackView.addArrangedSubview(self.documentNameLabel)
     }
 
     @objc func save() {
-        self.delegate?.save()
+        self.delegate?.save(filename: self.documentNameLabel.text!)
     }
 
     @objc func restore() {
-        self.delegate?.restore()
+        self.delegate?.restore(filename: self.documentNameLabel.text!)
     }
 
     @objc func export() {
-        self.delegate?.startExport()
+        self.delegate?.startExport(filename: self.documentNameLabel.text!)
+    }
+
+    @objc func `import`() {
+        let supportedTypes: [UTType] = [UTType.image]
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes, asCopy: false)
+        documentPicker.delegate = self
+        documentPicker.allowsMultipleSelection = false
+        documentPicker.modalPresentationStyle = .automatic
+        present(documentPicker, animated: false, completion: nil)
     }
 }

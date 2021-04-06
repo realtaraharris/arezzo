@@ -35,11 +35,11 @@ protocol ToolbarDelegate {
 
     func setColor(color: UIColor)
 
-    func save()
-    func restore()
+    func save(filename: String)
+    func restore(filename: String)
     func clear()
 
-    func startExport()
+    func startExport(filename: String)
 
     func setLineWidth(_ lineWidth: Float)
     func setPlaybackPosition(_ playbackPosition: Float)
