@@ -31,103 +31,9 @@ class RenderedShape {
     }
 }
 
-extension FileManager {
-    func removePossibleItem(at url: URL) {
-        do {
-            if FileManager.default.fileExists(atPath: url.path) {
-                try FileManager.default.removeItem(at: url)
-            }
-        } catch {
-            fatalError("\(error)")
-        }
-    }
-}
-
 @available(iOS 14.0, *)
 @available(macCatalyst 14.0, *)
 class ViewController: UIViewController, ToolbarDelegate {
-    func setColor(color: UIColor) {
-        let tempy = [
-            Float(color.cgColor.components![0]),
-            Float(color.cgColor.components![1]),
-            Float(color.cgColor.components![2]),
-            Float(color.cgColor.components![3]),
-        ]
-        self.selectedColor = tempy
-    }
-
-    func startExport(filename: String) {
-        let screenScale = UIScreen.main.scale
-        let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
-
-        self.toolbar.documentVC.startExportButton.setTitle("Exporting", for: .normal)
-        self.toolbar.documentVC.startExportButton.isEnabled = false
-        self.toolbar.documentVC.exportProgressIndicator.isHidden = false
-
-        DispatchQueue.global().async {
-            self.actuallyDoExport(filename, outputSize)
-        }
-    }
-
-    func actuallyDoExport(_ filename: String, _ outputSize: CGSize) {
-        let outputUrl = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("m4v")
-
-        FileManager.default.removePossibleItem(at: outputUrl)
-
-        self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
-
-        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
-        var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
-
-        let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
-        let firstTimestamp = self.drawOperationCollector.timestamps[0]
-        let timeOffset = firstPlaybackTimestamp - firstTimestamp
-
-        self.mvr!.startRecording(firstTimestamp)
-
-        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-
-        let frameCount: Float = Float(self.drawOperationCollector.timestamps.count)
-        var framesRendered = 0
-
-        func renderNext() {
-            let (currentTime, nextTime) = timestampIterator.next()!
-
-            if nextTime == -1 {
-                self.playingState.running = false
-                return
-            }
-
-            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime)
-
-            for op in self.drawOperationCollector.opList {
-                if op.type != .audioClip || op.timestamp != currentTime { continue }
-                let audioClip = op as! AudioClip
-                let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
-                self.mvr!.writeAudio(samples: samples!)
-            }
-
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.exportProgressIndicator.progress = Float(framesRendered) / frameCount
-                framesRendered += 1
-            }
-        }
-        self.playingState.running = true
-
-        while self.playingState.running {
-            renderNext()
-        }
-
-        self.mvr!.endRecording {
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.startExportButton.setTitle("Start Export", for: .normal)
-                self.toolbar.documentVC.startExportButton.isEnabled = true
-                self.toolbar.documentVC.exportProgressIndicator.isHidden = true
-                self.toolbar.documentVC.exportProgressIndicator.progress = 0
-            }
-        }
-    }
-
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
 
@@ -274,10 +180,6 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.height = self.view.frame.height
     }
 
-    @objc func stopPlayUI() {
-//        self.toolbar.togglePlaying()
-    }
-
     func triggerProgrammaticCapture() {
         let captureManager = MTLCaptureManager.shared()
         let captureDescriptor = MTLCaptureDescriptor()
@@ -286,115 +188,6 @@ class ViewController: UIViewController, ToolbarDelegate {
             try captureManager.startCapture(with: captureDescriptor)
         } catch {
             fatalError("error when trying to capture: \(error)")
-        }
-    }
-
-    public func startPlaying() {
-        if self.playing { return }
-
-        self.playing = true
-        self.playingState.audioData = self.drawOperationCollector.audioData
-        self.playingState.lastIndexRead = 0
-        self.playback(runNumber: self.runNumber)
-        self.runNumber += 1
-    }
-
-    public func stopPlaying() {
-        guard self.nextRenderTimer != nil else {
-            self.playing = false
-            return
-        }
-        CFRunLoopTimerInvalidate(self.nextRenderTimer)
-        check(AudioQueueStop(self.queue!, true))
-        check(AudioQueueDispose(self.queue!, true))
-        self.playing = false
-    }
-
-    public func startRecording() {
-        print("in startRecording")
-        self.recording = true
-        self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
-        self.recordingThread.start()
-    }
-
-    public func stopRecording() {
-        print("in stopRecording")
-        self.recording = false
-        self.recordingThread.cancel()
-    }
-
-    public func setDrawMode() {
-        self.mode = "draw"
-    }
-
-    public func setPanMode() {
-        self.mode = "pan"
-    }
-
-    func save(filename: String) {
-        print("SAVE")
-        DispatchQueue.global().async {
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.saveIndicator.startAnimating()
-                self.toolbar.documentVC.saveButton.isEnabled = false
-                self.toolbar.documentVC.saveButton.setTitle("Saving", for: UIControl.State.normal)
-            }
-            self.drawOperationCollector.serialize(filename: filename)
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.saveIndicator.stopAnimating()
-                self.toolbar.documentVC.saveButton.isEnabled = true
-                self.toolbar.documentVC.saveButton.setTitle("Save", for: UIControl.State.normal)
-            }
-        }
-    }
-
-    func restore(filename: String) {
-        self.toolbar.documentVC.restoreButton.setTitle("Restoring", for: .normal)
-        self.toolbar.documentVC.restoreButton.isEnabled = false
-        self.toolbar.documentVC.restoreProgressIndicator.isHidden = false
-        DispatchQueue.global().async {
-            func progressCallback(todoCount: Int, todo: Int) {
-                let progress = Float(todoCount) / Float(todo)
-
-                DispatchQueue.main.async {
-                    self.toolbar.documentVC.restoreProgressIndicator.progress = progress
-                }
-            }
-            self.drawOperationCollector.deserialize(filename: filename, progressCallback)
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.restoreButton.setTitle("Restore", for: .normal)
-                self.toolbar.documentVC.restoreButton.isEnabled = true
-                self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
-                self.toolbar.documentVC.restoreProgressIndicator.progress = 0
-            }
-        }
-    }
-
-    func clear() {
-        print("CLEAR")
-        self.panStart = .zero
-        self.panPosition = .zero
-
-        self.drawOperationCollector.clear()
-        let timestamp = getCurrentTimestamp()
-        self.render(endTimestamp: timestamp)
-    }
-
-    public func setLineWidth(_ lineWidth: Float) {
-        self.lineWidth = lineWidth
-    }
-
-    func setPlaybackPosition(_ playbackPosition: Float) {
-        let wasPlaying = self.playing
-        if self.playing {
-            self.stopPlaying()
-        }
-        if self.drawOperationCollector.timestamps.count == 0 { return }
-        self.render(endTimestamp: self.drawOperationCollector.getTimestamp(position: Double(playbackPosition)))
-        self.startPosition = Double(playbackPosition)
-        self.endPosition = 1.0
-        if wasPlaying {
-            self.startPlaying()
         }
     }
 
@@ -646,7 +439,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.render(endTimestamp: timestamp)
     }
 
-    override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
+    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
         guard self.recording else { return }
 
@@ -664,5 +457,202 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
         self.render(endTimestamp: timestamp)
+    }
+
+    // MARK: delegate methods
+
+    func setColor(color: UIColor) {
+        let tempy = [
+            Float(color.cgColor.components![0]),
+            Float(color.cgColor.components![1]),
+            Float(color.cgColor.components![2]),
+            Float(color.cgColor.components![3]),
+        ]
+        self.selectedColor = tempy
+    }
+
+    func startExport(filename: String) {
+        let screenScale = UIScreen.main.scale
+        let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
+
+        self.toolbar.documentVC.startExportButton.setTitle("Exporting", for: .normal)
+        self.toolbar.documentVC.startExportButton.isEnabled = false
+        self.toolbar.documentVC.exportProgressIndicator.isHidden = false
+
+        DispatchQueue.global().async {
+            self.actuallyDoExport(filename, outputSize)
+        }
+    }
+
+    func actuallyDoExport(_ filename: String, _ outputSize: CGSize) {
+        let outputUrl = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("m4v")
+
+        FileManager.default.removePossibleItem(at: outputUrl)
+
+        self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
+
+        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+
+        let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
+        let firstTimestamp = self.drawOperationCollector.timestamps[0]
+        let timeOffset = firstPlaybackTimestamp - firstTimestamp
+
+        self.mvr!.startRecording(firstTimestamp)
+
+        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
+
+        let frameCount: Float = Float(self.drawOperationCollector.timestamps.count)
+        var framesRendered = 0
+
+        func renderNext() {
+            let (currentTime, nextTime) = timestampIterator.next()!
+
+            if nextTime == -1 {
+                self.playingState.running = false
+                return
+            }
+
+            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime)
+
+            for op in self.drawOperationCollector.opList {
+                if op.type != .audioClip || op.timestamp != currentTime { continue }
+                let audioClip = op as! AudioClip
+                let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
+                self.mvr!.writeAudio(samples: samples!)
+            }
+
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.exportProgressIndicator.progress = Float(framesRendered) / frameCount
+                framesRendered += 1
+            }
+        }
+        self.playingState.running = true
+
+        while self.playingState.running {
+            renderNext()
+        }
+
+        self.mvr!.endRecording {
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.startExportButton.setTitle("Start Export", for: .normal)
+                self.toolbar.documentVC.startExportButton.isEnabled = true
+                self.toolbar.documentVC.exportProgressIndicator.isHidden = true
+                self.toolbar.documentVC.exportProgressIndicator.progress = 0
+            }
+        }
+    }
+
+    @objc func stopPlayUI() {
+//        self.toolbar.togglePlaying()
+    }
+
+    public func startPlaying() {
+        if self.playing { return }
+
+        self.playing = true
+        self.playingState.audioData = self.drawOperationCollector.audioData
+        self.playingState.lastIndexRead = 0
+        self.playback(runNumber: self.runNumber)
+        self.runNumber += 1
+    }
+
+    public func stopPlaying() {
+        guard self.nextRenderTimer != nil else {
+            self.playing = false
+            return
+        }
+        CFRunLoopTimerInvalidate(self.nextRenderTimer)
+        check(AudioQueueStop(self.queue!, true))
+        check(AudioQueueDispose(self.queue!, true))
+        self.playing = false
+    }
+
+    public func startRecording() {
+        print("in startRecording")
+        self.recording = true
+        self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
+        self.recordingThread.start()
+    }
+
+    public func stopRecording() {
+        print("in stopRecording")
+        self.recording = false
+        self.recordingThread.cancel()
+    }
+
+    public func setDrawMode() {
+        self.mode = "draw"
+    }
+
+    public func setPanMode() {
+        self.mode = "pan"
+    }
+
+    func save(filename: String) {
+        print("SAVE")
+        DispatchQueue.global().async {
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.saveIndicator.startAnimating()
+                self.toolbar.documentVC.saveButton.isEnabled = false
+                self.toolbar.documentVC.saveButton.setTitle("Saving", for: UIControl.State.normal)
+            }
+            self.drawOperationCollector.serialize(filename: filename)
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.saveIndicator.stopAnimating()
+                self.toolbar.documentVC.saveButton.isEnabled = true
+                self.toolbar.documentVC.saveButton.setTitle("Save", for: UIControl.State.normal)
+            }
+        }
+    }
+
+    func restore(filename: String) {
+        self.toolbar.documentVC.restoreButton.setTitle("Restoring", for: .normal)
+        self.toolbar.documentVC.restoreButton.isEnabled = false
+        self.toolbar.documentVC.restoreProgressIndicator.isHidden = false
+        DispatchQueue.global().async {
+            func progressCallback(todoCount: Int, todo: Int) {
+                let progress = Float(todoCount) / Float(todo)
+
+                DispatchQueue.main.async {
+                    self.toolbar.documentVC.restoreProgressIndicator.progress = progress
+                }
+            }
+            self.drawOperationCollector.deserialize(filename: filename, progressCallback)
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.restoreButton.setTitle("Restore", for: .normal)
+                self.toolbar.documentVC.restoreButton.isEnabled = true
+                self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
+                self.toolbar.documentVC.restoreProgressIndicator.progress = 0
+            }
+        }
+    }
+
+    func clear() {
+        print("CLEAR")
+        self.panStart = .zero
+        self.panPosition = .zero
+
+        self.drawOperationCollector.clear()
+        let timestamp = getCurrentTimestamp()
+        self.render(endTimestamp: timestamp)
+    }
+
+    public func setLineWidth(_ lineWidth: Float) {
+        self.lineWidth = lineWidth
+    }
+
+    func setPlaybackPosition(_ playbackPosition: Float) {
+        let wasPlaying = self.playing
+        if self.playing {
+            self.stopPlaying()
+        }
+        if self.drawOperationCollector.timestamps.count == 0 { return }
+        self.render(endTimestamp: self.drawOperationCollector.getTimestamp(position: Double(playbackPosition)))
+        self.startPosition = Double(playbackPosition)
+        self.endPosition = 1.0
+        if wasPlaying {
+            self.startPlaying()
+        }
     }
 }

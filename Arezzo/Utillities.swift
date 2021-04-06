@@ -51,3 +51,15 @@ struct Uniforms {
     let height: Float
     let modelViewMatrix: Matrix4x4
 }
+
+extension FileManager {
+    func removePossibleItem(at url: URL) {
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            fatalError("\(error)")
+        }
+    }
+}
