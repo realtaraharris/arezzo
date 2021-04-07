@@ -23,7 +23,7 @@ class PlaybackViewController: UIViewController {
 
     override func viewDidLoad() {
         let stackView = self.view as! UIStackView
-        stackView.alignment = .fill
+        stackView.alignment = .top
         stackView.axis = .vertical
 
         let buttonStack = UIStackView()
@@ -37,11 +37,14 @@ class PlaybackViewController: UIViewController {
         configureButton(self.fastForwardButton, UIImage(systemName: "forward.fill")!)
         self.fastForwardButton.addTarget(self, action: #selector(self.toggleFastForward), for: .touchUpInside)
         buttonStack.addArrangedSubview(self.fastForwardButton)
+        buttonStack.heightAnchor.constraint(equalToConstant: 44.0).isActive = true
         stackView.addArrangedSubview(buttonStack)
 
         self.playbackSlider.minimumValue = 0.0
         self.playbackSlider.maximumValue = 1.0
         self.playbackSlider.translatesAutoresizingMaskIntoConstraints = false
+        self.playbackSlider.widthAnchor.constraint(equalToConstant: 444.0).isActive = true
+        self.playbackSlider.heightAnchor.constraint(equalToConstant: 44.0).isActive = true
         self.playbackSlider.addTarget(self, action: #selector(self.playbackSliderChanged), for: .valueChanged)
         stackView.addArrangedSubview(self.playbackSlider)
     }

@@ -20,7 +20,7 @@ class EditingViewController: UIViewController {
 
     override func viewDidLoad() {
         let stackView = self.view as! UIStackView
-        stackView.alignment = .fill
+        stackView.alignment = .top
         stackView.axis = .horizontal
 
         configureButton(self.pencilButton, UIImage(systemName: "pencil")!)

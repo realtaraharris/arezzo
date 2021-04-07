@@ -28,7 +28,7 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
 
     override func viewDidLoad() {
         let stackView = self.view as! UIStackView
-        stackView.alignment = .fill
+        stackView.alignment = .top
         stackView.axis = .horizontal
 
         configureButton(self.importButton, UIImage(systemName: "plus.square.on.square")!)

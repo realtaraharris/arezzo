@@ -128,6 +128,7 @@ class Toolbar: UIViewController {
         self.stackView.addArrangedSubview(self.playbackModeButton)
 
         self.stackView.axis = .horizontal
+        self.stackView.alignment = .top
         self.stackView.distribution = .fill
 
         view.backgroundColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.5)

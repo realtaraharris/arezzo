@@ -27,8 +27,8 @@ class RecordingViewController: UIViewController {
 
     override func viewDidLoad() {
         let stackView = self.view as! UIStackView
-        stackView.alignment = .fill
-        stackView.spacing = 10.0
+        stackView.alignment = .top
+        stackView.spacing = 0.0
         stackView.axis = .horizontal
 
         configureButton(self.recordButton, UIImage(systemName: "record.circle")!)
