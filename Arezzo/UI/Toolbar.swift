@@ -102,11 +102,10 @@ class Toolbar: UIViewController {
 //    var delegate: ToolbarDelegate?
     var recording: Bool = false
     var playing: Bool = false
-    var modeSelector: UISegmentedControl = UISegmentedControl(items: [
-        UIImage(systemName: "square.and.pencil") as Any, // Mac: !.imageWithTopInset(1.0)
-        UIImage(systemName: "slider.horizontal.3")! as Any, // Mac: !.imageWithTopInset(3.0)
-        UIImage(systemName: "play.circle")! as Any, // Mac: !.imageWithTopInset(3.0)
-    ])
+
+    var recordingModeButton: UIButton = UIButton(type: .custom)
+    var editingModeButton: UIButton = UIButton(type: .custom)
+    var playbackModeButton: UIButton = UIButton(type: .custom)
 
     private var stackView = UIStackView()
 
@@ -123,21 +122,21 @@ class Toolbar: UIViewController {
     }
 
     override func viewDidLoad() {
-        self.modeSelector.selectedSegmentIndex = 0
-        self.modeSelector.addTarget(self, action: #selector(self.segmentControl(_:)), for: .valueChanged)
+        configureButton(self.recordingModeButton, UIImage(systemName: "square.and.pencil")!)
+        self.recordingModeButton.addTarget(self, action: #selector(self.enterRecordingMode), for: .touchUpInside)
+        self.recordingModeButton.tintColor = self.view.tintColor
+        self.stackView.addArrangedSubview(self.recordingModeButton)
 
-        // create a vertical stackView to pad out the mode selector
-        let paddingStackView = UIStackView()
-        paddingStackView.axis = .vertical
-        paddingStackView.addArrangedSubview(UIView())
-        paddingStackView.addArrangedSubview(self.modeSelector)
-        paddingStackView.addArrangedSubview(UIView())
-        paddingStackView.distribution = UIStackView.Distribution.equalCentering
+        configureButton(self.editingModeButton, UIImage(systemName: "slider.horizontal.3")!)
+        self.editingModeButton.addTarget(self, action: #selector(self.enterEditingMode), for: .touchUpInside)
+        self.stackView.addArrangedSubview(self.editingModeButton)
+
+        configureButton(self.playbackModeButton, UIImage(systemName: "play.circle")!)
+        self.playbackModeButton.addTarget(self, action: #selector(self.enterPlaybackMode), for: .touchUpInside)
+        self.stackView.addArrangedSubview(self.playbackModeButton)
 
         self.stackView.axis = .horizontal
         self.stackView.distribution = .fill
-        self.stackView.addArrangedSubview(paddingStackView)
-        self.stackView.spacing = 10.0
 
         self.addArrangedChild(self.documentVC)
         self.addArrangedChild(self.recordingVC)
@@ -219,25 +218,36 @@ class Toolbar: UIViewController {
          */
     }
 
-    @objc func segmentControl(_ segmentedControl: UISegmentedControl) {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0:
-            self.removeAllArrangedChildren()
-            self.addArrangedChild(self.documentVC)
-            self.addArrangedChild(self.recordingVC)
-            self.addArrangedChild(self.colorPaletteVC)
-        case 1:
-            self.removeAllArrangedChildren()
-            self.addArrangedChild(self.documentVC)
-            self.addArrangedChild(self.editingVC)
-            self.addArrangedChild(self.colorPaletteVC)
-        case 2:
-            self.removeAllArrangedChildren()
-            self.addArrangedChild(self.documentVC)
-            self.addArrangedChild(self.playbackVC)
-        default:
-            break
-        }
+    @objc func enterRecordingMode() {
+        self.recordingModeButton.tintColor = self.view.tintColor
+        self.editingModeButton.tintColor = .black
+        self.playbackModeButton.tintColor = .black
+
+        self.removeAllArrangedChildren()
+        self.addArrangedChild(self.documentVC)
+        self.addArrangedChild(self.recordingVC)
+        self.addArrangedChild(self.colorPaletteVC)
+    }
+
+    @objc func enterEditingMode() {
+        self.recordingModeButton.tintColor = .black
+        self.editingModeButton.tintColor = self.view.tintColor
+        self.playbackModeButton.tintColor = .black
+
+        self.removeAllArrangedChildren()
+        self.addArrangedChild(self.documentVC)
+        self.addArrangedChild(self.editingVC)
+        self.addArrangedChild(self.colorPaletteVC)
+    }
+
+    @objc func enterPlaybackMode() {
+        self.recordingModeButton.tintColor = .black
+        self.editingModeButton.tintColor = .black
+        self.playbackModeButton.tintColor = self.view.tintColor
+
+        self.removeAllArrangedChildren()
+        self.addArrangedChild(self.documentVC)
+        self.addArrangedChild(self.playbackVC)
     }
 
     /*
