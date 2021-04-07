@@ -475,8 +475,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         let screenScale = UIScreen.main.scale
         let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
 
-        self.toolbar.documentVC.startExportButton.setTitle("Exporting", for: .normal)
-        self.toolbar.documentVC.startExportButton.isEnabled = false
+        self.toolbar.documentVC.exportButton.isEnabled = false
         self.toolbar.documentVC.exportProgressIndicator.isHidden = false
 
         DispatchQueue.global().async {
@@ -535,16 +534,11 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.mvr!.endRecording {
             DispatchQueue.main.async {
-                self.toolbar.documentVC.startExportButton.setTitle("Start Export", for: .normal)
-                self.toolbar.documentVC.startExportButton.isEnabled = true
+                self.toolbar.documentVC.exportButton.isEnabled = true
                 self.toolbar.documentVC.exportProgressIndicator.isHidden = true
                 self.toolbar.documentVC.exportProgressIndicator.progress = 0
             }
         }
-    }
-
-    @objc func stopPlayUI() {
-//        self.toolbar.togglePlaying()
     }
 
     public func startPlaying() {
@@ -590,24 +584,20 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func save(filename: String) {
-        print("SAVE")
         DispatchQueue.global().async {
             DispatchQueue.main.async {
                 self.toolbar.documentVC.saveIndicator.startAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = false
-                self.toolbar.documentVC.saveButton.setTitle("Saving", for: UIControl.State.normal)
             }
             self.drawOperationCollector.serialize(filename: filename)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.saveIndicator.stopAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = true
-                self.toolbar.documentVC.saveButton.setTitle("Save", for: UIControl.State.normal)
             }
         }
     }
 
     func restore(filename: String) {
-        self.toolbar.documentVC.restoreButton.setTitle("Restoring", for: .normal)
         self.toolbar.documentVC.restoreButton.isEnabled = false
         self.toolbar.documentVC.restoreProgressIndicator.isHidden = false
         DispatchQueue.global().async {
@@ -620,7 +610,6 @@ class ViewController: UIViewController, ToolbarDelegate {
             }
             self.drawOperationCollector.deserialize(filename: filename, progressCallback)
             DispatchQueue.main.async {
-                self.toolbar.documentVC.restoreButton.setTitle("Restore", for: .normal)
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
                 self.toolbar.documentVC.restoreProgressIndicator.progress = 0
@@ -629,7 +618,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func clear() {
-        print("CLEAR")
         self.panStart = .zero
         self.panPosition = .zero
 
