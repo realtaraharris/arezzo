@@ -15,6 +15,7 @@ class RecordingViewController: UIViewController {
     var zoomButton: UIButton = UIButton(type: .custom)
     var undoButton: UIButton = UIButton(type: .custom)
     var redoButton: UIButton = UIButton(type: .custom)
+    var clearButton: UIButton = UIButton(type: .custom)
 
     var delegate: ToolbarDelegate?
     var recording: Bool = false
@@ -50,6 +51,23 @@ class RecordingViewController: UIViewController {
         configureButton(self.redoButton, UIImage(systemName: "arrow.uturn.forward")!)
         self.redoButton.addTarget(self, action: #selector(self.redo), for: .touchUpInside)
         stackView.addArrangedSubview(self.redoButton)
+
+        /*
+         clearButton!.translatesAutoresizingMaskIntoConstraints = false
+         clearButton!.layer.cornerRadius = cornerRadius
+         clearButton!.clipsToBounds = true
+         clearButton!.titleEdgeInsets = titleEdgeInsets
+         clearButton!.setTitle("Clear", for: .normal)
+         clearButton!.addTarget(self, action: #selector(clear), for: .touchUpInside)
+         view.addSubview(clearButton!)
+
+         let thicknessSlider = UISlider()
+         thicknessSlider.minimumValue = 5.0
+         thicknessSlider.maximumValue = 50.0
+         thicknessSlider.translatesAutoresizingMaskIntoConstraints = false
+         thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
+         view.addSubview(thicknessSlider)
+         */
     }
 
     @objc func record() {
@@ -97,4 +115,14 @@ class RecordingViewController: UIViewController {
     @objc func redo() {
         print("toggling redo")
     }
+
+    /*
+     @objc func clear() {
+         delegate?.clear()
+     }
+
+     @objc func thicknessSliderChanged(_ sender: UISlider!) {
+         delegate?.setLineWidth(sender.value)
+     }
+      */
 }

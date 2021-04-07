@@ -32,7 +32,7 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         stackView.axis = .horizontal
 
         configureButton(self.importButton, UIImage(systemName: "plus.square.on.square")!)
-        self.importButton.addTarget(self, action: #selector(self.import), for: .touchUpInside)
+        self.importButton.addTarget(self, action: #selector(self.startImport), for: .touchUpInside)
         stackView.addArrangedSubview(self.importButton)
 
         configureButton(self.saveButton, UIImage(systemName: "square.and.arrow.down")!)
@@ -52,7 +52,7 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         view.addSubview(self.restoreProgressIndicator)
 
         configureButton(self.startExportButton, UIImage(systemName: "film")!)
-        self.startExportButton.addTarget(self, action: #selector(self.export), for: .touchUpInside)
+        self.startExportButton.addTarget(self, action: #selector(self.startExport), for: .touchUpInside)
         stackView.addArrangedSubview(self.startExportButton)
 
         self.exportProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
@@ -71,11 +71,11 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         self.delegate?.restore(filename: self.documentNameLabel.text!)
     }
 
-    @objc func export() {
+    @objc func startExport() {
         self.delegate?.startExport(filename: self.documentNameLabel.text!)
     }
 
-    @objc func `import`() {
+    @objc func startImport() {
         let supportedTypes: [UTType] = [UTType.image]
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes, asCopy: false)
         documentPicker.delegate = self
@@ -84,3 +84,39 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         present(documentPicker, animated: false, completion: nil)
     }
 }
+
+/*
+        NSLayoutConstraint.activate([
+            thicknessSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            thicknessSlider.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            thicknessSlider.widthAnchor.constraint(equalToConstant: 80.0),
+
+            saveButton!.leadingAnchor.constraint(equalTo: recordButton!.trailingAnchor, constant: margin),
+            saveButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            saveButton!.widthAnchor.constraint(equalToConstant: 80.0),
+
+            saveIndicator!.leadingAnchor.constraint(equalTo: saveButton!.trailingAnchor, constant: 5.0),
+            saveIndicator!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            saveIndicator!.widthAnchor.constraint(equalToConstant: 25.0),
+
+            restoreButton!.leadingAnchor.constraint(equalTo: saveIndicator!.trailingAnchor, constant: 5.0),
+            restoreButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            restoreButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            restoreProgressIndicator!.leadingAnchor.constraint(equalTo: saveIndicator!.trailingAnchor, constant: 5.0),
+            restoreProgressIndicator!.topAnchor.constraint(equalTo: restoreButton!.bottomAnchor, constant: 5),
+            restoreProgressIndicator!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            clearButton!.leadingAnchor.constraint(equalTo: restoreButton!.trailingAnchor, constant: margin),
+            clearButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            clearButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            startExportButton!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
+            startExportButton!.topAnchor.constraint(equalTo: view.topAnchor, constant: margin),
+            startExportButton!.widthAnchor.constraint(equalToConstant: 100.0),
+
+            exportProgressIndicator!.leadingAnchor.constraint(equalTo: clearButton!.trailingAnchor, constant: margin),
+            exportProgressIndicator!.topAnchor.constraint(equalTo: startExportButton!.bottomAnchor, constant: 5),
+            exportProgressIndicator!.widthAnchor.constraint(equalToConstant: 100.0),
+        ])
+ */
