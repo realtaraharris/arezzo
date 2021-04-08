@@ -11,6 +11,7 @@ import Combine
 import CoreMedia
 import Foundation
 import Metal
+import Photos
 import QuartzCore
 import simd // vector_float2, vector_float4
 import UIKit
@@ -537,6 +538,12 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.toolbar.documentVC.exportButton.isEnabled = true
                 self.toolbar.documentVC.exportProgressIndicator.isHidden = true
                 self.toolbar.documentVC.exportProgressIndicator.progress = 0
+            }
+        }
+
+        DispatchQueue.main.async {
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputUrl) }) { _, _ in
             }
         }
     }
