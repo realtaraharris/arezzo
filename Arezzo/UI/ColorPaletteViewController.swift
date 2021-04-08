@@ -35,16 +35,25 @@ class ColorPatch: UIButton {
 }
 
 class ColorPaletteViewController: UIViewController {
-    var pencilButton: UIButton = UIButton(type: .custom)
-    var lassoButton: UIButton = UIButton(type: .custom)
+    var addButton: UIButton = UIButton(type: .custom)
+    var removeButton: UIButton = UIButton(type: .custom)
     var delegate: ToolbarDelegate?
-    var colorWells: [ColorPatch] = [ColorPatch(), ColorPatch(), ColorPatch(), ColorPatch()]
+    var colorWells: [ColorPatch] = [ColorPatch()]
+    let MIN_COLORWELLS = 1
 
     override func loadView() {
         self.view = UIStackView()
     }
 
-    override func viewDidLoad() {
+    func clear() {
+        let stackView = self.view as! UIStackView
+        for view in stackView.subviews {
+            stackView.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+    }
+
+    func render() {
         let stackView = self.view as! UIStackView
         stackView.alignment = .fill
         stackView.axis = .horizontal
@@ -53,9 +62,36 @@ class ColorPaletteViewController: UIViewController {
             colorWell.addTarget(self, action: #selector(self.colorWellChanged(colorWell:)), for: .touchUpInside)
             stackView.addArrangedSubview(colorWell)
         }
+
+        configureButton(self.addButton, UIImage(systemName: "plus.circle")!)
+        self.addButton.addTarget(self, action: #selector(self.addColorWell), for: .touchUpInside)
+        stackView.addArrangedSubview(self.addButton)
+
+        if self.colorWells.count > self.MIN_COLORWELLS {
+            configureButton(self.removeButton, UIImage(systemName: "minus.circle")!)
+            self.removeButton.addTarget(self, action: #selector(self.removeColorWell), for: .touchUpInside)
+            stackView.addArrangedSubview(self.removeButton)
+        }
+    }
+
+    override func viewDidLoad() {
+        self.render()
     }
 
     @objc func colorWellChanged(colorWell: ColorPatch) {
         self.delegate?.setColor(color: colorWell.backgroundColor!)
+    }
+
+    @objc func addColorWell() {
+        self.clear()
+        self.colorWells.append(ColorPatch())
+        self.render()
+    }
+
+    @objc func removeColorWell() {
+        guard self.colorWells.count > self.MIN_COLORWELLS else { return }
+        self.clear()
+        self.colorWells.removeLast()
+        self.render()
     }
 }
