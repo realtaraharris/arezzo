@@ -11,14 +11,14 @@ import UIKit
 import UniformTypeIdentifiers
 
 class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
-    var importButton: UIButton = UIButton(type: .custom)
     var saveButton: UIButton = UIButton(type: .custom)
     var restoreButton: UIButton = UIButton(type: .custom)
+    var restoreFilePicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType(filenameExtension: "bin")!], asCopy: false)
     var exportButton: UIButton = UIButton(type: .custom)
     var saveIndicator: UIActivityIndicatorView = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
     var restoreProgressIndicator: UIProgressView = UIProgressView()
     var exportProgressIndicator: UIProgressView = UIProgressView()
-    var documentNameLabel: UITextField = UITextField()
+    var documentNameLabel: UILabel = UILabel()
 
     var delegate: ToolbarDelegate?
 
@@ -31,10 +31,6 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         stackView.alignment = .top
         stackView.axis = .horizontal
 
-        configureButton(self.importButton, UIImage(systemName: "plus.square.on.square")!)
-        self.importButton.addTarget(self, action: #selector(self.startImport), for: .touchUpInside)
-        stackView.addArrangedSubview(self.importButton)
-
         configureButton(self.saveButton, UIImage(systemName: "square.and.arrow.down")!)
         self.saveButton.addTarget(self, action: #selector(self.save), for: .touchUpInside)
         stackView.addArrangedSubview(self.saveButton)
@@ -46,6 +42,10 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         configureButton(self.restoreButton, UIImage(systemName: "square.and.arrow.up")!)
         self.restoreButton.addTarget(self, action: #selector(self.restore), for: .touchUpInside)
         stackView.addArrangedSubview(self.restoreButton)
+
+        self.restoreFilePicker.allowsMultipleSelection = false
+        self.restoreFilePicker.modalPresentationStyle = .automatic
+        self.restoreFilePicker.delegate = self
 
         self.restoreProgressIndicator.translatesAutoresizingMaskIntoConstraints = false
         self.restoreProgressIndicator.isHidden = true
@@ -78,23 +78,36 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
     }
 
     @objc func save() {
-        self.delegate?.save(filename: self.documentNameLabel.text!)
+        guard self.documentNameLabel.text == "Untitled" else {
+            self.delegate?.save(filename: self.documentNameLabel.text!)
+            return
+        }
+
+        let alert = UIAlertController(title: "Name Required", message: "Enter a filename for this workbook.", preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.text = self.documentNameLabel.text
+        }
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] _ in
+            let newName = (alert?.textFields![0].text)!
+            self.documentNameLabel.text = newName
+            self.delegate?.save(filename: newName)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        self.present(alert, animated: false, completion: nil)
     }
 
     @objc func restore() {
-        self.delegate?.restore(filename: self.documentNameLabel.text!)
+        self.view.window!.rootViewController!.present(self.restoreFilePicker, animated: false, completion: nil)
+    }
+
+    func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt: [URL]) {
+        guard didPickDocumentsAt.count > 0 else { return }
+        let pickedFile: String = didPickDocumentsAt[0].deletingPathExtension().lastPathComponent
+        self.documentNameLabel.text = pickedFile
+        self.delegate?.restore(filename: pickedFile)
     }
 
     @objc func startExport() {
         self.delegate?.startExport(filename: self.documentNameLabel.text!)
-    }
-
-    @objc func startImport() {
-        let supportedTypes: [UTType] = [UTType.image]
-        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: supportedTypes, asCopy: false)
-        documentPicker.delegate = self
-        documentPicker.allowsMultipleSelection = false
-        documentPicker.modalPresentationStyle = .automatic
-        present(documentPicker, animated: false, completion: nil)
     }
 }
