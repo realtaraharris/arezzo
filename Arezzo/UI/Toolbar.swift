@@ -42,16 +42,26 @@ protocol ToolbarDelegate {
 }
 
 class ToolbarView: UIControl {
+    var toolbarPositionSaved: Bool = true
+
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let p1 = touch.location(in: self.superview)
             let p0 = touch.previousLocation(in: self.superview)
             let translation = CGPoint(x: p1.x - p0.x, y: p1.y - p0.y)
             center = CGPoint(x: center.x + translation.x, y: center.y + translation.y)
+            self.toolbarPositionSaved = false
 
             // cancel the touches here or the view below will get drawn on
             self.cancelTracking(with: event)
         }
+    }
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard !self.toolbarPositionSaved else { return }
+        UserDefaults.standard.set(self.center.x, forKey: "ToolbarPositionX")
+        UserDefaults.standard.set(self.center.y, forKey: "ToolbarPositionY")
+        print("saved center:", center)
+        self.toolbarPositionSaved = true
     }
 }
 
@@ -134,6 +144,8 @@ class Toolbar: UIViewController {
         view.backgroundColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.5)
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 16, y: 44, width: 1000, height: 120)
+        self.view.center.x = CGFloat(UserDefaults.standard.float(forKey: "ToolbarPositionX"))
+        self.view.center.y = CGFloat(UserDefaults.standard.float(forKey: "ToolbarPositionY"))
         view.layer.cornerRadius = 5.0
         view.layer.masksToBounds = true
 
