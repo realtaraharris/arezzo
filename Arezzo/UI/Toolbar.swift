@@ -56,11 +56,11 @@ class ToolbarView: UIControl {
             self.cancelTracking(with: event)
         }
     }
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+
+    override func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
         guard !self.toolbarPositionSaved else { return }
         UserDefaults.standard.set(self.center.x, forKey: "ToolbarPositionX")
         UserDefaults.standard.set(self.center.y, forKey: "ToolbarPositionY")
-        print("saved center:", center)
         self.toolbarPositionSaved = true
     }
 }

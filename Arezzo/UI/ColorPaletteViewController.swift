@@ -9,8 +9,35 @@
 import Foundation
 import UIKit
 
+extension UserDefaults {
+    func colorsForKey(key: String) -> [UIColor]? {
+        var colors: [UIColor]?
+        if let colorData = data(forKey: key) {
+            colors = NSKeyedUnarchiver.unarchiveObject(with: colorData) as? [UIColor]
+        }
+        return colors
+    }
+
+    func setColors(_ colors: [UIColor]?, forKey key: String) {
+        var colorData: NSData?
+        if let colors = colors {
+            colorData = NSKeyedArchiver.archivedData(withRootObject: colors) as NSData?
+        }
+        set(colorData, forKey: key)
+    }
+}
+
 class ColorPatch: UIButton {
     var colorWell: UIColorWell = UIColorWell()
+
+    required init(_ color: UIColor) {
+        super.init(frame: .zero)
+
+        self.backgroundColor = color
+        self.colorWell.frame = CGRect(x: 36, y: 0, width: 36, height: 36)
+        self.colorWell.addTarget(self, action: #selector(self.colorWellChanged(colorWell:)), for: .valueChanged)
+        self.addSubview(self.colorWell)
+    }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -18,15 +45,6 @@ class ColorPatch: UIButton {
 
     override var intrinsicContentSize: CGSize {
         CGSize(width: 72, height: 36)
-    }
-
-    override required init(frame: CGRect) {
-        super.init(frame: frame)
-
-        self.backgroundColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-        self.colorWell.frame = CGRect(x: 36, y: 0, width: 36, height: 36)
-        self.colorWell.addTarget(self, action: #selector(self.colorWellChanged(colorWell:)), for: .valueChanged)
-        self.addSubview(self.colorWell)
     }
 
     @objc func colorWellChanged(colorWell: UIColorWell) {
@@ -38,11 +56,15 @@ class ColorPaletteViewController: UIViewController {
     var addButton: UIButton = UIButton(type: .custom)
     var removeButton: UIButton = UIButton(type: .custom)
     var delegate: ToolbarDelegate?
-    var colorWells: [ColorPatch] = [ColorPatch()]
+    var colorWells: [ColorPatch] = []
     let MIN_COLORWELLS = 1
 
     override func loadView() {
         self.view = UIStackView()
+
+        let colors = UserDefaults.standard.colorsForKey(key: "ToolbarColors")
+        guard colors != nil, colors!.count > 0 else { return }
+        self.colorWells = colors!.map { ColorPatch($0) }
     }
 
     func clear() {
@@ -80,12 +102,14 @@ class ColorPaletteViewController: UIViewController {
 
     @objc func colorWellChanged(colorWell: ColorPatch) {
         self.delegate?.setColor(color: colorWell.backgroundColor!)
+        self.saveColorWells()
     }
 
     @objc func addColorWell() {
         self.clear()
-        self.colorWells.append(ColorPatch())
+        self.colorWells.append(ColorPatch(UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)))
         self.render()
+        self.saveColorWells()
     }
 
     @objc func removeColorWell() {
@@ -93,5 +117,11 @@ class ColorPaletteViewController: UIViewController {
         self.clear()
         self.colorWells.removeLast()
         self.render()
+        self.saveColorWells()
+    }
+
+    func saveColorWells() {
+        let colors = self.colorWells.map { $0.backgroundColor! }
+        UserDefaults.standard.setColors(colors, forKey: "ToolbarColors")
     }
 }
