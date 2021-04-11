@@ -13,9 +13,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        self.window = UIWindow()
-        self.window?.rootViewController = ViewController(coder: NSCoder.empty())
-        self.window?.makeKeyAndVisible()
+        do {
+            self.window = UIWindow()
+            self.window?.rootViewController = ViewController(coder: try NSCoder.empty())
+            self.window?.makeKeyAndVisible()
+        } catch {
+            print(error)
+        }
 
         return true
     }

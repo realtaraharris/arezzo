@@ -9,11 +9,11 @@
 import UIKit
 
 extension NSCoder {
-    class func empty() -> NSCoder {
+    class func empty() throws -> NSCoder {
         let data = NSMutableData()
         let archiver = NSKeyedArchiver(forWritingWith: data)
         archiver.finishEncoding()
-        return NSKeyedUnarchiver(forReadingWith: data as Data)
+        return try NSKeyedUnarchiver(forReadingFrom: data as Data)
     }
 }
 
@@ -26,10 +26,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-        self.window = UIWindow(frame: windowScene.coordinateSpace.bounds)
-        self.window?.windowScene = windowScene
-        self.window?.rootViewController = ViewController(coder: NSCoder.empty())
-        self.window?.makeKeyAndVisible()
+        do {
+            self.window = UIWindow(frame: windowScene.coordinateSpace.bounds)
+            self.window?.windowScene = windowScene
+            self.window?.rootViewController = ViewController(coder: try NSCoder.empty())
+            self.window?.makeKeyAndVisible()
+        } catch {
+            print(error)
+        }
     }
 
     func sceneDidDisconnect(_: UIScene) {
