@@ -19,11 +19,12 @@ extension UserDefaults {
     }
 
     func setColors(_ colors: [UIColor]?, forKey key: String) {
-        var colorData: NSData?
-        if let colors = colors {
-            colorData = NSKeyedArchiver.archivedData(withRootObject: colors) as NSData?
+        do {
+            let data = try NSKeyedArchiver.archivedData(withRootObject: colors as Any, requiringSecureCoding: false)
+            set(data, forKey: key)
+        } catch {
+            print("unexpected error", error)
         }
-        set(colorData, forKey: key)
     }
 }
 
@@ -69,11 +70,11 @@ class ColorPaletteViewController: UIViewController {
         self.view = UIStackView()
 
         let colors = UserDefaults.standard.colorsForKey(key: "SelectedColors")
-        self.activeColorIndex = UserDefaults.standard.integer(forKey: "SelectedColorIndex")
-
-        self.delegate?.setColor(color: colors![self.activeColorIndex])
+        let activeColorIndex = UserDefaults.standard.integer(forKey: "SelectedColorIndex")
 
         guard colors != nil, colors!.count > 0 else { return }
+        self.activeColorIndex = activeColorIndex
+        self.delegate?.setColor(color: colors![activeColorIndex])
         self.colorWells = colors!.enumerated().map { index, element in ColorPatch(element, active: index == activeColorIndex) }
     }
 

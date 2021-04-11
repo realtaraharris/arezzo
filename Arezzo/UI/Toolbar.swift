@@ -144,8 +144,13 @@ class Toolbar: UIViewController {
         view.backgroundColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.5)
         view.isUserInteractionEnabled = true
         view.frame = CGRect(x: 16, y: 44, width: 1000, height: 120)
-        self.view.center.x = CGFloat(UserDefaults.standard.float(forKey: "ToolbarPositionX"))
-        self.view.center.y = CGFloat(UserDefaults.standard.float(forKey: "ToolbarPositionY"))
+
+        let toolbarX = UserDefaults.standard.float(forKey: "ToolbarPositionX")
+        let toolbarY = UserDefaults.standard.float(forKey: "ToolbarPositionY")
+        if toolbarX != 0.0, toolbarY != 0.0 {
+            self.view.center.x = CGFloat(toolbarX)
+            self.view.center.y = CGFloat(toolbarY)
+        }
         view.layer.cornerRadius = 5.0
         view.layer.masksToBounds = true
 
