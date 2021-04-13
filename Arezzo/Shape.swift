@@ -15,9 +15,9 @@ class Shape {
     var geometryBuffer: MTLBuffer!
     var colorBuffer: MTLBuffer!
     var widthBuffer: MTLBuffer!
-    var type: String
+    var type: DrawOperationType
 
-    init(type: String) {
+    init(type: DrawOperationType) {
         self.type = type
     }
 

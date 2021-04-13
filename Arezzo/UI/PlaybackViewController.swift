@@ -12,6 +12,7 @@ import UIKit
 class PlaybackViewController: UIViewController {
     var playbackButton: UIButton = UIButton(type: .custom)
     var fastForwardButton: UIButton = UIButton(type: .custom)
+    var portalButton: UIButton = UIButton(type: .custom)
 
     var delegate: ToolbarDelegate?
     var playing: Bool = false
@@ -37,7 +38,11 @@ class PlaybackViewController: UIViewController {
         configureButton(self.fastForwardButton, UIImage(systemName: "forward.fill")!)
         self.fastForwardButton.addTarget(self, action: #selector(self.toggleFastForward), for: .touchUpInside)
         buttonStack.addArrangedSubview(self.fastForwardButton)
-        buttonStack.heightAnchor.constraint(equalToConstant: 44.0).isActive = true
+
+        configureButton(self.portalButton, UIImage(systemName: "p.circle")!)
+        self.portalButton.addTarget(self, action: #selector(self.addPortal), for: .touchUpInside)
+        buttonStack.addArrangedSubview(self.portalButton)
+
         stackView.addArrangedSubview(buttonStack)
 
         self.playbackSlider.minimumValue = 0.0
@@ -64,5 +69,11 @@ class PlaybackViewController: UIViewController {
 
     @objc func playbackSliderChanged(_ sender: UISlider!) {
         self.delegate?.setPlaybackPosition(sender.value)
+    }
+
+    @objc func addPortal() {
+        let currentTimestamp: Double = (self.delegate?.getPlaybackTimestamp())!
+        print("in addPortal, currentTimestamp:", currentTimestamp)
+        self.delegate?.addPortal(timestamp: currentTimestamp)
     }
 }

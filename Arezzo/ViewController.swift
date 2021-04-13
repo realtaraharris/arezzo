@@ -54,7 +54,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var lineWidth: Float = DEFAULT_LINE_WIDTH
     var playing: Bool = false
     var recording: Bool = false
-    var mode: String = "draw"
+    var mode: PenDownMode = PenDownMode.draw
     private var width: CGFloat = 0.0
     private var height: CGFloat = 0.0
     var startPosition: Double = 0.0
@@ -198,7 +198,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         var translation: CGPoint = .zero
 
         for shape in self.drawOperationCollector.shapeList {
-            if shape.type == "Pan" {
+            if shape.type == DrawOperationType.pan {
                 if shape.geometry.count == 0 { continue }
                 let startX = shape.geometry[0]
                 let startY = shape.geometry[1]
@@ -427,10 +427,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let inputPoint = touch.location(in: view)
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
-        if self.mode == "draw" {
+        if self.mode == PenDownMode.draw {
             self.drawOperationCollector.addOp(
                 op: Point(point: point, timestamp: timestamp))
-        } else if self.mode == "pan" {
+        } else if self.mode == PenDownMode.pan {
             self.drawOperationCollector.addOp(
                 op: Pan(point: point, timestamp: timestamp))
         } else {
@@ -583,11 +583,11 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func setDrawMode() {
-        self.mode = "draw"
+        self.mode = PenDownMode.draw
     }
 
     public func setPanMode() {
-        self.mode = "pan"
+        self.mode = PenDownMode.pan
     }
 
     func save(filename: String) {
@@ -649,5 +649,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         if wasPlaying {
             self.startPlaying()
         }
+    }
+
+    func getPlaybackTimestamp() -> Double {
+        self.drawOperationCollector.getTimestamp(position: self.startPosition)
+    }
+
+    func addPortal(timestamp: Double) {
+        print("adding portal at timestamp:", timestamp)
     }
 }

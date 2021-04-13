@@ -75,12 +75,12 @@ class DrawOperationCollector {
             let penDownOp = op as! PenDown
             self.penState = .down
 
-            if penDownOp.mode == "draw" {
+            if penDownOp.mode == PenDownMode.draw {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                self.shapeList.append(Shape(type: "Line"))
-            } else if penDownOp.mode == "pan" {
-                self.shapeList.append(Shape(type: "Pan"))
+                self.shapeList.append(Shape(type: DrawOperationType.line))
+            } else if penDownOp.mode == PenDownMode.pan {
+                self.shapeList.append(Shape(type: DrawOperationType.pan))
             }
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
@@ -95,6 +95,8 @@ class DrawOperationCollector {
         } else if op.type == .audioClip {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
+        } else if op.type == .portal {
+            let portalOp = op as! Portal
         }
     }
 

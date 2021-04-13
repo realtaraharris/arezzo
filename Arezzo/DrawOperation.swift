@@ -51,14 +51,18 @@ struct Point: DrawOperation {
     }
 }
 
+enum PenDownMode: String, BinaryCodable {
+    case draw, pan, portal
+}
+
 struct PenDown: DrawOperation {
     var type: DrawOperationType
     var color: [Float]
     var lineWidth: Float
     var timestamp: Double
-    var mode: String
+    var mode: PenDownMode
 
-    init(color: [Float], lineWidth: Float, timestamp: Double, mode: String) {
+    init(color: [Float], lineWidth: Float, timestamp: Double, mode: PenDownMode) {
         self.type = DrawOperationType.penDown
         self.color = color
         self.lineWidth = lineWidth
@@ -89,8 +93,18 @@ struct AudioClip: DrawOperation {
     }
 }
 
+struct Portal: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+
+    init(timestamp: Double) {
+        self.type = DrawOperationType.portal
+        self.timestamp = timestamp
+    }
+}
+
 enum DrawOperationType: String, BinaryCodable {
-    case line, pan, point, penDown, penUp, audioClip
+    case line, pan, point, penDown, penUp, audioClip, portal
 
     var metatype: DrawOperation.Type {
         switch self {
@@ -106,6 +120,8 @@ enum DrawOperationType: String, BinaryCodable {
             return PenUp.self
         case .audioClip:
             return AudioClip.self
+        case .portal:
+            return Portal.self
         }
     }
 }
