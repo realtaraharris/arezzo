@@ -219,25 +219,55 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             if start > end || start == end { continue }
 
-            let input = shape.geometry
-            var output: [Float] = []
-            for i in stride(from: 0, to: input.count - 1, by: 2) {
-                output.append(contentsOf: [input[i] - Float(translation.x), input[i + 1] - Float(translation.y)])
+            if shape.type == DrawOperationType.line {
+                let input = shape.geometry
+                var output: [Float] = []
+                for i in stride(from: 0, to: input.count - 1, by: 2) {
+                    output.append(contentsOf: [input[i] - Float(translation.x), input[i + 1] - Float(translation.y)])
+                }
+
+                let geometryBuffer = self.device.makeBuffer(
+                    bytes: output,
+                    length: output.count * 4,
+                    options: .cpuCacheModeWriteCombined
+                )
+
+                self.renderedShapes.append(RenderedShape(
+                    startIndex: start,
+                    endIndex: end,
+                    geometryBuffer: geometryBuffer!,
+                    colorBuffer: shape.colorBuffer,
+                    widthBuffer: shape.widthBuffer
+                ))
+            } else if shape.type == DrawOperationType.portal {
+                let input = shape.geometry
+
+                let startX = input[start + 0], startY = input[start + 1], endX = input[end - 2], endY = input[end - 1]
+                let width = endX - startX
+                let height = endY - startY
+
+                let output: [Float] = [
+                    startX - Float(translation.x), startY - Float(translation.y),
+                    startX - Float(translation.x), startY + height - Float(translation.y),
+                    endX - Float(translation.x), endY - Float(translation.y),
+                    startX + width - Float(translation.x), startY - Float(translation.y),
+                    startX - Float(translation.x), startY - Float(translation.y),
+                ]
+
+                let geometryBuffer = self.device.makeBuffer(
+                    bytes: output,
+                    length: output.count * 4,
+                    options: .cpuCacheModeWriteCombined
+                )
+
+                self.renderedShapes.append(RenderedShape(
+                    startIndex: start,
+                    endIndex: 8,
+                    geometryBuffer: geometryBuffer!,
+                    colorBuffer: shape.colorBuffer,
+                    widthBuffer: shape.widthBuffer
+                ))
             }
-
-            let geometryBuffer = self.device.makeBuffer(
-                bytes: output,
-                length: output.count * 4,
-                options: .cpuCacheModeWriteCombined
-            )
-
-            self.renderedShapes.append(RenderedShape(
-                startIndex: start,
-                endIndex: end,
-                geometryBuffer: geometryBuffer!,
-                colorBuffer: shape.colorBuffer,
-                widthBuffer: shape.widthBuffer
-            ))
         }
 
         let tr = self.transform(translation)
@@ -433,6 +463,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         } else if self.mode == PenDownMode.pan {
             self.drawOperationCollector.addOp(
                 op: Pan(point: point, timestamp: timestamp))
+        } else if self.mode == PenDownMode.portal {
+            self.drawOperationCollector.addOp(
+                op: Portal(point: point, timestamp: timestamp))
         } else {
             print("invalid mode: \(self.mode)")
         }
@@ -655,7 +688,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.drawOperationCollector.getTimestamp(position: self.startPosition)
     }
 
-    func addPortal(timestamp: Double) {
-        print("adding portal at timestamp:", timestamp)
+    func addPortal() {
+        self.mode = .portal
     }
 }

@@ -41,7 +41,7 @@ protocol ToolbarDelegate {
     func setPlaybackPosition(_ playbackPosition: Float)
     func getPlaybackTimestamp() -> Double
 
-    func addPortal(timestamp: Double)
+    func addPortal()
 }
 
 class ToolbarView: UIControl {

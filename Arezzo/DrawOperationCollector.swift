@@ -81,6 +81,12 @@ class DrawOperationCollector {
                 self.shapeList.append(Shape(type: DrawOperationType.line))
             } else if penDownOp.mode == PenDownMode.pan {
                 self.shapeList.append(Shape(type: DrawOperationType.pan))
+            } else if penDownOp.mode == PenDownMode.portal {
+                self.activeColor = penDownOp.color
+                self.currentLineWidth = penDownOp.lineWidth
+                self.shapeList.append(Shape(type: DrawOperationType.portal))
+            } else {
+                print("unhandled mode:", penDownOp.mode)
             }
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
@@ -90,13 +96,15 @@ class DrawOperationCollector {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
             lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: self.device, color: self.activeColor, lineWidth: self.currentLineWidth)
+        } else if op.type == .portal {
+            let lastShape = self.shapeList[self.shapeList.count - 1]
+            let portalOp = op as! Portal
+            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, device: self.device, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .penUp {
             self.penState = .up
         } else if op.type == .audioClip {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
-        } else if op.type == .portal {
-            let portalOp = op as! Portal
         }
     }
 

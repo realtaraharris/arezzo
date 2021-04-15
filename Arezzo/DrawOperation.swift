@@ -95,10 +95,12 @@ struct AudioClip: DrawOperation {
 
 struct Portal: DrawOperation {
     var type: DrawOperationType
+    var point: [Float]
     var timestamp: Double
 
-    init(timestamp: Double) {
+    init(point: [Float], timestamp: Double) {
         self.type = DrawOperationType.portal
+        self.point = point
         self.timestamp = timestamp
     }
 }

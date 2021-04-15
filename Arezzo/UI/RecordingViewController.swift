@@ -16,6 +16,7 @@ class RecordingViewController: UIViewController {
     var undoButton: UIButton = UIButton(type: .custom)
     var redoButton: UIButton = UIButton(type: .custom)
     var clearButton: UIButton = UIButton(type: .custom)
+    var portalButton: UIButton = UIButton(type: .custom)
 
     var delegate: ToolbarDelegate?
     var recording: Bool = false
@@ -51,6 +52,10 @@ class RecordingViewController: UIViewController {
         configureButton(self.redoButton, UIImage(systemName: "arrow.uturn.forward")!)
         self.redoButton.addTarget(self, action: #selector(self.redo), for: .touchUpInside)
         stackView.addArrangedSubview(self.redoButton)
+
+        configureButton(self.portalButton, UIImage(systemName: "p.circle")!)
+        self.portalButton.addTarget(self, action: #selector(self.addPortal), for: .touchUpInside)
+        stackView.addArrangedSubview(self.portalButton)
 
         /*
          clearButton!.translatesAutoresizingMaskIntoConstraints = false
@@ -114,6 +119,10 @@ class RecordingViewController: UIViewController {
 
     @objc func redo() {
         print("toggling redo")
+    }
+
+    @objc func addPortal() {
+        self.delegate?.addPortal()
     }
 
     /*
