@@ -86,7 +86,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
 
     private var lastTimestampDrawn: Double = 0
-    private var uiRects: [String: CGRect] = [:]
     var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
 
     public var toolbar: Toolbar
@@ -496,13 +495,12 @@ class ViewController: UIViewController, ToolbarDelegate {
     // MARK: delegate methods
 
     func setColor(color: UIColor) {
-        let tempy = [
+        self.selectedColor = [
             Float(color.cgColor.components![0]),
             Float(color.cgColor.components![1]),
             Float(color.cgColor.components![2]),
             Float(color.cgColor.components![3]),
         ]
-        self.selectedColor = tempy
     }
 
     func startExport(filename: String) {
