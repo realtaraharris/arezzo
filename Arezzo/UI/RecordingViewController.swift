@@ -20,7 +20,7 @@ class RecordingViewController: UIViewController {
 
     var delegate: ToolbarDelegate?
     var recording: Bool = false
-    var mode: String = "draw"
+    var mode: PenDownMode = .draw
 
     override func loadView() {
         self.view = UIStackView()
@@ -91,21 +91,20 @@ class RecordingViewController: UIViewController {
     }
 
     @objc func pan() {
-        print("toggleDrawMode()")
-        if self.mode != "draw" {
-            self.delegate?.setDrawMode()
+        if self.mode != .draw {
+            self.delegate?.setPenDownMode(mode: .draw)
         } else {
-            self.delegate?.setPanMode()
+            self.delegate?.setPenDownMode(mode: .pan)
         }
 
         self.panButton.setBackgroundImage(
-            self.mode == "draw" ? UIImage(systemName: "hand.raised") : UIImage(systemName: "pencil"), for: .normal
+            self.mode == .draw ? UIImage(systemName: "hand.raised") : UIImage(systemName: "pencil"), for: .normal
         )
 
-        if self.mode == "draw" {
-            self.mode = "pan"
+        if self.mode == .draw {
+            self.mode = .pan
         } else {
-            self.mode = "draw"
+            self.mode = .draw
         }
     }
 
@@ -122,7 +121,7 @@ class RecordingViewController: UIViewController {
     }
 
     @objc func addPortal() {
-        self.delegate?.addPortal()
+        self.delegate?.setPenDownMode(mode: .portal)
     }
 
     /*

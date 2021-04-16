@@ -615,12 +615,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingThread.cancel()
     }
 
-    public func setDrawMode() {
-        self.mode = PenDownMode.draw
-    }
-
-    public func setPanMode() {
-        self.mode = PenDownMode.pan
+    public func setPenDownMode(mode: PenDownMode) {
+        self.mode = mode
     }
 
     func save(filename: String) {
@@ -686,9 +682,5 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func getPlaybackTimestamp() -> Double {
         self.drawOperationCollector.getTimestamp(position: self.startPosition)
-    }
-
-    func addPortal() {
-        self.mode = .portal
     }
 }

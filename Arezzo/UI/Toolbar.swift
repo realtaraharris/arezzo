@@ -26,9 +26,7 @@ protocol ToolbarDelegate {
     func startPlaying()
     func stopPlaying()
 
-    func setDrawMode()
-    func setPanMode()
-
+    func setPenDownMode(mode: PenDownMode)
     func setColor(color: UIColor)
 
     func save(filename: String)
@@ -40,8 +38,6 @@ protocol ToolbarDelegate {
     func setLineWidth(_ lineWidth: Float)
     func setPlaybackPosition(_ playbackPosition: Float)
     func getPlaybackTimestamp() -> Double
-
-    func addPortal()
 }
 
 class ToolbarView: UIControl {
