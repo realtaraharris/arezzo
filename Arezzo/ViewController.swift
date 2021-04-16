@@ -465,7 +465,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 op: Pan(point: point, timestamp: timestamp))
         } else if self.mode == PenDownMode.portal {
             self.drawOperationCollector.addOp(
-                op: Portal(point: point, timestamp: timestamp))
+                op: Portal(point: point, timestamp: timestamp, url: ""))
         } else {
             print("invalid mode: \(self.mode)")
         }
