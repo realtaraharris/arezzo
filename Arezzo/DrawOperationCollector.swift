@@ -27,17 +27,12 @@ class DrawOperationCollector {
     var provisionalShapeIndex = 0
     var provisionalOpIndex = 0
     var provisionalTimestampIndex = 0
-    var device: MTLDevice
     var activeColor: [Float] = []
     var currentLineWidth = DEFAULT_LINE_WIDTH
 
     var penState: PenState = .down
     var audioData: [Int16] = []
     var timestamps: [Double] = []
-
-    init(device: MTLDevice) {
-        self.device = device
-    }
 
     func getTimestamp(position: Double) -> Double {
         let first = self.timestamps.first!
@@ -67,7 +62,7 @@ class DrawOperationCollector {
         Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
     }
 
-    func addOp(op: DrawOperation) {
+    func addOp(op: DrawOperation, device: MTLDevice?) {
         self.opList.append(op)
         self.timestamps.append(op.timestamp)
 
@@ -91,15 +86,15 @@ class DrawOperationCollector {
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
-            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, device: self.device, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
+            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, device: device!, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
         } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: self.device, color: self.activeColor, lineWidth: self.currentLineWidth)
+            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: device!, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .portal {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let portalOp = op as! Portal
-            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, device: self.device, color: self.activeColor, lineWidth: self.currentLineWidth)
+            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, device: device!, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .penUp {
             self.penState = .up
         } else if op.type == .audioClip {
@@ -150,7 +145,7 @@ class DrawOperationCollector {
         }
     }
 
-    func deserialize(filename: String, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
+    func deserialize(filename: String, device: MTLDevice, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
 
         do {
@@ -159,7 +154,7 @@ class DrawOperationCollector {
             let decoded = try decoder.decode([DrawOperationWrapper].self)
 
             self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation)
+                self.addOp(op: $0.drawOperation, device: device)
                 return $0.drawOperation
             }
         } catch {
@@ -167,7 +162,7 @@ class DrawOperationCollector {
         }
     }
 
-    func serializeJson(filename: String) {
+    func serializeJson(filename: String, device _: MTLDevice) {
         let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
@@ -180,7 +175,7 @@ class DrawOperationCollector {
         }
     }
 
-    func deserializeJson(filename: String) {
+    func deserializeJson(filename: String, device: MTLDevice) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
         do {
@@ -188,7 +183,7 @@ class DrawOperationCollector {
             let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)
 
             self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation)
+                self.addOp(op: $0.drawOperation, device: device)
                 return $0.drawOperation
             }
         } catch {

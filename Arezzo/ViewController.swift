@@ -35,8 +35,8 @@ class RenderedShape {
 @available(iOS 14.0, *)
 @available(macCatalyst 14.0, *)
 class ViewController: UIViewController, ToolbarDelegate {
-    var device: MTLDevice!
-    var metalLayer: CAMetalLayer
+    var device: MTLDevice = MTLCreateSystemDefaultDevice()!
+    var metalLayer: CAMetalLayer = CAMetalLayer()
     var segmentVertexBuffer: MTLBuffer!
     var segmentIndexBuffer: MTLBuffer!
     var capVertexBuffer: MTLBuffer!
@@ -53,9 +53,9 @@ class ViewController: UIViewController, ToolbarDelegate {
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
     var queue: AudioQueueRef?
 
-    public var toolbar: Toolbar
+    public var toolbar: Toolbar = Toolbar()
     private let capEdges = 21
-    var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
+    var drawOperationCollector: DrawOperationCollector = DrawOperationCollector() // TODO: consider renaming this to shapeCollector
 
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
     var lineWidth: Float = DEFAULT_LINE_WIDTH
@@ -64,8 +64,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var recording: Bool = false
     var startPosition: Double = 0.0
     var endPosition: Double = 1.0
-    var recordingState: RecordingState
-    var playingState: PlayingState
+    var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
 
@@ -82,20 +81,6 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return [.pencil, .stylus]
             }
         }
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        self.metalLayer = CAMetalLayer()
-
-        self.device = MTLCreateSystemDefaultDevice()
-
-        self.drawOperationCollector = DrawOperationCollector(device: self.device)
-
-        self.recordingState = RecordingState(running: false, drawOperationCollector: self.drawOperationCollector)
-        self.playingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
-        self.toolbar = Toolbar()
-
-        super.init(coder: aDecoder)
     }
 
     @objc override func viewDidLoad() {
@@ -423,7 +408,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
                                                       lineWidth: self.lineWidth,
                                                       timestamp: timestamp,
-                                                      mode: self.mode))
+                                                      mode: self.mode), device: self.device)
 
         self.render(endTimestamp: timestamp)
     }
@@ -439,13 +424,16 @@ class ViewController: UIViewController, ToolbarDelegate {
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == PenDownMode.draw {
             self.drawOperationCollector.addOp(
-                op: Point(point: point, timestamp: timestamp))
+                op: Point(point: point, timestamp: timestamp), device: self.device
+            )
         } else if self.mode == PenDownMode.pan {
             self.drawOperationCollector.addOp(
-                op: Pan(point: point, timestamp: timestamp))
+                op: Pan(point: point, timestamp: timestamp), device: self.device
+            )
         } else if self.mode == PenDownMode.portal {
             self.drawOperationCollector.addOp(
-                op: Portal(point: point, timestamp: timestamp, url: ""))
+                op: Portal(point: point, timestamp: timestamp, url: ""), device: self.device
+            )
         } else {
             print("invalid mode: \(self.mode)")
         }
@@ -459,7 +447,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
 
-        self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp))
+        self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp), device: self.device)
         self.drawOperationCollector.commitProvisionalOps()
 
         self.render(endTimestamp: timestamp)
@@ -623,7 +611,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                     self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
-            self.drawOperationCollector.deserialize(filename: filename, progressCallback)
+            self.drawOperationCollector.deserialize(filename: filename, device: self.device, progressCallback)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true

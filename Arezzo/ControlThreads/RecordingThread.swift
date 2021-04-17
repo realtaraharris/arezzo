@@ -15,6 +15,8 @@ extension ViewController {
     @objc func recording(thread _: Thread) {
         var queue: AudioQueueRef?
 
+        var recordingState = RecordingState(running: false, drawOperationCollector: self.drawOperationCollector)
+
         check(AudioQueueNewInput(&audioFormat, inputCallback, &recordingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &queue))
 
         var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
@@ -37,7 +39,7 @@ extension ViewController {
             CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
         } while !self.recordingThread.isCancelled
 
-        self.recordingState.running = false
+        recordingState.running = false
         CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION * Double(BUFFER_COUNT + 1), false)
 
         check(AudioQueueStop(queue!, true))
