@@ -37,38 +37,39 @@ class RenderedShape {
 class ViewController: UIViewController, ToolbarDelegate {
     var device: MTLDevice!
     var metalLayer: CAMetalLayer
-
     var segmentVertexBuffer: MTLBuffer!
     var segmentIndexBuffer: MTLBuffer!
     var capVertexBuffer: MTLBuffer!
     var capIndexBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
-
-    var renderedShapes: [RenderedShape] = []
-
     var commandQueue: MTLCommandQueue!
     var segmentRenderPipelineState: MTLRenderPipelineState!
     var capRenderPipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
-    var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
-    var lineWidth: Float = DEFAULT_LINE_WIDTH
-    var playing: Bool = false
-    var recording: Bool = false
-    var mode: PenDownMode = PenDownMode.draw
+    var nextRenderTimer: CFRunLoopTimer?
     private var width: CGFloat = 0.0
     private var height: CGFloat = 0.0
+    var renderedShapes: [RenderedShape] = []
+    public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
+    var queue: AudioQueueRef?
+
+    public var toolbar: Toolbar
+    private let capEdges = 21
+    var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
+
+    var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
+    var lineWidth: Float = DEFAULT_LINE_WIDTH
+    var mode: PenDownMode = PenDownMode.draw
+    var playing: Bool = false
+    var recording: Bool = false
     var startPosition: Double = 0.0
     var endPosition: Double = 1.0
-
-    var queue: AudioQueueRef?
     var recordingState: RecordingState
     var playingState: PlayingState
-
-    var mvr: MetalVideoRecorder?
-    var nextRenderTimer: CFRunLoopTimer?
-
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
+
+    public var recordingThread: Thread = Thread() // TODO: get rid of this
 
     public enum TouchType: Equatable, CaseIterable {
         case finger, pencil
@@ -82,26 +83,6 @@ class ViewController: UIViewController, ToolbarDelegate {
             }
         }
     }
-
-    public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
-
-    private var lastTimestampDrawn: Double = 0
-    var drawOperationCollector: DrawOperationCollector // TODO: consider renaming this to shapeCollector
-
-    public var toolbar: Toolbar
-    private let capEdges = 21
-
-    private var points: [[Float]] = []
-    private var indexData: [Float] = []
-    private var panStart: CGPoint = .zero
-    private var panPosition: CGPoint = .zero
-    public var recordingThread: Thread = Thread()
-
-    var playbackSliderPosition: Float = 0
-    var playbackSliderTimer: CFRunLoopTimer?
-
-    // For pencil interactions
-    private lazy var pencilInteraction = UIPencilInteraction()
 
     required init?(coder aDecoder: NSCoder) {
         self.metalLayer = CAMetalLayer()
@@ -305,7 +286,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                      options: .storageModeShared)
     }
 
-    final func renderOffline(firstTimestamp _: Double, endTimestamp: Double) {
+    final func renderOffline(firstTimestamp _: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = .type2DArray
         textureDescriptor.pixelFormat = .bgra8Unorm
@@ -361,7 +342,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
 
-        self.mvr?.writeFrame(forTexture: texture, timestamp: endTimestamp)
+        videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
     final func render(endTimestamp: Double) {
@@ -520,7 +501,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         FileManager.default.removePossibleItem(at: outputUrl)
 
-        self.mvr = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)
+        let videoRecorder = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)!
 
         let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
         var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
@@ -529,7 +510,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         let firstTimestamp = self.drawOperationCollector.timestamps[0]
         let timeOffset = firstPlaybackTimestamp - firstTimestamp
 
-        self.mvr!.startRecording(firstTimestamp)
+        videoRecorder.startRecording(firstTimestamp)
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
 
@@ -544,13 +525,13 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime)
+            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
 
             for op in self.drawOperationCollector.opList {
                 if op.type != .audioClip || op.timestamp != currentTime { continue }
                 let audioClip = op as! AudioClip
                 let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
-                self.mvr!.writeAudio(samples: samples!)
+                videoRecorder.writeAudio(samples: samples!)
             }
 
             DispatchQueue.main.async {
@@ -564,7 +545,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             renderNext()
         }
 
-        self.mvr!.endRecording {
+        videoRecorder.endRecording {
             DispatchQueue.main.async {
                 self.toolbar.documentVC.exportButton.isEnabled = true
                 self.toolbar.documentVC.exportProgressIndicator.isHidden = true
@@ -652,9 +633,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func clear() {
-        self.panStart = .zero
-        self.panPosition = .zero
-
         self.drawOperationCollector.clear()
         let timestamp = getCurrentTimestamp()
         self.render(endTimestamp: timestamp)
