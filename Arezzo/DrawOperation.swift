@@ -14,13 +14,25 @@ protocol DrawOperation: BinaryCodable {
     var timestamp: Double { get }
 }
 
+struct Viewport: DrawOperation {
+    var type: DrawOperationType
+    var bounds: [Float]
+    var timestamp: Double
+
+    init(bounds: [Float], timestamp: Double) {
+        self.type = DrawOperationType.viewport
+        self.bounds = bounds
+        self.timestamp = timestamp
+    }
+}
+
 struct Line: DrawOperation {
     var type: DrawOperationType
     var start: [Float]
     var end: [Float]
     var timestamp: Double = 0
 
-    init(start: [Float], end: [Float], timestamp _: Int64) {
+    init(start: [Float], end: [Float], timestamp _: Int64) { // TODO: use timestamp
         self.type = DrawOperationType.line
         self.start = start
         self.end = end
@@ -108,7 +120,7 @@ struct Portal: DrawOperation {
 }
 
 enum DrawOperationType: String, BinaryCodable {
-    case line, pan, point, penDown, penUp, audioClip, portal
+    case line, pan, point, penDown, penUp, audioClip, portal, viewport
 
     var metatype: DrawOperation.Type {
         switch self {
@@ -126,6 +138,8 @@ enum DrawOperationType: String, BinaryCodable {
             return AudioClip.self
         case .portal:
             return Portal.self
+        case .viewport:
+            return Viewport.self
         }
     }
 }

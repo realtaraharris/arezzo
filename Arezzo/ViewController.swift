@@ -53,7 +53,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
     var queue: AudioQueueRef?
 
-    public var toolbar: Toolbar = Toolbar()
+    let toolbar: Toolbar = Toolbar()
     private let capEdges = 21
     var drawOperationCollector: DrawOperationCollector = DrawOperationCollector() // TODO: consider renaming this to shapeCollector
 
@@ -289,6 +289,17 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.generateVerts(endTimestamp: endTimestamp)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+        if let error = commandBuffer.error as NSError? {
+            if let infos = error.userInfo[MTLCommandBufferEncoderInfoErrorKey]
+                        as? [MTLCommandBufferEncoderInfo] {
+                for info in infos {
+                    print(info.label + info.debugSignposts.joined())
+                    if info.errorState == .faulted {
+                        print(info.label + " faulted!")
+                    }
+                }
+            }
+        }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
 
@@ -341,6 +352,17 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.generateVerts(endTimestamp: endTimestamp)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+        if let error = commandBuffer.error as NSError? {
+            if let infos = error.userInfo[MTLCommandBufferEncoderInfoErrorKey]
+                        as? [MTLCommandBufferEncoderInfo] {
+                for info in infos {
+                    print(info.label + info.debugSignposts.joined())
+                    if info.errorState == .faulted {
+                        print(info.label + " faulted!")
+                    }
+                }
+            }
+        }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
 
@@ -570,14 +592,14 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func startRecording() {
-        print("in startRecording")
+        self.drawOperationCollector.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: getCurrentTimestamp()), device: self.device)
+
         self.recording = true
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
         self.recordingThread.start()
     }
 
     public func stopRecording() {
-        print("in stopRecording")
         self.recording = false
         self.recordingThread.cancel()
     }

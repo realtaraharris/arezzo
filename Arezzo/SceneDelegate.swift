@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         self.window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         self.window?.windowScene = windowScene
-        self.window?.rootViewController = ViewController() // coder: try NSCoder.empty())
+        self.window?.rootViewController = ViewController()
         self.window?.makeKeyAndVisible()
     }
 
