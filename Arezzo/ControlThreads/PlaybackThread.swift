@@ -87,7 +87,9 @@ extension ViewController {
             if runNumber < self.currentRunNumber { return }
             self.currentRunNumber = runNumber
 
-            self.render(endTimestamp: currentTime)
+            self.renderer.endTimestamp = currentTime
+//            self.renderer.draw(in: self.mtkView)
+            self.mtkView.setNeedsDisplay()
 
             let fireDate = playbackStart + nextTime - firstTime
 

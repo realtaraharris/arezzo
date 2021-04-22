@@ -26,6 +26,7 @@
 		5005C24D260BCC6600DFE391 /* EditingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5005C24C260BCC6600DFE391 /* EditingViewController.swift */; };
 		500DB82E253CF6F900A30A0D /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500DB82D253CF6F900A30A0D /* Geometry.swift */; };
 		500DB82F253CF6F900A30A0D /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500DB82D253CF6F900A30A0D /* Geometry.swift */; };
+		50193339262D2905008A0657 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50193338262D2905008A0657 /* Renderer.swift */; };
 		501C58F024FEC273001972F1 /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501C58EF24FEC273001972F1 /* Toolbar.swift */; };
 		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
 		50323189257028270050C298 /* Timestamps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323188257028270050C298 /* Timestamps.swift */; };
@@ -88,6 +89,7 @@
 		5005C246260A7EFA00DFE391 /* PlaybackViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackViewController.swift; sourceTree = "<group>"; };
 		5005C24C260BCC6600DFE391 /* EditingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingViewController.swift; sourceTree = "<group>"; };
 		500DB82D253CF6F900A30A0D /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
+		50193338262D2905008A0657 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		501C58EF24FEC273001972F1 /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
 		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
 		50323188257028270050C298 /* Timestamps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timestamps.swift; sourceTree = "<group>"; };
@@ -237,6 +239,7 @@
 		50C2A6FC24A67F87000F3B93 /* Arezzo */ = {
 			isa = PBXGroup;
 			children = (
+				50193338262D2905008A0657 /* Renderer.swift */,
 				50E883C5257712BF00BB6321 /* UI */,
 				5032318D257583790050C298 /* ControlThreads */,
 				508832332559DB960001E5A2 /* Audio */,
@@ -476,6 +479,7 @@
 				508832352559DBC70001E5A2 /* Playback.swift in Sources */,
 				504F5D4025DCD28000EC6034 /* MakeSampleBuffer.swift in Sources */,
 				5005C247260A7EFA00DFE391 /* PlaybackViewController.swift in Sources */,
+				50193339262D2905008A0657 /* Renderer.swift in Sources */,
 				50596397253FB73D00FF8B29 /* Shape.swift in Sources */,
 				5005C24D260BCC6600DFE391 /* EditingViewController.swift in Sources */,
 				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,
