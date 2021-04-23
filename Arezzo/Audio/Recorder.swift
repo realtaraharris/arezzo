@@ -10,9 +10,9 @@ import Foundation
 
 class RecordingState {
     var running: Bool
-    var drawOperationCollector: DrawOperationCollector
+    var drawOperationCollector: Recording
 
-    init(running: Bool, drawOperationCollector: DrawOperationCollector) {
+    init(running: Bool, drawOperationCollector: Recording) {
         self.running = running
         self.drawOperationCollector = drawOperationCollector
     }

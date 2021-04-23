@@ -19,9 +19,7 @@ func getDocumentsDirectory() -> URL {
     return paths[0]
 }
 
-extension BinaryDecoder {}
-
-class DrawOperationCollector {
+class Recording {
     var opList: [DrawOperation] = []
     var shapeList: [Shape] = []
     var provisionalShapeIndex = 0
@@ -33,6 +31,7 @@ class DrawOperationCollector {
     var penState: PenState = .down
     var audioData: [Int16] = []
     var timestamps: [Double] = []
+    var url: String = ""
 
     func getTimestamp(position: Double) -> Double {
         let first = self.timestamps.first!

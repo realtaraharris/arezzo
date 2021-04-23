@@ -35,18 +35,20 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     let toolbar: Toolbar = Toolbar()
     let capEdges = 21
-    var drawOperationCollector: DrawOperationCollector = DrawOperationCollector() // TODO: consider renaming this to shapeCollector
 
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
     var lineWidth: Float = DEFAULT_LINE_WIDTH
     var mode: PenDownMode = PenDownMode.draw
-    var playing: Bool = false
-    var recording: Bool = false
+    var isPlaying: Bool = false
+    var isRecording: Bool = false
     var startPosition: Double = 0.0
     var endPosition: Double = 1.0
     var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
+
+    var recordings: [Recording]!
+    var currentRecording: Recording!
 
     public var recordingThread: Thread = Thread() // TODO: get rid of this
 
@@ -85,10 +87,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.documentVC.delegate = self
 
         view.addSubview(self.toolbar.view) // add this last so that it appears on top of the metal layer
+
+        self.recordings = [Recording()]
+        self.currentRecording = self.recordings[0]
     }
 
     func playback(runNumber: Int) {
-        guard self.drawOperationCollector.timestamps.count > 0 else {
+        guard self.currentRecording.timestamps.count > 0 else {
             return
         }
 
@@ -107,19 +112,19 @@ class ViewController: UIViewController, ToolbarDelegate {
             }
         }
 
-        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
-        var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+        let (startIndex, endIndex) = self.currentRecording.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        var timestampIterator = self.currentRecording.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
 
-        let recordedCursor = self.drawOperationCollector.timestamps[startIndex]
-        let recordedStart = self.drawOperationCollector.timestamps[0]
+        let recordedCursor = self.currentRecording.timestamps[startIndex]
+        let recordedStart = self.currentRecording.timestamps[0]
         let timeOffset = recordedCursor - recordedStart
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
 
         guard timestampIterator.count > 0 else { return }
 
-        let timeStart = self.drawOperationCollector.timestamps[0]
-        let timeEnd = self.drawOperationCollector.timestamps[self.drawOperationCollector.timestamps.count - 1]
+        let timeStart = self.currentRecording.timestamps[0]
+        let timeEnd = self.currentRecording.timestamps[self.currentRecording.timestamps.count - 1]
 
         let timeDelta = timeEnd - timeStart
 
@@ -148,7 +153,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             self.toolbar.playbackVC.playbackSlider.setValueEx(value: position)
 
-            if !self.playing {
+            if !self.isPlaying {
                 return
             }
             let (currentTime, nextTime) = timestampIterator.next()!
@@ -181,23 +186,23 @@ class ViewController: UIViewController, ToolbarDelegate {
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
-        guard self.recording, let touch = touches.first else { return }
+        guard self.isRecording, let touch = touches.first else { return }
 
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
         let timestamp = getCurrentTimestamp()
 
-        self.drawOperationCollector.beginProvisionalOps()
-        self.drawOperationCollector.addOp(op: PenDown(color: self.selectedColor,
-                                                      lineWidth: self.lineWidth,
-                                                      timestamp: timestamp,
-                                                      mode: self.mode), device: self.device)
+        self.currentRecording.beginProvisionalOps()
+        self.currentRecording.addOp(op: PenDown(color: self.selectedColor,
+                                                lineWidth: self.lineWidth,
+                                                timestamp: timestamp,
+                                                mode: self.mode), device: self.device)
 
         self.render(endTimestamp: timestamp)
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
-        guard self.recording, let touch = touches.first else { return }
+        guard self.isRecording, let touch = touches.first else { return }
 
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
@@ -206,15 +211,15 @@ class ViewController: UIViewController, ToolbarDelegate {
         let inputPoint = touch.location(in: view)
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == PenDownMode.draw {
-            self.drawOperationCollector.addOp(
+            self.currentRecording.addOp(
                 op: Point(point: point, timestamp: timestamp), device: self.device
             )
         } else if self.mode == PenDownMode.pan {
-            self.drawOperationCollector.addOp(
+            self.currentRecording.addOp(
                 op: Pan(point: point, timestamp: timestamp), device: self.device
             )
         } else if self.mode == PenDownMode.portal {
-            self.drawOperationCollector.addOp(
+            self.currentRecording.addOp(
                 op: Portal(point: point, timestamp: timestamp, url: ""), device: self.device
             )
         } else {
@@ -226,19 +231,19 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
 //        triggerProgrammaticCapture()
-        guard self.recording else { return }
+        guard self.isRecording else { return }
 
         let timestamp = getCurrentTimestamp()
 
-        self.drawOperationCollector.addOp(op: PenUp(timestamp: timestamp), device: self.device)
-        self.drawOperationCollector.commitProvisionalOps()
+        self.currentRecording.addOp(op: PenUp(timestamp: timestamp), device: self.device)
+        self.currentRecording.commitProvisionalOps()
 
         self.render(endTimestamp: timestamp)
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
-        self.drawOperationCollector.cancelProvisionalOps()
-        guard self.recording else { return }
+        self.currentRecording.cancelProvisionalOps()
+        guard self.isRecording else { return }
 
         let timestamp = getCurrentTimestamp()
         self.render(endTimestamp: timestamp)
@@ -274,18 +279,18 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let videoRecorder = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)!
 
-        let (startIndex, endIndex) = self.drawOperationCollector.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
-        var timestampIterator = self.drawOperationCollector.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+        let (startIndex, endIndex) = self.currentRecording.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        var timestampIterator = self.currentRecording.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
 
-        let firstPlaybackTimestamp = self.drawOperationCollector.timestamps[startIndex]
-        let firstTimestamp = self.drawOperationCollector.timestamps[0]
+        let firstPlaybackTimestamp = self.currentRecording.timestamps[startIndex]
+        let firstTimestamp = self.currentRecording.timestamps[0]
         let timeOffset = firstPlaybackTimestamp - firstTimestamp
 
         videoRecorder.startRecording(firstTimestamp)
 
         self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
 
-        let frameCount: Float = Float(self.drawOperationCollector.timestamps.count)
+        let frameCount: Float = Float(self.currentRecording.timestamps.count)
         var framesRendered = 0
 
         func renderNext() {
@@ -298,7 +303,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
 
-            for op in self.drawOperationCollector.opList {
+            for op in self.currentRecording.opList {
                 if op.type != .audioClip || op.timestamp != currentTime { continue }
                 let audioClip = op as! AudioClip
                 let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
@@ -332,10 +337,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func startPlaying() {
-        if self.playing { return }
+        if self.isPlaying { return }
 
-        self.playing = true
-        self.playingState.audioData = self.drawOperationCollector.audioData
+        self.isPlaying = true
+        self.playingState.audioData = self.currentRecording.audioData
         self.playingState.lastIndexRead = 0
         self.playback(runNumber: self.runNumber)
         self.runNumber += 1
@@ -343,25 +348,25 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     public func stopPlaying() {
         guard self.nextRenderTimer != nil else {
-            self.playing = false
+            self.isPlaying = false
             return
         }
         CFRunLoopTimerInvalidate(self.nextRenderTimer)
         check(AudioQueueStop(self.queue!, true))
         check(AudioQueueDispose(self.queue!, true))
-        self.playing = false
+        self.isPlaying = false
     }
 
     public func startRecording() {
-        self.drawOperationCollector.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: getCurrentTimestamp()), device: self.device)
+        self.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: getCurrentTimestamp()), device: self.device)
 
-        self.recording = true
+        self.isRecording = true
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
         self.recordingThread.start()
     }
 
     public func stopRecording() {
-        self.recording = false
+        self.isRecording = false
         self.recordingThread.cancel()
     }
 
@@ -375,7 +380,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.toolbar.documentVC.saveIndicator.startAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = false
             }
-            self.drawOperationCollector.serialize(filename: filename)
+            self.currentRecording.serialize(filename: filename)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.saveIndicator.stopAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = true
@@ -394,7 +399,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                     self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
-            self.drawOperationCollector.deserialize(filename: filename, device: self.device, progressCallback)
+            self.currentRecording.deserialize(filename: filename, device: self.device, progressCallback)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
@@ -404,7 +409,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func clear() {
-        self.drawOperationCollector.clear()
+        self.currentRecording.clear()
         let timestamp = getCurrentTimestamp()
         self.render(endTimestamp: timestamp)
     }
@@ -414,12 +419,12 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func setPlaybackPosition(_ playbackPosition: Float) {
-        let wasPlaying = self.playing
-        if self.playing {
+        let wasPlaying = self.isPlaying
+        if self.isPlaying {
             self.stopPlaying()
         }
-        if self.drawOperationCollector.timestamps.count == 0 { return }
-        self.render(endTimestamp: self.drawOperationCollector.getTimestamp(position: Double(playbackPosition)))
+        if self.currentRecording.timestamps.count == 0 { return }
+        self.render(endTimestamp: self.currentRecording.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
         if wasPlaying {
@@ -428,6 +433,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func getPlaybackTimestamp() -> Double {
-        self.drawOperationCollector.getTimestamp(position: self.startPosition)
+        self.currentRecording.getTimestamp(position: self.startPosition)
     }
 }

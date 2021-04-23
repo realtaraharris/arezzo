@@ -43,7 +43,7 @@ extension ViewController {
 
         var translation: CGPoint = .zero
 
-        for shape in self.drawOperationCollector.shapeList {
+        for shape in self.currentRecording.shapeList {
             if shape.type == DrawOperationType.pan {
                 if shape.geometry.count == 0 { continue }
                 let startX = shape.geometry[0]
