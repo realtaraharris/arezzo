@@ -38,9 +38,7 @@ extension ViewController {
         }
     }
 
-    final func generateVerts(endTimestamp: Double) {
-        self.renderedShapes.removeAll(keepingCapacity: false)
-
+    final func generateVerts(renderedShapes: inout [RenderedShape], endTimestamp: Double) {
         var translation: CGPoint = .zero
 
         for shape in self.currentRecording.shapeList {
@@ -78,7 +76,7 @@ extension ViewController {
                     options: .cpuCacheModeWriteCombined
                 )
 
-                self.renderedShapes.append(RenderedShape(
+                renderedShapes.append(RenderedShape(
                     startIndex: start,
                     endIndex: end,
                     geometryBuffer: geometryBuffer!,
@@ -106,7 +104,7 @@ extension ViewController {
                     options: .cpuCacheModeWriteCombined
                 )
 
-                self.renderedShapes.append(RenderedShape(
+                renderedShapes.append(RenderedShape(
                     startIndex: start,
                     endIndex: 8,
                     geometryBuffer: geometryBuffer!,
@@ -203,7 +201,8 @@ extension ViewController {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-        self.generateVerts(endTimestamp: endTimestamp)
+        var renderedShapes: [RenderedShape] = []
+        self.generateVerts(renderedShapes: &renderedShapes, endTimestamp: endTimestamp)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         if let error = commandBuffer.error as NSError? {
@@ -220,8 +219,8 @@ extension ViewController {
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
 
-        for index in 0 ..< self.renderedShapes.count {
-            let rs: RenderedShape = self.renderedShapes[index]
+        for index in 0 ..< renderedShapes.count {
+            let rs: RenderedShape = renderedShapes[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
             renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
             renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
@@ -266,7 +265,8 @@ extension ViewController {
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
-        self.generateVerts(endTimestamp: endTimestamp)
+        var renderedShapes: [RenderedShape] = []
+        self.generateVerts(renderedShapes: &renderedShapes, endTimestamp: endTimestamp)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         if let error = commandBuffer.error as NSError? {
@@ -283,8 +283,8 @@ extension ViewController {
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
 
-        for index in 0 ..< self.renderedShapes.count {
-            let rs: RenderedShape = self.renderedShapes[index]
+        for index in 0 ..< renderedShapes.count {
+            let rs: RenderedShape = renderedShapes[index]
             let instanceCount = (rs.endIndex - rs.startIndex) / 2
             renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
             renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)

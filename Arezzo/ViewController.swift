@@ -29,7 +29,6 @@ class ViewController: UIViewController, ToolbarDelegate {
     var nextRenderTimer: CFRunLoopTimer?
     var width: CGFloat = 0.0
     var height: CGFloat = 0.0
-    var renderedShapes: [RenderedShape] = []
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
     var queue: AudioQueueRef?
 
