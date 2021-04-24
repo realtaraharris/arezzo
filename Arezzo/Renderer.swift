@@ -186,16 +186,7 @@ extension ViewController {
         self.height = self.view.frame.height
     }
 
-    final func renderOffline(firstTimestamp _: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let textureDescriptor = MTLTextureDescriptor()
-        textureDescriptor.textureType = .type2DArray
-        textureDescriptor.pixelFormat = .bgra8Unorm
-        textureDescriptor.width = Int(self.width * 2)
-        textureDescriptor.height = Int(self.height * 2)
-        textureDescriptor.arrayLength = 1
-        textureDescriptor.usage = [.shaderRead, .shaderWrite]
-        let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
-
+    final func render(endTimestamp: Double, texture: MTLTexture) -> MTLCommandBuffer? {
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
@@ -204,7 +195,7 @@ extension ViewController {
         var renderedShapes: [RenderedShape] = []
         self.generateVerts(renderedShapes: &renderedShapes, endTimestamp: endTimestamp)
 
-        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return nil }
         if let error = commandBuffer.error as NSError? {
             if let infos = error.userInfo[MTLCommandBufferEncoderInfoErrorKey]
                 as? [MTLCommandBufferEncoderInfo] {
@@ -216,7 +207,7 @@ extension ViewController {
                 }
             }
         }
-        guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
+        guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return nil }
         renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
 
         for index in 0 ..< renderedShapes.count {
@@ -250,70 +241,37 @@ extension ViewController {
         }
 
         renderCommandEncoder.endEncoding()
+
+        return commandBuffer
+    }
+
+    final func renderToBitmap(firstTimestamp _: Double, endTimestamp: Double) -> MTLTexture {
+        let textureDescriptor = MTLTextureDescriptor()
+        textureDescriptor.textureType = .type2DArray
+        textureDescriptor.pixelFormat = .bgra8Unorm
+        textureDescriptor.width = Int(self.width * 2) // TODO: pass in the desired size
+        textureDescriptor.height = Int(self.height * 2)
+        textureDescriptor.arrayLength = 1
+        textureDescriptor.usage = [.shaderRead, .shaderWrite]
+        let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
+
+        let commandBuffer: MTLCommandBuffer = self.render(endTimestamp: endTimestamp, texture: texture)!
 
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
 
+        return texture
+    }
+
+    final func renderToVideo(firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
+        let texture: MTLTexture = renderToBitmap(firstTimestamp: firstTimestamp, endTimestamp: endTimestamp)
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
-    final func render(endTimestamp: Double) {
+    final func renderToScreen(endTimestamp: Double) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
-        let renderPassDescriptor = MTLRenderPassDescriptor()
-        renderPassDescriptor.colorAttachments[0].texture = drawable.texture
-        renderPassDescriptor.colorAttachments[0].loadAction = .clear
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
-
-        var renderedShapes: [RenderedShape] = []
-        self.generateVerts(renderedShapes: &renderedShapes, endTimestamp: endTimestamp)
-
-        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
-        if let error = commandBuffer.error as NSError? {
-            if let infos = error.userInfo[MTLCommandBufferEncoderInfoErrorKey]
-                as? [MTLCommandBufferEncoderInfo] {
-                for info in infos {
-                    print(info.label + info.debugSignposts.joined())
-                    if info.errorState == .faulted {
-                        print(info.label + " faulted!")
-                    }
-                }
-            }
-        }
-        guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        renderCommandEncoder.setVertexBuffer(self.uniformBuffer, offset: 0, index: 2)
-
-        for index in 0 ..< renderedShapes.count {
-            let rs: RenderedShape = renderedShapes[index]
-            let instanceCount = (rs.endIndex - rs.startIndex) / 2
-            renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
-            renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
-            renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
-
-            renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
-            renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
-            renderCommandEncoder.drawIndexedPrimitives(
-                type: .triangleStrip,
-                indexCount: 4,
-                indexType: MTLIndexType.uint32,
-                indexBuffer: self.segmentIndexBuffer,
-                indexBufferOffset: 0,
-                instanceCount: instanceCount
-            )
-
-            renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
-            renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
-            renderCommandEncoder.drawIndexedPrimitives(
-                type: .triangleStrip,
-                indexCount: self.capEdges,
-                indexType: MTLIndexType.uint32,
-                indexBuffer: self.capIndexBuffer,
-                indexBufferOffset: 0,
-                instanceCount: instanceCount + 1 // + 1 for the last cap
-            )
-        }
-
-        renderCommandEncoder.endEncoding()
+        let commandBuffer: MTLCommandBuffer = self.render(endTimestamp: endTimestamp, texture: drawable.texture)!
 
         commandBuffer.present(drawable)
         commandBuffer.commit()

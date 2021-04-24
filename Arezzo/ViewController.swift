@@ -166,7 +166,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             if runNumber < self.currentRunNumber { return }
             self.currentRunNumber = runNumber
 
-            self.render(endTimestamp: currentTime)
+            self.renderToScreen(endTimestamp: currentTime)
 
             let fireDate = playbackStart + nextTime - firstTime
 
@@ -197,7 +197,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                 timestamp: timestamp,
                                                 mode: self.mode), device: self.device)
 
-        self.render(endTimestamp: timestamp)
+        self.renderToScreen(endTimestamp: timestamp)
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -225,7 +225,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             print("invalid mode: \(self.mode)")
         }
 
-        self.render(endTimestamp: timestamp)
+        self.renderToScreen(endTimestamp: timestamp)
     }
 
     override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
@@ -237,7 +237,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.currentRecording.addOp(op: PenUp(timestamp: timestamp), device: self.device)
         self.currentRecording.commitProvisionalOps()
 
-        self.render(endTimestamp: timestamp)
+        self.renderToScreen(endTimestamp: timestamp)
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
@@ -245,7 +245,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard self.isRecording else { return }
 
         let timestamp = getCurrentTimestamp()
-        self.render(endTimestamp: timestamp)
+        self.renderToScreen(endTimestamp: timestamp)
     }
 
     // MARK: delegate methods
@@ -300,7 +300,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-            self.renderOffline(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
+            self.renderToVideo(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
 
             for op in self.currentRecording.opList {
                 if op.type != .audioClip || op.timestamp != currentTime { continue }
@@ -410,7 +410,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     func clear() {
         self.currentRecording.clear()
         let timestamp = getCurrentTimestamp()
-        self.render(endTimestamp: timestamp)
+        self.renderToScreen(endTimestamp: timestamp)
     }
 
     public func setLineWidth(_ lineWidth: Float) {
@@ -423,7 +423,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.stopPlaying()
         }
         if self.currentRecording.timestamps.count == 0 { return }
-        self.render(endTimestamp: self.currentRecording.getTimestamp(position: Double(playbackPosition)))
+        self.renderToScreen(endTimestamp: self.currentRecording.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
         if wasPlaying {
