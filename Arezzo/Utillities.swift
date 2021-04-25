@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import simd
 
 func getCurrentTimestamp() -> Double {
     CFAbsoluteTimeGetCurrent()
@@ -50,6 +51,20 @@ struct Uniforms {
     let width: Float
     let height: Float
     let modelViewMatrix: Matrix4x4
+}
+
+struct PortalVertex {
+    let position: vector_float2
+    let textureCoordinate: vector_float2
+}
+
+enum PortalVertexInputIndex: Int {
+    case Vertices = 0
+    case ViewportSize = 1
+}
+
+enum PortalTextureIndex: Int {
+    case BaseColor = 0
 }
 
 extension FileManager {

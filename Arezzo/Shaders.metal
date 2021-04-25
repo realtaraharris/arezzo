@@ -9,6 +9,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
+// MARK: - line shaders
+
 struct VertexOut {
     float4 position[[position]];
     float4 color;
@@ -27,7 +29,7 @@ float2 screenSpaceToMetalSpace (float2 position, float width, float height) {
     );
 }
 
-vertex VertexOut segment_vertex(
+vertex VertexOut line_segment_vertex(
     constant packed_float2 *vertex_array[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
@@ -55,7 +57,7 @@ vertex VertexOut segment_vertex(
     return vo;
 }
 
-vertex VertexOut cap_vertex(
+vertex VertexOut line_cap_vertex(
     constant packed_float2 *vertex_array[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
@@ -78,7 +80,50 @@ vertex VertexOut cap_vertex(
     return vo;
 }
 
-fragment half4 basic_fragment(VertexOut params[[stage_in]])
+fragment half4 line_fragment(VertexOut params[[stage_in]])
 {
     return half4(params.color);
+}
+
+// MARK: - portal shaders
+
+typedef struct {
+    vector_float2 position;
+    vector_float2 textureCoordinate;
+} PortalVertex;
+
+typedef enum PortalVertexInputIndex {
+    PortalVertexInputIndexVertices = 0,
+    PortalVertexInputIndexViewportSize = 1,
+} PortalVertexInputIndex;
+
+typedef enum PortalTextureIndex {
+    PortalTextureIndexBaseColor = 0,
+} PortalTextureIndex;
+
+typedef struct {
+    float4 position [[position]];
+    float2 textureCoordinate;
+} PortalRasterizerData;
+
+vertex PortalRasterizerData portal_vertex(uint vertexID [[vertex_id]],
+             constant PortalVertex *vertexArray [[ buffer(PortalVertexInputIndexVertices)]],
+             constant vector_uint2 * viewportSizePointer [[ buffer(PortalVertexInputIndexViewportSize) ]]){
+    PortalRasterizerData out;
+    out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
+    out.position.xy = vertexArray[vertexID].position.xy;
+
+    out.textureCoordinate = vertexArray[vertexID].textureCoordinate;
+
+    return out;
+}
+
+fragment float4 portal_fragment(PortalRasterizerData in [[ stage_in ]],
+                               texture2d<half> colorTexture [[ texture(PortalTextureIndexBaseColor)]]) {
+    constexpr sampler textureSampler(mag_filter ::linear,
+                                     min_filter :: linear);
+
+    const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
+
+    return float4(colorSample);
 }

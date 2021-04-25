@@ -9,6 +9,7 @@
 import Foundation
 import Metal
 import QuartzCore
+import simd
 
 class RenderedShape {
     var startIndex: Int
@@ -152,14 +153,22 @@ extension ViewController {
         guard let defaultLibrary = device.makeDefaultLibrary() else { return }
 
         let segmentPipelineStateDescriptor = MTLRenderPipelineDescriptor()
-        segmentPipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "segment_vertex")
-        segmentPipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
+        segmentPipelineStateDescriptor.label = "Line Segment Pipline"
+        segmentPipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "line_segment_vertex")
+        segmentPipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "line_fragment")
         segmentPipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
 
         let capPipelineStateDescriptor = MTLRenderPipelineDescriptor()
-        capPipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "cap_vertex")
-        capPipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "basic_fragment")
+        capPipelineStateDescriptor.label = "Line Cap Pipline"
+        capPipelineStateDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "line_cap_vertex")
+        capPipelineStateDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "line_fragment")
         capPipelineStateDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+
+        let portalPiplineDescriptor = MTLRenderPipelineDescriptor()
+        portalPiplineDescriptor.label = "Portal Pipline"
+        portalPiplineDescriptor.vertexFunction = defaultLibrary.makeFunction(name: "portal_vertex")
+        portalPiplineDescriptor.fragmentFunction = defaultLibrary.makeFunction(name: "portal_fragment")
+        portalPiplineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
 
         let vertexDesc = MTLVertexDescriptor()
 
@@ -176,6 +185,7 @@ extension ViewController {
         do {
             try self.segmentRenderPipelineState = self.device.makeRenderPipelineState(descriptor: segmentPipelineStateDescriptor)
             try self.capRenderPipelineState = self.device.makeRenderPipelineState(descriptor: capPipelineStateDescriptor)
+            try self.pipelineState = self.device.makeRenderPipelineState(descriptor: portalPiplineDescriptor)
         } catch {
             print("Failed to create pipeline state, error \(error)")
         }
@@ -240,17 +250,42 @@ extension ViewController {
             )
         }
 
+        let w: Float = 1
+        let h: Float = 1
+
+        let vertices: [PortalVertex] = [
+            PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+            PortalVertex(position: vector_float2(x: 0, y: 0), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+            PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+
+            PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+            PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+            PortalVertex(position: vector_float2(x: w, y: h), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+        ]
+
+        let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalVertex>.stride * vertices.count, options: .storageModeShared)!
+
+        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: PortalVertexInputIndex.Vertices.rawValue)
+        renderCommandEncoder.setRenderPipelineState(self.pipelineState)
+
+        let width: UInt32 = UInt32(self.width), height: UInt32 = UInt32(self.height)
+        var viewport: vector_uint2 = vector_uint2(x: width, y: height)
+        renderCommandEncoder.setVertexBytes(&viewport, length: MemoryLayout<vector_uint2>.stride, index: PortalVertexInputIndex.ViewportSize.rawValue)
+
+        renderCommandEncoder.setFragmentTexture(self.portalTexture, index: PortalTextureIndex.BaseColor.rawValue)
+        renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
+
         renderCommandEncoder.endEncoding()
 
         return commandBuffer
     }
 
-    final func renderToBitmap(firstTimestamp _: Double, endTimestamp: Double) -> MTLTexture {
+    final func renderToBitmap(firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
         let textureDescriptor = MTLTextureDescriptor()
-        textureDescriptor.textureType = .type2DArray
+        textureDescriptor.textureType = .type2D
         textureDescriptor.pixelFormat = .bgra8Unorm
-        textureDescriptor.width = Int(self.width * 2) // TODO: pass in the desired size
-        textureDescriptor.height = Int(self.height * 2)
+        textureDescriptor.width = Int(size.width)
+        textureDescriptor.height = Int(size.height)
         textureDescriptor.arrayLength = 1
         textureDescriptor.usage = [.shaderRead, .shaderWrite]
         let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
@@ -264,7 +299,7 @@ extension ViewController {
     }
 
     final func renderToVideo(firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let texture: MTLTexture = renderToBitmap(firstTimestamp: firstTimestamp, endTimestamp: endTimestamp)
+        let texture: MTLTexture = self.renderToBitmap(firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: self.width, height: self.height)) // TODO: pass in the desired size
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 

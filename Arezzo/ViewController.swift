@@ -25,6 +25,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var commandQueue: MTLCommandQueue!
     var segmentRenderPipelineState: MTLRenderPipelineState!
     var capRenderPipelineState: MTLRenderPipelineState!
+    var pipelineState: MTLRenderPipelineState!
     var timer: CADisplayLink!
     var nextRenderTimer: CFRunLoopTimer?
     var width: CGFloat = 0.0
@@ -48,6 +49,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     var recordings: [Recording]!
     var currentRecording: Recording!
+
+    var portalTexture: MTLTexture!
 
     public var recordingThread: Thread = Thread() // TODO: get rid of this
 
@@ -224,6 +227,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         } else {
             print("invalid mode: \(self.mode)")
         }
+
+        self.portalTexture = self.renderToBitmap(firstTimestamp: 0, endTimestamp: timestamp, size: CGSize(width: self.width, height: self.height))
 
         self.renderToScreen(endTimestamp: timestamp)
     }
