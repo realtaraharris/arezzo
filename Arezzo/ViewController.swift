@@ -15,26 +15,13 @@ import UIKit
 @available(iOS 14.0, *)
 @available(macCatalyst 14.0, *)
 class ViewController: UIViewController, ToolbarDelegate {
-    var device: MTLDevice = MTLCreateSystemDefaultDevice()!
-    var metalLayer: CAMetalLayer = CAMetalLayer()
-    var segmentVertexBuffer: MTLBuffer!
-    var segmentIndexBuffer: MTLBuffer!
-    var capVertexBuffer: MTLBuffer!
-    var capIndexBuffer: MTLBuffer!
-    var uniformBuffer: MTLBuffer!
-    var commandQueue: MTLCommandQueue!
-    var segmentRenderPipelineState: MTLRenderPipelineState!
-    var capRenderPipelineState: MTLRenderPipelineState!
-    var pipelineState: MTLRenderPipelineState!
+    var renderer: Renderer!
     var timer: CADisplayLink!
     var nextRenderTimer: CFRunLoopTimer?
-    var width: CGFloat = 0.0
-    var height: CGFloat = 0.0
     public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
     var queue: AudioQueueRef?
 
     let toolbar: Toolbar = Toolbar()
-    let capEdges = 21
 
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
     var lineWidth: Float = DEFAULT_LINE_WIDTH
@@ -47,10 +34,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
 
-    var recordings: [Recording]!
+    var topLevelRecording: Recording!
     var currentRecording: Recording!
-
-    var portalTexture: MTLTexture!
 
     public var recordingThread: Thread = Thread() // TODO: get rid of this
 
@@ -70,15 +55,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     @objc override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.metalLayer.device = self.device
-        self.metalLayer.pixelFormat = .bgra8Unorm
-        self.metalLayer.framebufferOnly = false
-        self.metalLayer.frame = view.layer.frame
-        let screenScale = UIScreen.main.scale
-        self.metalLayer.drawableSize = CGSize(width: view.frame.width * screenScale, height: view.frame.height * screenScale)
-        view.layer.addSublayer(self.metalLayer)
-
-        self.setupRender()
+        self.renderer = Renderer(frame: view.layer.frame, scale: UIScreen.main.scale)
+        view.layer.addSublayer(self.renderer.metalLayer)
 
         self.view.backgroundColor = .black // without this, event handlers don't fire, not sure why yet
 
@@ -90,8 +68,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         view.addSubview(self.toolbar.view) // add this last so that it appears on top of the metal layer
 
-        self.recordings = [Recording()]
-        self.currentRecording = self.recordings[0]
+        self.topLevelRecording = Recording()
+        self.currentRecording = self.topLevelRecording
     }
 
     func playback(runNumber: Int) {
@@ -169,7 +147,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             if runNumber < self.currentRunNumber { return }
             self.currentRunNumber = runNumber
 
-            self.renderToScreen(endTimestamp: currentTime)
+            self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: currentTime)
 
             let fireDate = playbackStart + nextTime - firstTime
 
@@ -198,9 +176,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                 lineWidth: self.lineWidth,
                                                 timestamp: timestamp,
-                                                mode: self.mode), device: self.device)
+                                                mode: self.mode), renderer: self.renderer)
 
-        self.renderToScreen(endTimestamp: timestamp)
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -214,23 +192,21 @@ class ViewController: UIViewController, ToolbarDelegate {
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == PenDownMode.draw {
             self.currentRecording.addOp(
-                op: Point(point: point, timestamp: timestamp), device: self.device
+                op: Point(point: point, timestamp: timestamp), renderer: self.renderer
             )
         } else if self.mode == PenDownMode.pan {
             self.currentRecording.addOp(
-                op: Pan(point: point, timestamp: timestamp), device: self.device
+                op: Pan(point: point, timestamp: timestamp), renderer: self.renderer
             )
         } else if self.mode == PenDownMode.portal {
             self.currentRecording.addOp(
-                op: Portal(point: point, timestamp: timestamp, url: ""), device: self.device
+                op: Portal(point: point, timestamp: timestamp, url: ""), renderer: self.renderer
             )
         } else {
             print("invalid mode: \(self.mode)")
         }
 
-        self.portalTexture = self.renderToBitmap(firstTimestamp: 0, endTimestamp: timestamp, size: CGSize(width: self.width, height: self.height))
-
-        self.renderToScreen(endTimestamp: timestamp)
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
     override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
@@ -239,10 +215,11 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = getCurrentTimestamp()
 
-        self.currentRecording.addOp(op: PenUp(timestamp: timestamp), device: self.device)
+        self.currentRecording.addOp(op: PenUp(timestamp: timestamp), renderer: self.renderer)
+        self.currentRecording.addOp(op: UpdatePortal(timestamp: timestamp), renderer: self.renderer)
         self.currentRecording.commitProvisionalOps()
 
-        self.renderToScreen(endTimestamp: timestamp)
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
@@ -250,7 +227,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard self.isRecording else { return }
 
         let timestamp = getCurrentTimestamp()
-        self.renderToScreen(endTimestamp: timestamp)
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
     // MARK: delegate methods
@@ -305,7 +282,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-            self.renderToVideo(firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
+            self.renderer.renderToVideo(shapeList: self.currentRecording.shapeList, firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
 
             for op in self.currentRecording.opList {
                 if op.type != .audioClip || op.timestamp != currentTime { continue }
@@ -362,7 +339,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func startRecording() {
-        self.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: getCurrentTimestamp()), device: self.device)
+        self.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: getCurrentTimestamp()), renderer: self.renderer)
 
         self.isRecording = true
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
@@ -384,7 +361,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.toolbar.documentVC.saveIndicator.startAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = false
             }
-            self.currentRecording.serialize(filename: filename)
+            self.topLevelRecording.serialize(filename: filename)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.saveIndicator.stopAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = true
@@ -403,7 +380,8 @@ class ViewController: UIViewController, ToolbarDelegate {
                     self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
-            self.currentRecording.deserialize(filename: filename, device: self.device, progressCallback)
+            self.topLevelRecording.deserialize(filename: filename, renderer: self.renderer, progressCallback)
+            self.currentRecording = self.topLevelRecording
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
@@ -415,7 +393,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     func clear() {
         self.currentRecording.clear()
         let timestamp = getCurrentTimestamp()
-        self.renderToScreen(endTimestamp: timestamp)
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
     public func setLineWidth(_ lineWidth: Float) {
@@ -428,7 +406,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.stopPlaying()
         }
         if self.currentRecording.timestamps.count == 0 { return }
-        self.renderToScreen(endTimestamp: self.currentRecording.getTimestamp(position: Double(playbackPosition)))
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: self.currentRecording.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
         if wasPlaying {
@@ -438,5 +416,13 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func getPlaybackTimestamp() -> Double {
         self.currentRecording.getTimestamp(position: self.startPosition)
+    }
+
+    func switchPortals() {
+        if self.currentRecording.recordings.count > 0 {
+            self.currentRecording = self.currentRecording.recordings[0]
+        } else {
+            self.currentRecording = self.topLevelRecording
+        }
     }
 }

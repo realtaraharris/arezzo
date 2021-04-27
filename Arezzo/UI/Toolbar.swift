@@ -38,6 +38,8 @@ protocol ToolbarDelegate {
     func setLineWidth(_ lineWidth: Float)
     func setPlaybackPosition(_ playbackPosition: Float)
     func getPlaybackTimestamp() -> Double
+
+    func switchPortals()
 }
 
 class ToolbarView: UIControl {

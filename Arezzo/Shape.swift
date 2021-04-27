@@ -16,9 +16,15 @@ class Shape {
     var colorBuffer: MTLBuffer!
     var widthBuffer: MTLBuffer!
     var type: DrawOperationType
+    var texture: MTLTexture!
 
     init(type: DrawOperationType) {
         self.type = type
+    }
+
+    init(type: DrawOperationType, texture: Box<MTLTexture>) {
+        self.type = type
+        self.texture = texture.value
     }
 
     func addShapePoint(point: [Float], timestamp: Double, device: MTLDevice, color: [Float], lineWidth: Float) {

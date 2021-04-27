@@ -119,8 +119,18 @@ struct Portal: DrawOperation {
     }
 }
 
+struct UpdatePortal: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+
+    init(timestamp: Double) {
+        self.type = DrawOperationType.updatePortal
+        self.timestamp = timestamp
+    }
+}
+
 enum DrawOperationType: String, BinaryCodable {
-    case line, pan, point, penDown, penUp, audioClip, portal, viewport
+    case line, pan, point, penDown, penUp, audioClip, portal, viewport, updatePortal
 
     var metatype: DrawOperation.Type {
         switch self {
@@ -140,6 +150,8 @@ enum DrawOperationType: String, BinaryCodable {
             return Portal.self
         case .viewport:
             return Viewport.self
+        case .updatePortal:
+            return UpdatePortal.self
         }
     }
 }

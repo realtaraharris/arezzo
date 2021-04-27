@@ -17,116 +17,43 @@ class RenderedShape {
     var geometryBuffer: MTLBuffer
     var colorBuffer: MTLBuffer
     var widthBuffer: MTLBuffer
+    var texture: MTLTexture!
+    var type: DrawOperationType
 
-    init(startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer, widthBuffer: MTLBuffer) {
+    init(type: DrawOperationType, startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer, widthBuffer: MTLBuffer, texture: MTLTexture? = nil) {
+        self.type = type
         self.startIndex = startIndex
         self.endIndex = endIndex
         self.geometryBuffer = geometryBuffer
         self.colorBuffer = colorBuffer
         self.widthBuffer = widthBuffer
+        self.texture = texture
     }
 }
 
-extension ViewController {
-    func triggerProgrammaticCapture() {
-        let captureManager = MTLCaptureManager.shared()
-        let captureDescriptor = MTLCaptureDescriptor()
-        captureDescriptor.captureObject = self.device
-        do {
-            try captureManager.startCapture(with: captureDescriptor)
-        } catch {
-            fatalError("error when trying to capture: \(error)")
-        }
-    }
+class Renderer {
+    var device: MTLDevice = MTLCreateSystemDefaultDevice()!
+    var metalLayer: CAMetalLayer = CAMetalLayer()
+    var segmentVertexBuffer: MTLBuffer!
+    var segmentIndexBuffer: MTLBuffer!
+    var capVertexBuffer: MTLBuffer!
+    var capIndexBuffer: MTLBuffer!
+    var uniformBuffer: MTLBuffer!
+    var commandQueue: MTLCommandQueue!
+    var segmentRenderPipelineState: MTLRenderPipelineState!
+    var capRenderPipelineState: MTLRenderPipelineState!
+    var pipelineState: MTLRenderPipelineState!
+    var width: CGFloat = 0.0
+    var height: CGFloat = 0.0
+    let capEdges = 21
 
-    final func generateVerts(renderedShapes: inout [RenderedShape], endTimestamp: Double) {
-        var translation: CGPoint = .zero
+    init(frame: CGRect, scale: CGFloat) {
+        self.metalLayer.device = self.device
+        self.metalLayer.pixelFormat = .bgra8Unorm
+        self.metalLayer.framebufferOnly = false
+        self.metalLayer.frame = frame
+        self.metalLayer.drawableSize = CGSize(width: frame.width * scale, height: frame.height * scale)
 
-        for shape in self.currentRecording.shapeList {
-            if shape.type == DrawOperationType.pan {
-                if shape.geometry.count == 0 { continue }
-                let startX = shape.geometry[0]
-                let startY = shape.geometry[1]
-                let end = shape.getIndex(timestamp: endTimestamp)
-                if end >= 2 {
-                    translation.x += CGFloat(shape.geometry[end - 2] - startX)
-                    translation.y += CGFloat(shape.geometry[end - 1] - startY)
-                }
-
-                continue
-            }
-
-            if shape.timestamp.count == 0 || shape.geometryBuffer == nil { continue }
-            // if shape.notInWindow() { continue }
-
-            let start = 0
-            let end = shape.getIndex(timestamp: endTimestamp)
-
-            if start > end || start == end { continue }
-
-            if shape.type == DrawOperationType.line {
-                let input = shape.geometry
-                var output: [Float] = []
-                for i in stride(from: 0, to: input.count - 1, by: 2) {
-                    output.append(contentsOf: [input[i] - Float(translation.x), input[i + 1] - Float(translation.y)])
-                }
-
-                let geometryBuffer = self.device.makeBuffer(
-                    bytes: output,
-                    length: output.count * 4,
-                    options: .cpuCacheModeWriteCombined
-                )
-
-                renderedShapes.append(RenderedShape(
-                    startIndex: start,
-                    endIndex: end,
-                    geometryBuffer: geometryBuffer!,
-                    colorBuffer: shape.colorBuffer,
-                    widthBuffer: shape.widthBuffer
-                ))
-            } else if shape.type == DrawOperationType.portal {
-                let input = shape.geometry
-
-                let startX = input[start + 0], startY = input[start + 1], endX = input[end - 2], endY = input[end - 1]
-                let width = endX - startX
-                let height = endY - startY
-
-                let output: [Float] = [
-                    startX - Float(translation.x), startY - Float(translation.y),
-                    startX - Float(translation.x), startY + height - Float(translation.y),
-                    endX - Float(translation.x), endY - Float(translation.y),
-                    startX + width - Float(translation.x), startY - Float(translation.y),
-                    startX - Float(translation.x), startY - Float(translation.y),
-                ]
-
-                let geometryBuffer = self.device.makeBuffer(
-                    bytes: output,
-                    length: output.count * 4,
-                    options: .cpuCacheModeWriteCombined
-                )
-
-                renderedShapes.append(RenderedShape(
-                    startIndex: start,
-                    endIndex: 8,
-                    geometryBuffer: geometryBuffer!,
-                    colorBuffer: shape.colorBuffer,
-                    widthBuffer: shape.widthBuffer
-                ))
-            }
-        }
-
-        let tr = self.transform(translation)
-        let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: tr[0], y: tr[1])
-        let uniform = Uniforms(width: Float(self.width), height: Float(self.height), modelViewMatrix: modelViewMatrix)
-        let uniforms = [uniform]
-        uniformBuffer = self.device.makeBuffer(
-            length: MemoryLayout<Uniforms>.size,
-            options: []
-        )
-        memcpy(self.uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
-    }
-
-    final func setupRender() {
         let segmentVertices: [Float] = [
             0.0, -0.5,
             0.0, 0.5,
@@ -192,18 +119,119 @@ extension ViewController {
 
         self.commandQueue = self.device.makeCommandQueue() // this is expensive to create, so we save a reference to it
 
-        self.width = self.view.frame.width
-        self.height = self.view.frame.height
+        self.width = frame.width
+        self.height = frame.height
     }
 
-    final func render(endTimestamp: Double, texture: MTLTexture) -> MTLCommandBuffer? {
+    func triggerProgrammaticCapture() {
+        let captureManager = MTLCaptureManager.shared()
+        let captureDescriptor = MTLCaptureDescriptor()
+        captureDescriptor.captureObject = self.device
+        do {
+            try captureManager.startCapture(with: captureDescriptor)
+        } catch {
+            fatalError("error when trying to capture: \(error)")
+        }
+    }
+
+    final func renderShapeList(shapeList: [Shape], renderedShapes: inout [RenderedShape], endTimestamp: Double) {
+        var translation: CGPoint = .zero
+
+        for shape in shapeList {
+            if shape.type == DrawOperationType.pan {
+                if shape.geometry.count == 0 { continue }
+                let startX = shape.geometry[0]
+                let startY = shape.geometry[1]
+                let end = shape.getIndex(timestamp: endTimestamp)
+                if end >= 2 {
+                    translation.x += CGFloat(shape.geometry[end - 2] - startX)
+                    translation.y += CGFloat(shape.geometry[end - 1] - startY)
+                }
+
+                continue
+            }
+
+            if shape.timestamp.count == 0 || shape.geometryBuffer == nil { continue }
+            // if shape.notInWindow() { continue }
+
+            let start = 0
+            let end = shape.getIndex(timestamp: endTimestamp)
+
+            if start > end || start == end { continue }
+
+            if shape.type == DrawOperationType.line {
+                let input = shape.geometry
+                var output: [Float] = []
+                for i in stride(from: 0, to: input.count - 1, by: 2) {
+                    output.append(contentsOf: [input[i] - Float(translation.x), input[i + 1] - Float(translation.y)])
+                }
+
+                let geometryBuffer = self.device.makeBuffer(
+                    bytes: output,
+                    length: output.count * 4,
+                    options: .cpuCacheModeWriteCombined
+                )
+
+                renderedShapes.append(RenderedShape(
+                    type: shape.type,
+                    startIndex: start,
+                    endIndex: end,
+                    geometryBuffer: geometryBuffer!,
+                    colorBuffer: shape.colorBuffer,
+                    widthBuffer: shape.widthBuffer
+                ))
+            } else if shape.type == DrawOperationType.portal {
+                let input = shape.geometry
+
+                let startX = input[start + 0], startY = input[start + 1], endX = input[end - 2], endY = input[end - 1]
+                let width = endX - startX
+                let height = endY - startY
+
+                let output: [Float] = [
+                    startX - Float(translation.x), startY - Float(translation.y),
+                    startX - Float(translation.x), startY + height - Float(translation.y),
+                    endX - Float(translation.x), endY - Float(translation.y),
+                    startX + width - Float(translation.x), startY - Float(translation.y),
+                    startX - Float(translation.x), startY - Float(translation.y),
+                ]
+
+                let geometryBuffer = self.device.makeBuffer(
+                    bytes: output,
+                    length: output.count * 4,
+                    options: .cpuCacheModeWriteCombined
+                )
+
+                renderedShapes.append(RenderedShape(
+                    type: shape.type,
+                    startIndex: start,
+                    endIndex: 8,
+                    geometryBuffer: geometryBuffer!,
+                    colorBuffer: shape.colorBuffer,
+                    widthBuffer: shape.widthBuffer,
+                    texture: shape.texture
+                ))
+            }
+        }
+
+        let tr = self.transform(translation)
+        let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(x: tr[0], y: tr[1])
+        let uniform = Uniforms(width: Float(self.width), height: Float(self.height), modelViewMatrix: modelViewMatrix)
+        let uniforms = [uniform]
+        uniformBuffer = self.device.makeBuffer(
+            length: MemoryLayout<Uniforms>.size,
+            options: []
+        )
+        memcpy(self.uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
+    }
+
+    final func render(shapeList: [Shape], endTimestamp: Double, texture: MTLTexture) -> MTLCommandBuffer? {
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0 / 255.0, green: 0.0 / 255.0, blue: 0.0 / 255.0, alpha: 1.0)
 
         var renderedShapes: [RenderedShape] = []
-        self.generateVerts(renderedShapes: &renderedShapes, endTimestamp: endTimestamp)
+        self.renderShapeList(shapeList: shapeList, renderedShapes: &renderedShapes, endTimestamp: endTimestamp)
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return nil }
         if let error = commandBuffer.error as NSError? {
@@ -222,65 +250,67 @@ extension ViewController {
 
         for index in 0 ..< renderedShapes.count {
             let rs: RenderedShape = renderedShapes[index]
-            let instanceCount = (rs.endIndex - rs.startIndex) / 2
-            renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
-            renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
-            renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
+            if rs.type == .line {
+                let instanceCount = (rs.endIndex - rs.startIndex) / 2
+                renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
+                renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
+                renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
 
-            renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
-            renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
-            renderCommandEncoder.drawIndexedPrimitives(
-                type: .triangleStrip,
-                indexCount: 4,
-                indexType: MTLIndexType.uint32,
-                indexBuffer: self.segmentIndexBuffer,
-                indexBufferOffset: 0,
-                instanceCount: instanceCount
-            )
+                renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
+                renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
+                renderCommandEncoder.drawIndexedPrimitives(
+                    type: .triangleStrip,
+                    indexCount: 4,
+                    indexType: MTLIndexType.uint32,
+                    indexBuffer: self.segmentIndexBuffer,
+                    indexBufferOffset: 0,
+                    instanceCount: instanceCount
+                )
 
-            renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
-            renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
-            renderCommandEncoder.drawIndexedPrimitives(
-                type: .triangleStrip,
-                indexCount: self.capEdges,
-                indexType: MTLIndexType.uint32,
-                indexBuffer: self.capIndexBuffer,
-                indexBufferOffset: 0,
-                instanceCount: instanceCount + 1 // + 1 for the last cap
-            )
+                renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
+                renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
+                renderCommandEncoder.drawIndexedPrimitives(
+                    type: .triangleStrip,
+                    indexCount: self.capEdges,
+                    indexType: MTLIndexType.uint32,
+                    indexBuffer: self.capIndexBuffer,
+                    indexBufferOffset: 0,
+                    instanceCount: instanceCount + 1 // + 1 for the last cap
+                )
+            } else if rs.type == .portal {
+                let w: Float = 1
+                let h: Float = 1
+
+                let vertices: [PortalVertex] = [
+                    PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: 0, y: 0), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+
+                    PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: w, y: h), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                ]
+
+                let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalVertex>.stride * vertices.count, options: .storageModeShared)!
+
+                renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: PortalVertexInputIndex.Vertices.rawValue)
+                renderCommandEncoder.setRenderPipelineState(self.pipelineState)
+
+                let width: UInt32 = UInt32(self.width), height: UInt32 = UInt32(self.height)
+                var viewport: vector_uint2 = vector_uint2(x: width, y: height)
+                renderCommandEncoder.setVertexBytes(&viewport, length: MemoryLayout<vector_uint2>.stride, index: PortalVertexInputIndex.ViewportSize.rawValue)
+
+                renderCommandEncoder.setFragmentTexture(rs.texture, index: PortalTextureIndex.BaseColor.rawValue)
+                renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
+            }
         }
-
-        let w: Float = 1
-        let h: Float = 1
-
-        let vertices: [PortalVertex] = [
-            PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
-            PortalVertex(position: vector_float2(x: 0, y: 0), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
-            PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-
-            PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
-            PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-            PortalVertex(position: vector_float2(x: w, y: h), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-        ]
-
-        let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalVertex>.stride * vertices.count, options: .storageModeShared)!
-
-        renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: PortalVertexInputIndex.Vertices.rawValue)
-        renderCommandEncoder.setRenderPipelineState(self.pipelineState)
-
-        let width: UInt32 = UInt32(self.width), height: UInt32 = UInt32(self.height)
-        var viewport: vector_uint2 = vector_uint2(x: width, y: height)
-        renderCommandEncoder.setVertexBytes(&viewport, length: MemoryLayout<vector_uint2>.stride, index: PortalVertexInputIndex.ViewportSize.rawValue)
-
-        renderCommandEncoder.setFragmentTexture(self.portalTexture, index: PortalTextureIndex.BaseColor.rawValue)
-        renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
 
         renderCommandEncoder.endEncoding()
 
         return commandBuffer
     }
 
-    final func renderToBitmap(firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
+    final func renderToBitmap(shapeList: [Shape], firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = .type2D
         textureDescriptor.pixelFormat = .bgra8Unorm
@@ -290,7 +320,7 @@ extension ViewController {
         textureDescriptor.usage = [.shaderRead, .shaderWrite]
         let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
 
-        let commandBuffer: MTLCommandBuffer = self.render(endTimestamp: endTimestamp, texture: texture)!
+        let commandBuffer: MTLCommandBuffer = self.render(shapeList: shapeList, endTimestamp: endTimestamp, texture: texture)!
 
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
@@ -298,15 +328,15 @@ extension ViewController {
         return texture
     }
 
-    final func renderToVideo(firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let texture: MTLTexture = self.renderToBitmap(firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: self.width, height: self.height)) // TODO: pass in the desired size
+    final func renderToVideo(shapeList: [Shape], firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
+        let texture: MTLTexture = self.renderToBitmap(shapeList: shapeList, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: self.width, height: self.height)) // TODO: pass in the desired size
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
-    final func renderToScreen(endTimestamp: Double) {
+    final func renderToScreen(shapeList: [Shape], endTimestamp: Double) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
-        let commandBuffer: MTLCommandBuffer = self.render(endTimestamp: endTimestamp, texture: drawable.texture)!
+        let commandBuffer: MTLCommandBuffer = self.render(shapeList: shapeList, endTimestamp: endTimestamp, texture: drawable.texture)!
 
         commandBuffer.present(drawable)
         commandBuffer.commit()

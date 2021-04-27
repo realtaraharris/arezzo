@@ -19,6 +19,13 @@ func getDocumentsDirectory() -> URL {
     return paths[0]
 }
 
+class Box<T> {
+    var value: T!
+    init(value: T!) {
+        self.value = value
+    }
+}
+
 class Recording {
     var opList: [DrawOperation] = []
     var shapeList: [Shape] = []
@@ -32,6 +39,9 @@ class Recording {
     var audioData: [Int16] = []
     var timestamps: [Double] = []
     var url: String = ""
+    var portalTexture: Box<MTLTexture> = Box<MTLTexture>(value: nil)
+
+    var recordings: [Recording] = []
 
     func getTimestamp(position: Double) -> Double {
         let first = self.timestamps.first!
@@ -61,7 +71,7 @@ class Recording {
         Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
     }
 
-    func addOp(op: DrawOperation, device: MTLDevice?) {
+    func addOp(op: DrawOperation, renderer: Renderer?) {
         self.opList.append(op)
         self.timestamps.append(op.timestamp)
 
@@ -78,27 +88,38 @@ class Recording {
             } else if penDownOp.mode == PenDownMode.portal {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                self.shapeList.append(Shape(type: DrawOperationType.portal))
+                let rec = Recording()
+                self.shapeList.append(Shape(type: DrawOperationType.portal, texture: rec.portalTexture))
+                self.recordings.append(rec)
             } else {
                 print("unhandled mode:", penDownOp.mode)
             }
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
-            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, device: device!, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
+            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, device: renderer!.device, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
         } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: device!, color: self.activeColor, lineWidth: self.currentLineWidth)
+            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: renderer!.device, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .portal {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let portalOp = op as! Portal
-            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, device: device!, color: self.activeColor, lineWidth: self.currentLineWidth)
+            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, device: renderer!.device, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .penUp {
             self.penState = .up
         } else if op.type == .audioClip {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
+        } else if op.type == .updatePortal {
+            if self.recordings.count < 1 { return }
+            let portalRecording = self.recordings[0]
+            if portalRecording.timestamps.count < 1 { return }
+            let lastTimestamp = portalRecording.timestamps[portalRecording.timestamps.count - 1]
+            self.portalTexture.value = renderer!.renderToBitmap(shapeList: portalRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: 320, height: 240))
+
+        } else {
+            print("unhandled op type:", op.type.rawValue)
         }
     }
 
@@ -144,7 +165,7 @@ class Recording {
         }
     }
 
-    func deserialize(filename: String, device: MTLDevice, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
+    func deserialize(filename: String, renderer: Renderer, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
 
         do {
@@ -153,7 +174,7 @@ class Recording {
             let decoded = try decoder.decode([DrawOperationWrapper].self)
 
             self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation, device: device)
+                self.addOp(op: $0.drawOperation, renderer: renderer)
                 return $0.drawOperation
             }
         } catch {
@@ -174,7 +195,7 @@ class Recording {
         }
     }
 
-    func deserializeJson(filename: String, device: MTLDevice) {
+    func deserializeJson(filename: String, renderer: Renderer) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
         do {
@@ -182,7 +203,7 @@ class Recording {
             let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)
 
             self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation, device: device)
+                self.addOp(op: $0.drawOperation, renderer: renderer)
                 return $0.drawOperation
             }
         } catch {

@@ -124,6 +124,10 @@ class RecordingViewController: UIViewController {
         self.delegate?.setPenDownMode(mode: .portal)
     }
 
+    @objc func switchPortals() {
+        self.delegate?.switchPortals()
+    }
+
     /*
      @objc func clear() {
          delegate?.clear()
