@@ -32,10 +32,11 @@ struct Line: DrawOperation {
     var end: [Float]
     var timestamp: Double = 0
 
-    init(start: [Float], end: [Float], timestamp _: Int64) { // TODO: use timestamp
+    init(start: [Float], end: [Float], timestamp: Double) {
         self.type = DrawOperationType.line
         self.start = start
         self.end = end
+        self.timestamp = timestamp
     }
 }
 
