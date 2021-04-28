@@ -317,13 +317,13 @@ class Renderer {
                 let h = rs.height!
 
                 let vertices: [PortalVertex] = [
-                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
 
-                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-                    PortalVertex(position: vector_float2(x: x + w, y: y + h), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: x + w, y: y + h), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
                 ]
 
                 let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalVertex>.stride * vertices.count, options: .storageModeShared)!
