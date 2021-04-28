@@ -31,7 +31,7 @@ func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef,
     let int16Ptr = inBuffer.pointee.mAudioData.bindMemory(to: Int16.self, capacity: numBytes)
     let int16Buffer = UnsafeBufferPointer(start: int16Ptr, count: numBytes)
 
-    let timestamp = getCurrentTimestamp()
+    let timestamp = CFAbsoluteTimeGetCurrent()
     let audioSamples: [Int16] = Array(int16Buffer)
     if audioSamples.count > 0 {
         recorder.pointee.drawOperationCollector.addOp(op: AudioClip(timestamp: timestamp, audioSamples: audioSamples), renderer: nil)

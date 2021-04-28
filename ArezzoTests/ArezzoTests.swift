@@ -27,17 +27,15 @@ class ArezzoTests: XCTestCase {
     // PenUp(type: "PenUp", timestamp: 1602408787221, id: 7)
 
     func testShape() throws {
-        let device: MTLDevice = MTLCreateSystemDefaultDevice()!
-
-        let f = Shape(type: "Line", id: 0)
+        let f = Shape(type: DrawOperationType.line)
         let color: [Float] = [1.0, 0.0, 0.0, 1.0]
         let lineWidth: Float = 5
-        f.addShapePoint(point: [513.87476, 343.04993], timestamp: 1_602_408_785_976, device: device, color: color, lineWidth: lineWidth)
-        f.addShapePoint(point: [517.7709, 343.04993], timestamp: 1_602_408_786_160, device: device, color: color, lineWidth: lineWidth)
-        f.addShapePoint(point: [522.0779, 342.015], timestamp: 1_602_408_786_177, device: device, color: color, lineWidth: lineWidth)
-        f.addShapePoint(point: [526.7654, 341.54828], timestamp: 1_602_408_786_193, device: device, color: color, lineWidth: lineWidth)
-        f.addShapePoint(point: [531.5544, 341.54828], timestamp: 1_602_408_787_213, device: device, color: color, lineWidth: lineWidth)
-        f.addShapePoint(point: [556.4631, 342.81653], timestamp: 1_602_408_787_221, device: device, color: color, lineWidth: lineWidth)
+        f.addShapePoint(point: [513.87476, 343.04993], timestamp: 1_602_408_785_976, color: color, lineWidth: lineWidth)
+        f.addShapePoint(point: [517.7709, 343.04993], timestamp: 1_602_408_786_160, color: color, lineWidth: lineWidth)
+        f.addShapePoint(point: [522.0779, 342.015], timestamp: 1_602_408_786_177, color: color, lineWidth: lineWidth)
+        f.addShapePoint(point: [526.7654, 341.54828], timestamp: 1_602_408_786_193, color: color, lineWidth: lineWidth)
+        f.addShapePoint(point: [531.5544, 341.54828], timestamp: 1_602_408_787_213, color: color, lineWidth: lineWidth)
+        f.addShapePoint(point: [556.4631, 342.81653], timestamp: 1_602_408_787_221, color: color, lineWidth: lineWidth)
 
         XCTAssert(f.getIndex(timestamp: 1_602_408_787_221) == 10)
         XCTAssert(f.getIndex(timestamp: -1) == -2)
@@ -61,20 +59,19 @@ class ArezzoTests: XCTestCase {
     }
 
     func testCollector() {
-        let device: MTLDevice = MTLCreateSystemDefaultDevice()!
-
-        let drawOperationCollector = DrawOperationCollector(device: device)
+        let drawOperationCollector = Recording()
+        let renderer = Renderer(frame: CGRect(x: 0, y: 0, width: 100, height: 100), scale: 2.0)
 
         XCTAssertEqual(drawOperationCollector.opList.count, 0)
 
         drawOperationCollector.beginProvisionalOps()
-        drawOperationCollector.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []))
-        drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "draw"))
-        drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
-        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
-        drawOperationCollector.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "pan"))
-        drawOperationCollector.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()))
-        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []), renderer: renderer)
+        drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw), renderer: renderer)
+        drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        drawOperationCollector.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .pan), renderer: renderer)
+        drawOperationCollector.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
 
         XCTAssertEqual(drawOperationCollector.opList[0].type, .audioClip)
         XCTAssertEqual(drawOperationCollector.opList[1].type, .penDown)
@@ -92,11 +89,11 @@ class ArezzoTests: XCTestCase {
         XCTAssertEqual(drawOperationCollector.timestamps.count, 0)
 
         drawOperationCollector.beginProvisionalOps()
-        drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: "draw"))
-        drawOperationCollector.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()))
-        drawOperationCollector.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()))
-        drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
-        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        drawOperationCollector.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw), renderer: renderer)
+        drawOperationCollector.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        drawOperationCollector.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        drawOperationCollector.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        drawOperationCollector.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
 
         drawOperationCollector.commitProvisionalOps()
         drawOperationCollector.cancelProvisionalOps()

@@ -18,7 +18,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var renderer: Renderer!
     var timer: CADisplayLink!
     var nextRenderTimer: CFRunLoopTimer?
-    public lazy var allowedTouchTypes: [TouchType] = [.finger, .pencil]
+    var allowedTouchTypes: [TouchType] = [.finger, .pencil]
     var queue: AudioQueueRef?
 
     let toolbar: Toolbar = Toolbar()
@@ -170,7 +170,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
-        let timestamp = getCurrentTimestamp()
+        let timestamp = CFAbsoluteTimeGetCurrent()
 
         self.currentRecording.beginProvisionalOps()
         self.currentRecording.addOp(op: PenDown(color: self.selectedColor,
@@ -186,7 +186,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
-        let timestamp = getCurrentTimestamp()
+        let timestamp = CFAbsoluteTimeGetCurrent()
 
         let inputPoint = touch.location(in: view)
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
@@ -213,7 +213,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 //        triggerProgrammaticCapture()
         guard self.isRecording else { return }
 
-        let timestamp = getCurrentTimestamp()
+        let timestamp = CFAbsoluteTimeGetCurrent()
 
         self.currentRecording.addOp(op: PenUp(timestamp: timestamp), renderer: self.renderer)
         self.currentRecording.addOp(op: UpdatePortal(timestamp: timestamp), renderer: self.renderer)
@@ -226,7 +226,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.currentRecording.cancelProvisionalOps()
         guard self.isRecording else { return }
 
-        let timestamp = getCurrentTimestamp()
+        let timestamp = CFAbsoluteTimeGetCurrent()
         self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
@@ -339,7 +339,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     public func startRecording() {
-        self.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: getCurrentTimestamp()), renderer: self.renderer)
+        self.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()), renderer: self.renderer)
 
         self.isRecording = true
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
@@ -392,7 +392,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func clear() {
         self.currentRecording.clear()
-        let timestamp = getCurrentTimestamp()
+        let timestamp = CFAbsoluteTimeGetCurrent()
         self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 

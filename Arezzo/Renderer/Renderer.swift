@@ -267,14 +267,18 @@ class Renderer {
 
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return nil }
         if let error = commandBuffer.error as NSError? {
-            if let infos = error.userInfo[MTLCommandBufferEncoderInfoErrorKey]
-                as? [MTLCommandBufferEncoderInfo] {
-                for info in infos {
-                    print(info.label + info.debugSignposts.joined())
-                    if info.errorState == .faulted {
-                        print(info.label + " faulted!")
+            if #available(macCatalyst 14.0, *) {
+                if let infos = error.userInfo[MTLCommandBufferEncoderInfoErrorKey]
+                    as? [MTLCommandBufferEncoderInfo] {
+                    for info in infos {
+                        print(info.label + info.debugSignposts.joined())
+                        if info.errorState == .faulted {
+                            print(info.label + " faulted!")
+                        }
                     }
                 }
+            } else {
+                print("error:", error)
             }
         }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return nil }
@@ -316,17 +320,17 @@ class Renderer {
                 let w = rs.width!
                 let h = rs.height!
 
-                let vertices: [PortalVertex] = [
-                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-                    PortalVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                let vertices: [PortalPreviewVertex] = [
+                    PortalPreviewVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
 
-                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: x + w, y: y + h), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + w, y: y + h), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
                 ]
 
-                let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalVertex>.stride * vertices.count, options: .storageModeShared)!
+                let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalPreviewVertex>.stride * vertices.count, options: .storageModeShared)!
 
                 renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
                 renderCommandEncoder.setRenderPipelineState(self.pipelineState)

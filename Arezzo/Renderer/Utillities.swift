@@ -9,21 +9,6 @@
 import Foundation
 import simd
 
-func getCurrentTimestamp() -> Double {
-    CFAbsoluteTimeGetCurrent()
-}
-
-func veryRandomVect() -> [Float] { [Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0)),
-                                    Float.r(n: Float.random(in: -1.0 ..< 1.0), tol: Float.random(in: -1.0 ..< 1.0))] }
-
-public extension Float {
-    static func r(n: Float, tol: Float) -> Float {
-        let low = n - tol
-        let high = n + tol
-        return tol == 0 || low > high ? n : Float.random(in: low ..< high)
-    }
-}
-
 struct Matrix4x4 {
     var X: SIMD4<Float>
     var Y: SIMD4<Float>
@@ -53,19 +38,7 @@ struct Uniforms {
     let modelViewMatrix: Matrix4x4
 }
 
-struct PortalVertex {
+struct PortalPreviewVertex {
     let position: vector_float2
     let textureCoordinate: vector_float2
-}
-
-extension FileManager {
-    func removePossibleItem(at url: URL) {
-        do {
-            if FileManager.default.fileExists(atPath: url.path) {
-                try FileManager.default.removeItem(at: url)
-            }
-        } catch {
-            fatalError("\(error)")
-        }
-    }
 }
