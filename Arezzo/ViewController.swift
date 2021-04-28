@@ -12,8 +12,6 @@ import Photos
 import QuartzCore
 import UIKit
 
-@available(iOS 14.0, *)
-@available(macCatalyst 14.0, *)
 class ViewController: UIViewController, ToolbarDelegate {
     var renderer: Renderer!
     var timer: CADisplayLink!

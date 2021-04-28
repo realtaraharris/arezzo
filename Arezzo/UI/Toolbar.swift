@@ -103,8 +103,6 @@ extension Toolbar {
     }
 }
 
-@available(iOS 14.0, *)
-@available(macCatalyst 14.0, *)
 class Toolbar: UIViewController {
     var recording: Bool = false
     var playing: Bool = false
