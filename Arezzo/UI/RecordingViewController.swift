@@ -18,6 +18,8 @@ class RecordingViewController: UIViewController {
     var clearButton: UIButton = UIButton(type: .custom)
     var portalButton: UIButton = UIButton(type: .custom)
 
+    var tempButton: UIButton = UIButton(type: .custom)
+
     var delegate: ToolbarDelegate?
     var recording: Bool = false
     var mode: PenDownMode = .draw
@@ -56,6 +58,10 @@ class RecordingViewController: UIViewController {
         configureButton(self.portalButton, UIImage(systemName: "p.circle")!)
         self.portalButton.addTarget(self, action: #selector(self.addPortal), for: .touchUpInside)
         stackView.addArrangedSubview(self.portalButton)
+
+        configureButton(self.tempButton, UIImage(systemName: "bolt")!)
+        self.tempButton.addTarget(self, action: #selector(self.switchPortals), for: .touchUpInside)
+        stackView.addArrangedSubview(self.tempButton)
 
         /*
          clearButton!.translatesAutoresizingMaskIntoConstraints = false

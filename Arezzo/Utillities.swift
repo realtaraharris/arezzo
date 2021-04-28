@@ -58,15 +58,6 @@ struct PortalVertex {
     let textureCoordinate: vector_float2
 }
 
-enum PortalVertexInputIndex: Int {
-    case Vertices = 0
-    case ViewportSize = 1
-}
-
-enum PortalTextureIndex: Int {
-    case BaseColor = 0
-}
-
 extension FileManager {
     func removePossibleItem(at url: URL) {
         do {

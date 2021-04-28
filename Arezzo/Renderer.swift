@@ -16,18 +16,26 @@ class RenderedShape {
     var endIndex: Int
     var geometryBuffer: MTLBuffer
     var colorBuffer: MTLBuffer
-    var widthBuffer: MTLBuffer
-    var texture: MTLTexture!
+    var lineWidthBuffer: MTLBuffer
+    var texture: MTLTexture! // TODO: switch to multiple types of RenderedShapes, and be rid of the optionals
     var type: DrawOperationType
+    var x: Float!
+    var y: Float!
+    var width: Float!
+    var height: Float!
 
-    init(type: DrawOperationType, startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer, widthBuffer: MTLBuffer, texture: MTLTexture? = nil) {
+    init(type: DrawOperationType, startIndex: Int, endIndex: Int, geometryBuffer: MTLBuffer, colorBuffer: MTLBuffer, lineWidthBuffer: MTLBuffer, texture: MTLTexture? = nil, x: Float? = nil, y: Float? = nil, width: Float? = nil, height: Float? = nil) {
         self.type = type
         self.startIndex = startIndex
         self.endIndex = endIndex
         self.geometryBuffer = geometryBuffer
         self.colorBuffer = colorBuffer
-        self.widthBuffer = widthBuffer
+        self.lineWidthBuffer = lineWidthBuffer
         self.texture = texture
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
     }
 }
 
@@ -43,8 +51,8 @@ class Renderer {
     var segmentRenderPipelineState: MTLRenderPipelineState!
     var capRenderPipelineState: MTLRenderPipelineState!
     var pipelineState: MTLRenderPipelineState!
-    var width: CGFloat = 0.0
-    var height: CGFloat = 0.0
+    var width: Float = 0.0
+    var height: Float = 0.0
     let capEdges = 21
 
     init(frame: CGRect, scale: CGFloat) {
@@ -119,8 +127,8 @@ class Renderer {
 
         self.commandQueue = self.device.makeCommandQueue() // this is expensive to create, so we save a reference to it
 
-        self.width = frame.width
-        self.height = frame.height
+        self.width = Float(frame.width)
+        self.height = Float(frame.height)
     }
 
     func triggerProgrammaticCapture() {
@@ -151,7 +159,7 @@ class Renderer {
                 continue
             }
 
-            if shape.timestamp.count == 0 || shape.geometryBuffer == nil { continue }
+            if shape.timestamp.count == 0 { continue }
             // if shape.notInWindow() { continue }
 
             let start = 0
@@ -171,18 +179,28 @@ class Renderer {
                     length: output.count * 4,
                     options: .cpuCacheModeWriteCombined
                 )
+                let colorBuffer = self.device.makeBuffer(
+                    bytes: shape.color,
+                    length: shape.color.count * 4,
+                    options: .storageModeShared
+                )
+                let lineWidthBuffer = self.device.makeBuffer(
+                    bytes: [shape.lineWidth],
+                    length: 4,
+                    options: .storageModeShared
+                )
 
                 renderedShapes.append(RenderedShape(
                     type: shape.type,
                     startIndex: start,
                     endIndex: end,
                     geometryBuffer: geometryBuffer!,
-                    colorBuffer: shape.colorBuffer,
-                    widthBuffer: shape.widthBuffer
+                    colorBuffer: colorBuffer!,
+                    lineWidthBuffer: lineWidthBuffer!
                 ))
             } else if shape.type == DrawOperationType.portal {
                 let input = shape.geometry
-
+                // TODO: consider replacing this with shape.getBoundingRect()
                 let startX = input[start + 0], startY = input[start + 1], endX = input[end - 2], endY = input[end - 1]
                 let width = endX - startX
                 let height = endY - startY
@@ -200,15 +218,29 @@ class Renderer {
                     length: output.count * 4,
                     options: .cpuCacheModeWriteCombined
                 )
+                let colorBuffer = self.device.makeBuffer(
+                    bytes: shape.color,
+                    length: shape.color.count * 4,
+                    options: .storageModeShared
+                )
+                let lineWidthBuffer = self.device.makeBuffer(
+                    bytes: [shape.lineWidth],
+                    length: 4,
+                    options: .storageModeShared
+                )
 
                 renderedShapes.append(RenderedShape(
                     type: shape.type,
                     startIndex: start,
                     endIndex: 8,
                     geometryBuffer: geometryBuffer!,
-                    colorBuffer: shape.colorBuffer,
-                    widthBuffer: shape.widthBuffer,
-                    texture: shape.texture
+                    colorBuffer: colorBuffer!,
+                    lineWidthBuffer: lineWidthBuffer!,
+                    texture: shape.texture,
+                    x: startX,
+                    y: startY,
+                    width: width,
+                    height: height
                 ))
             }
         }
@@ -250,57 +282,56 @@ class Renderer {
 
         for index in 0 ..< renderedShapes.count {
             let rs: RenderedShape = renderedShapes[index]
-            if rs.type == .line {
-                let instanceCount = (rs.endIndex - rs.startIndex) / 2
-                renderCommandEncoder.setVertexBuffer(rs.widthBuffer, offset: 0, index: 4)
-                renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
-                renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
 
-                renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
-                renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
-                renderCommandEncoder.drawIndexedPrimitives(
-                    type: .triangleStrip,
-                    indexCount: 4,
-                    indexType: MTLIndexType.uint32,
-                    indexBuffer: self.segmentIndexBuffer,
-                    indexBufferOffset: 0,
-                    instanceCount: instanceCount
-                )
+            let instanceCount = (rs.endIndex - rs.startIndex) / 2
+            renderCommandEncoder.setVertexBuffer(rs.lineWidthBuffer, offset: 0, index: 4)
+            renderCommandEncoder.setVertexBuffer(rs.geometryBuffer, offset: 0, index: 3)
+            renderCommandEncoder.setVertexBuffer(rs.colorBuffer, offset: 0, index: 1)
 
-                renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
-                renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
-                renderCommandEncoder.drawIndexedPrimitives(
-                    type: .triangleStrip,
-                    indexCount: self.capEdges,
-                    indexType: MTLIndexType.uint32,
-                    indexBuffer: self.capIndexBuffer,
-                    indexBufferOffset: 0,
-                    instanceCount: instanceCount + 1 // + 1 for the last cap
-                )
-            } else if rs.type == .portal {
-                let w: Float = 1
-                let h: Float = 1
+            renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.drawIndexedPrimitives(
+                type: .triangleStrip,
+                indexCount: 4,
+                indexType: MTLIndexType.uint32,
+                indexBuffer: self.segmentIndexBuffer,
+                indexBufferOffset: 0,
+                instanceCount: instanceCount
+            )
+
+            renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
+            renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
+            renderCommandEncoder.drawIndexedPrimitives(
+                type: .triangleStrip,
+                indexCount: self.capEdges,
+                indexType: MTLIndexType.uint32,
+                indexBuffer: self.capIndexBuffer,
+                indexBufferOffset: 0,
+                instanceCount: instanceCount + 1 // + 1 for the last cap
+            )
+
+            if rs.type == .portal {
+                let x = rs.x!
+                let y = rs.y!
+                let w = rs.width!
+                let h = rs.height!
 
                 let vertices: [PortalVertex] = [
-                    PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: 0, y: 0), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
 
-                    PortalVertex(position: vector_float2(x: w, y: 0), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
-                    PortalVertex(position: vector_float2(x: 0, y: h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-                    PortalVertex(position: vector_float2(x: w, y: h), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x + w, y: y), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalVertex(position: vector_float2(x: x, y: y + h), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalVertex(position: vector_float2(x: x + w, y: y + h), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
                 ]
 
                 let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalVertex>.stride * vertices.count, options: .storageModeShared)!
 
-                renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: PortalVertexInputIndex.Vertices.rawValue)
+                renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
                 renderCommandEncoder.setRenderPipelineState(self.pipelineState)
 
-                let width: UInt32 = UInt32(self.width), height: UInt32 = UInt32(self.height)
-                var viewport: vector_uint2 = vector_uint2(x: width, y: height)
-                renderCommandEncoder.setVertexBytes(&viewport, length: MemoryLayout<vector_uint2>.stride, index: PortalVertexInputIndex.ViewportSize.rawValue)
-
-                renderCommandEncoder.setFragmentTexture(rs.texture, index: PortalTextureIndex.BaseColor.rawValue)
+                renderCommandEncoder.setFragmentTexture(rs.texture, index: 0)
                 renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
             }
         }
@@ -317,7 +348,8 @@ class Renderer {
         textureDescriptor.width = Int(size.width)
         textureDescriptor.height = Int(size.height)
         textureDescriptor.arrayLength = 1
-        textureDescriptor.usage = [.shaderRead, .shaderWrite]
+        textureDescriptor.usage = [.shaderRead]
+        textureDescriptor.storageMode = .shared
         let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
 
         let commandBuffer: MTLCommandBuffer = self.render(shapeList: shapeList, endTimestamp: endTimestamp, texture: texture)!
@@ -329,7 +361,7 @@ class Renderer {
     }
 
     final func renderToVideo(shapeList: [Shape], firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let texture: MTLTexture = self.renderToBitmap(shapeList: shapeList, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: self.width, height: self.height)) // TODO: pass in the desired size
+        let texture: MTLTexture = self.renderToBitmap(shapeList: shapeList, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: CGFloat(self.width), height: CGFloat(self.height))) // TODO: pass in the desired size
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 

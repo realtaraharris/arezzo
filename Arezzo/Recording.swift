@@ -7,6 +7,7 @@
 //
 
 import BinaryCoder
+import CoreGraphics
 import Foundation
 import Metal
 
@@ -17,13 +18,6 @@ enum PenState {
 func getDocumentsDirectory() -> URL {
     let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
     return paths[0]
-}
-
-class Box<T> {
-    var value: T!
-    init(value: T!) {
-        self.value = value
-    }
 }
 
 class Recording {
@@ -39,7 +33,6 @@ class Recording {
     var audioData: [Int16] = []
     var timestamps: [Double] = []
     var url: String = ""
-    var portalTexture: Box<MTLTexture> = Box<MTLTexture>(value: nil)
 
     var recordings: [Recording] = []
 
@@ -89,7 +82,7 @@ class Recording {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
                 let rec = Recording()
-                self.shapeList.append(Shape(type: DrawOperationType.portal, texture: rec.portalTexture))
+                self.shapeList.append(Shape(type: DrawOperationType.portal))
                 self.recordings.append(rec)
             } else {
                 print("unhandled mode:", penDownOp.mode)
@@ -97,15 +90,15 @@ class Recording {
         } else if op.type == .pan {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
-            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, device: renderer!.device, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
+            lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
         } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
-            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, device: renderer!.device, color: self.activeColor, lineWidth: self.currentLineWidth)
+            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .portal {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let portalOp = op as! Portal
-            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, device: renderer!.device, color: self.activeColor, lineWidth: self.currentLineWidth)
+            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .penUp {
             self.penState = .up
         } else if op.type == .audioClip {
@@ -115,9 +108,20 @@ class Recording {
             if self.recordings.count < 1 { return }
             let portalRecording = self.recordings[0]
             if portalRecording.timestamps.count < 1 { return }
-            let lastTimestamp = portalRecording.timestamps[portalRecording.timestamps.count - 1]
-            self.portalTexture.value = renderer!.renderToBitmap(shapeList: portalRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: 320, height: 240))
 
+            guard let portalIndex = self.shapeList.firstIndex(where: { $0.type == .portal }) else {
+                print("error - failed to update portal preview texture: could not find portal")
+                return
+            }
+
+            let portal = self.shapeList[portalIndex]
+            guard let rect = portal.getBoundingRect(endTimestamp: op.timestamp) else {
+                print("error - failed to update portal preview texture: could not get portal bounding rect")
+                return
+            }
+
+            let lastTimestamp = portalRecording.timestamps[portalRecording.timestamps.count - 1]
+            portal.texture = renderer!.renderToBitmap(shapeList: portalRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: CGFloat(rect[2]) * 2.0, height: CGFloat(rect[3]) * 2.0))
         } else {
             print("unhandled op type:", op.type.rawValue)
         }
@@ -182,7 +186,7 @@ class Recording {
         }
     }
 
-    func serializeJson(filename: String, device _: MTLDevice) {
+    func serializeJson(filename: String) {
         let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 

@@ -12,9 +12,8 @@ import Metal
 class Shape {
     var geometry: [Float] = []
     var timestamp: [Double] = []
-    var geometryBuffer: MTLBuffer!
-    var colorBuffer: MTLBuffer!
-    var widthBuffer: MTLBuffer!
+    var color: [Float] = []
+    var lineWidth: Float = DEFAULT_LINE_WIDTH
     var type: DrawOperationType
     var texture: MTLTexture!
 
@@ -22,30 +21,15 @@ class Shape {
         self.type = type
     }
 
-    init(type: DrawOperationType, texture: Box<MTLTexture>) {
-        self.type = type
-        self.texture = texture.value
+    func addShapePoint(point: [Float], timestamp: Double, color: [Float], lineWidth: Float) {
+        self.color = color
+        self.lineWidth = lineWidth
+        self.timestamp.append(timestamp)
+        self.geometry.append(contentsOf: point)
     }
 
-    func addShapePoint(point: [Float], timestamp: Double, device: MTLDevice, color: [Float], lineWidth: Float) {
-        let geometryCount = self.geometry.count
-        if geometryCount == 0 {
-            self.colorBuffer = device.makeBuffer(
-                bytes: color,
-                length: color.count * 4,
-                options: .storageModeShared
-            )
-            self.widthBuffer = device.makeBuffer(
-                bytes: [lineWidth],
-                length: 4,
-                options: .storageModeShared
-            )
-        }
-
-        self.timestamp.append(timestamp)
-
-        self.geometry.append(contentsOf: point)
-        self.geometryBuffer = device.makeBuffer(length: self.geometry.count * 4, options: MTLResourceOptions.cpuCacheModeWriteCombined)
+    func setTexture(texture: MTLTexture) {
+        self.texture = texture
     }
 
     func getIndex(timestamp: Double) -> Int {
@@ -69,5 +53,19 @@ class Shape {
                 }
             }
         }
+    }
+
+    func getBoundingRect(endTimestamp: Double) -> [Float]? {
+        if self.timestamp.count == 0 { return nil }
+        let start = 0
+        let end = self.getIndex(timestamp: endTimestamp)
+        let startX = self.geometry[start + 0]
+        let startY = self.geometry[start + 1]
+        let endX = self.geometry[end - 2]
+        let endY = self.geometry[end - 1]
+        let width = endX - startX
+        let height = endY - startY
+
+        return [startX, startY, width, height]
     }
 }

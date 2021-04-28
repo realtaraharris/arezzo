@@ -92,37 +92,30 @@ typedef struct {
     vector_float2 textureCoordinate;
 } PortalVertex;
 
-typedef enum PortalVertexInputIndex {
-    PortalVertexInputIndexVertices = 0,
-    PortalVertexInputIndexViewportSize = 1,
-} PortalVertexInputIndex;
-
-typedef enum PortalTextureIndex {
-    PortalTextureIndexBaseColor = 0,
-} PortalTextureIndex;
-
 typedef struct {
     float4 position [[position]];
     float2 textureCoordinate;
 } PortalRasterizerData;
 
-vertex PortalRasterizerData portal_vertex(uint vertexID [[vertex_id]],
-             constant PortalVertex *vertexArray [[ buffer(PortalVertexInputIndexVertices)]],
-             constant vector_uint2 * viewportSizePointer [[ buffer(PortalVertexInputIndexViewportSize) ]]){
+vertex PortalRasterizerData portal_vertex(
+    constant PortalVertex *vertexArray [[buffer(0)]],
+    constant Uniforms &uniforms[[buffer(2)]],
+    uint vertexID [[vertex_id]]
+){
     PortalRasterizerData out;
-    out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
-    out.position.xy = vertexArray[vertexID].position.xy;
 
+    float2 point = vertexArray[vertexID].position.xy;
+    out.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
     out.textureCoordinate = vertexArray[vertexID].textureCoordinate;
 
     return out;
 }
 
-fragment float4 portal_fragment(PortalRasterizerData in [[ stage_in ]],
-                               texture2d<half> colorTexture [[ texture(PortalTextureIndexBaseColor)]]) {
-    constexpr sampler textureSampler(mag_filter ::linear,
-                                     min_filter :: linear);
-
+fragment float4 portal_fragment(
+    PortalRasterizerData in [[stage_in]],
+    texture2d<half> colorTexture [[texture(0)]]
+) {
+    constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
     const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
 
     return float4(colorSample);
