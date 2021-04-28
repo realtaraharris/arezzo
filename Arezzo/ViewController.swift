@@ -6,10 +6,8 @@
 //  Copyright © 2020 Max Harris. All rights reserved.
 //
 
-import AudioToolbox
 import Foundation
 import Photos
-import QuartzCore
 import UIKit
 
 class ViewController: UIViewController, ToolbarDelegate {
@@ -35,28 +33,15 @@ class ViewController: UIViewController, ToolbarDelegate {
     var topLevelRecording: Recording!
     var currentRecording: Recording!
 
-    public var recordingThread: Thread = Thread() // TODO: get rid of this
+    var recordingThread: Thread = Thread() // TODO: get rid of this
 
-    public enum TouchType: Equatable, CaseIterable {
-        case finger, pencil
-
-        var uiTouchTypes: [UITouch.TouchType] {
-            switch self {
-            case .finger:
-                return [.direct, .indirect]
-            case .pencil:
-                return [.pencil, .stylus]
-            }
-        }
-    }
-
-    @objc override func viewDidLoad() {
+    override func viewDidLoad() {
         super.viewDidLoad()
+
+        self.view.backgroundColor = .black // the input event handlers don't fire without this, but I don't know why
 
         self.renderer = Renderer(frame: view.layer.frame, scale: UIScreen.main.scale)
         view.layer.addSublayer(self.renderer.metalLayer)
-
-        self.view.backgroundColor = .black // without this, event handlers don't fire, not sure why yet
 
         self.toolbar.recordingVC.delegate = self
         self.toolbar.playbackVC.delegate = self
@@ -68,6 +53,180 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         self.topLevelRecording = Recording()
         self.currentRecording = self.topLevelRecording
+    }
+
+    // MARK: - input event handlers
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
+        guard self.isRecording, let touch = touches.first else { return }
+
+        guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
+
+        let timestamp = CFAbsoluteTimeGetCurrent()
+
+        self.currentRecording.beginProvisionalOps()
+        self.currentRecording.addOp(op: PenDown(color: self.selectedColor,
+                                                lineWidth: self.lineWidth,
+                                                timestamp: timestamp,
+                                                mode: self.mode), renderer: self.renderer)
+
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
+    }
+
+    override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
+        guard self.isRecording, let touch = touches.first else { return }
+
+        guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
+
+        let timestamp = CFAbsoluteTimeGetCurrent()
+
+        let inputPoint = touch.location(in: view)
+        let point = [Float(inputPoint.x), Float(inputPoint.y)]
+        if self.mode == PenDownMode.draw {
+            self.currentRecording.addOp(
+                op: Point(point: point, timestamp: timestamp), renderer: self.renderer
+            )
+        } else if self.mode == PenDownMode.pan {
+            self.currentRecording.addOp(
+                op: Pan(point: point, timestamp: timestamp), renderer: self.renderer
+            )
+        } else if self.mode == PenDownMode.portal {
+            self.currentRecording.addOp(
+                op: Portal(point: point, timestamp: timestamp, url: ""), renderer: self.renderer
+            )
+        } else {
+            print("invalid mode: \(self.mode)")
+        }
+
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
+    }
+
+    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
+        guard self.isRecording else { return }
+
+        let timestamp = CFAbsoluteTimeGetCurrent()
+
+        self.currentRecording.addOp(op: PenUp(timestamp: timestamp), renderer: self.renderer)
+        self.currentRecording.addOp(op: UpdatePortal(timestamp: timestamp), renderer: self.renderer)
+        self.currentRecording.commitProvisionalOps()
+
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
+    }
+
+    override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
+        self.currentRecording.cancelProvisionalOps()
+        guard self.isRecording else { return }
+
+        let timestamp = CFAbsoluteTimeGetCurrent()
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
+    }
+
+    // MARK: delegate methods
+
+    func setColor(color: UIColor) {
+        self.selectedColor = [
+            Float(color.cgColor.components![0]),
+            Float(color.cgColor.components![1]),
+            Float(color.cgColor.components![2]),
+            Float(color.cgColor.components![3]),
+        ]
+    }
+
+    func startExport(filename: String) {
+        let screenScale = UIScreen.main.scale
+        let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
+
+        self.toolbar.documentVC.exportButton.isEnabled = false
+        self.toolbar.documentVC.exportProgressIndicator.isHidden = false
+
+        DispatchQueue.global().async {
+            self.exportToVideo(filename, outputSize)
+        }
+    }
+
+    func exportToVideo(_ filename: String, _ outputSize: CGSize) {
+        let outputUrl = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("m4v")
+
+        FileManager.default.removePossibleItem(at: outputUrl)
+
+        let videoRecorder = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)!
+
+        let (startIndex, endIndex) = self.currentRecording.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
+        var timestampIterator = self.currentRecording.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+
+        let firstPlaybackTimestamp = self.currentRecording.timestamps[startIndex]
+        let firstTimestamp = self.currentRecording.timestamps[0]
+        let timeOffset = firstPlaybackTimestamp - firstTimestamp
+
+        videoRecorder.startRecording(firstTimestamp)
+
+        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
+
+        let frameCount: Float = Float(self.currentRecording.timestamps.count)
+        var framesRendered = 0
+
+        func renderNext() {
+            let (currentTime, nextTime) = timestampIterator.next()!
+
+            if nextTime == -1 {
+                self.playingState.running = false
+                return
+            }
+
+            self.renderer.renderToVideo(shapeList: self.currentRecording.shapeList, firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
+
+            for op in self.currentRecording.opList {
+                if op.type != .audioClip || op.timestamp != currentTime { continue }
+                let audioClip = op as! AudioClip
+                let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
+                videoRecorder.writeAudio(samples: samples!)
+            }
+
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.exportProgressIndicator.progress = Float(framesRendered) / frameCount
+                framesRendered += 1
+            }
+        }
+        self.playingState.running = true
+
+        while self.playingState.running {
+            renderNext()
+        }
+
+        videoRecorder.endRecording {
+            DispatchQueue.main.async {
+                self.toolbar.documentVC.exportButton.isEnabled = true
+                self.toolbar.documentVC.exportProgressIndicator.isHidden = true
+                self.toolbar.documentVC.exportProgressIndicator.progress = 0
+            }
+        }
+
+        DispatchQueue.main.async {
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputUrl) }) { _, _ in
+            }
+        }
+    }
+
+    func startPlaying() {
+        if self.isPlaying { return }
+
+        self.isPlaying = true
+        self.playingState.audioData = self.currentRecording.audioData
+        self.playingState.lastIndexRead = 0
+        self.playback(runNumber: self.runNumber)
+        self.runNumber += 1
+    }
+
+    func stopPlaying() {
+        guard self.nextRenderTimer != nil else {
+            self.isPlaying = false
+            return
+        }
+        CFRunLoopTimerInvalidate(self.nextRenderTimer)
+        check(AudioQueueStop(self.queue!, true))
+        check(AudioQueueDispose(self.queue!, true))
+        self.isPlaying = false
     }
 
     func playback(runNumber: Int) {
@@ -161,182 +320,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
     }
 
-    // MARK: - input event handlers
-
-    override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
-        guard self.isRecording, let touch = touches.first else { return }
-
-        guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
-
-        let timestamp = CFAbsoluteTimeGetCurrent()
-
-        self.currentRecording.beginProvisionalOps()
-        self.currentRecording.addOp(op: PenDown(color: self.selectedColor,
-                                                lineWidth: self.lineWidth,
-                                                timestamp: timestamp,
-                                                mode: self.mode), renderer: self.renderer)
-
-        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
-    }
-
-    override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
-        guard self.isRecording, let touch = touches.first else { return }
-
-        guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
-
-        let timestamp = CFAbsoluteTimeGetCurrent()
-
-        let inputPoint = touch.location(in: view)
-        let point = [Float(inputPoint.x), Float(inputPoint.y)]
-        if self.mode == PenDownMode.draw {
-            self.currentRecording.addOp(
-                op: Point(point: point, timestamp: timestamp), renderer: self.renderer
-            )
-        } else if self.mode == PenDownMode.pan {
-            self.currentRecording.addOp(
-                op: Pan(point: point, timestamp: timestamp), renderer: self.renderer
-            )
-        } else if self.mode == PenDownMode.portal {
-            self.currentRecording.addOp(
-                op: Portal(point: point, timestamp: timestamp, url: ""), renderer: self.renderer
-            )
-        } else {
-            print("invalid mode: \(self.mode)")
-        }
-
-        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
-    }
-
-    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
-//        triggerProgrammaticCapture()
-        guard self.isRecording else { return }
-
-        let timestamp = CFAbsoluteTimeGetCurrent()
-
-        self.currentRecording.addOp(op: PenUp(timestamp: timestamp), renderer: self.renderer)
-        self.currentRecording.addOp(op: UpdatePortal(timestamp: timestamp), renderer: self.renderer)
-        self.currentRecording.commitProvisionalOps()
-
-        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
-    }
-
-    override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
-        self.currentRecording.cancelProvisionalOps()
-        guard self.isRecording else { return }
-
-        let timestamp = CFAbsoluteTimeGetCurrent()
-        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
-    }
-
-    // MARK: delegate methods
-
-    func setColor(color: UIColor) {
-        self.selectedColor = [
-            Float(color.cgColor.components![0]),
-            Float(color.cgColor.components![1]),
-            Float(color.cgColor.components![2]),
-            Float(color.cgColor.components![3]),
-        ]
-    }
-
-    func startExport(filename: String) {
-        let screenScale = UIScreen.main.scale
-        let outputSize = CGSize(width: self.view.frame.width * screenScale, height: self.view.frame.height * screenScale)
-
-        self.toolbar.documentVC.exportButton.isEnabled = false
-        self.toolbar.documentVC.exportProgressIndicator.isHidden = false
-
-        DispatchQueue.global().async {
-            self.actuallyDoExport(filename, outputSize)
-        }
-    }
-
-    func actuallyDoExport(_ filename: String, _ outputSize: CGSize) {
-        let outputUrl = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("m4v")
-
-        FileManager.default.removePossibleItem(at: outputUrl)
-
-        let videoRecorder = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)!
-
-        let (startIndex, endIndex) = self.currentRecording.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
-        var timestampIterator = self.currentRecording.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
-
-        let firstPlaybackTimestamp = self.currentRecording.timestamps[startIndex]
-        let firstTimestamp = self.currentRecording.timestamps[0]
-        let timeOffset = firstPlaybackTimestamp - firstTimestamp
-
-        videoRecorder.startRecording(firstTimestamp)
-
-        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-
-        let frameCount: Float = Float(self.currentRecording.timestamps.count)
-        var framesRendered = 0
-
-        func renderNext() {
-            let (currentTime, nextTime) = timestampIterator.next()!
-
-            if nextTime == -1 {
-                self.playingState.running = false
-                return
-            }
-
-            self.renderer.renderToVideo(shapeList: self.currentRecording.shapeList, firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
-
-            for op in self.currentRecording.opList {
-                if op.type != .audioClip || op.timestamp != currentTime { continue }
-                let audioClip = op as! AudioClip
-                let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
-                videoRecorder.writeAudio(samples: samples!)
-            }
-
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.exportProgressIndicator.progress = Float(framesRendered) / frameCount
-                framesRendered += 1
-            }
-        }
-        self.playingState.running = true
-
-        while self.playingState.running {
-            renderNext()
-        }
-
-        videoRecorder.endRecording {
-            DispatchQueue.main.async {
-                self.toolbar.documentVC.exportButton.isEnabled = true
-                self.toolbar.documentVC.exportProgressIndicator.isHidden = true
-                self.toolbar.documentVC.exportProgressIndicator.progress = 0
-            }
-        }
-
-        DispatchQueue.main.async {
-            PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: outputUrl) }) { _, _ in
-            }
-        }
-    }
-
-    public func startPlaying() {
-        if self.isPlaying { return }
-
-        self.isPlaying = true
-        self.playingState.audioData = self.currentRecording.audioData
-        self.playingState.lastIndexRead = 0
-        self.playback(runNumber: self.runNumber)
-        self.runNumber += 1
-    }
-
-    public func stopPlaying() {
-        guard self.nextRenderTimer != nil else {
-            self.isPlaying = false
-            return
-        }
-        CFRunLoopTimerInvalidate(self.nextRenderTimer)
-        check(AudioQueueStop(self.queue!, true))
-        check(AudioQueueDispose(self.queue!, true))
-        self.isPlaying = false
-    }
-
-    public func startRecording() {
+    func startRecording() {
         self.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()), renderer: self.renderer)
 
         self.isRecording = true
@@ -344,12 +328,12 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingThread.start()
     }
 
-    public func stopRecording() {
+    func stopRecording() {
         self.isRecording = false
         self.recordingThread.cancel()
     }
 
-    public func setPenDownMode(mode: PenDownMode) {
+    func setPenDownMode(mode: PenDownMode) {
         self.mode = mode
     }
 
@@ -394,7 +378,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
-    public func setLineWidth(_ lineWidth: Float) {
+    func setLineWidth(_ lineWidth: Float) {
         self.lineWidth = lineWidth
     }
 
@@ -421,6 +405,19 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.currentRecording = self.currentRecording.recordings[0]
         } else {
             self.currentRecording = self.topLevelRecording
+        }
+    }
+}
+
+public enum TouchType: Equatable, CaseIterable {
+    case finger, pencil
+
+    var uiTouchTypes: [UITouch.TouchType] {
+        switch self {
+        case .finger:
+            return [.direct, .indirect]
+        case .pencil:
+            return [.pencil, .stylus]
         }
     }
 }
