@@ -142,7 +142,7 @@ class Renderer {
         }
     }
 
-    final func renderShapeList(shapeList: [Shape], renderedShapes: inout [RenderedShape], endTimestamp: Double) {
+    func renderShapeList(shapeList: [Shape], renderedShapes: inout [RenderedShape], endTimestamp: Double) {
         var translation: CGPoint = .zero
 
         for shape in shapeList {
@@ -256,7 +256,7 @@ class Renderer {
         memcpy(self.uniformBuffer.contents(), uniforms, MemoryLayout<Uniforms>.size)
     }
 
-    final func render(shapeList: [Shape], endTimestamp: Double, texture: MTLTexture) -> MTLCommandBuffer? {
+    func render(shapeList: [Shape], endTimestamp: Double, texture: MTLTexture) -> MTLCommandBuffer? {
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
@@ -345,7 +345,7 @@ class Renderer {
         return commandBuffer
     }
 
-    final func renderToBitmap(shapeList: [Shape], firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
+    func renderToBitmap(shapeList: [Shape], firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = .type2D
         textureDescriptor.pixelFormat = .bgra8Unorm
@@ -364,12 +364,12 @@ class Renderer {
         return texture
     }
 
-    final func renderToVideo(shapeList: [Shape], firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
+    func renderToVideo(shapeList: [Shape], firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
         let texture: MTLTexture = self.renderToBitmap(shapeList: shapeList, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: CGFloat(self.width), height: CGFloat(self.height))) // TODO: pass in the desired size
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
-    final func renderToScreen(shapeList: [Shape], endTimestamp: Double) {
+    func renderToScreen(shapeList: [Shape], endTimestamp: Double) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
         let commandBuffer: MTLCommandBuffer = self.render(shapeList: shapeList, endTimestamp: endTimestamp, texture: drawable.texture)!
@@ -381,7 +381,7 @@ class Renderer {
         // captureManager.stopCapture()
     }
 
-    final func transform(_ point: CGPoint) -> [Float] {
+    func transform(_ point: CGPoint) -> [Float] {
         let frameWidth: Float = Float(self.width)
         let frameHeight: Float = Float(self.height)
         let x: Float = Float(point.x)
