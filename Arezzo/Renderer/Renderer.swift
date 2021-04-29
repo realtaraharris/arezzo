@@ -179,74 +179,19 @@ class Renderer {
             if start > end || start == end { continue }
 
             if shape.type == DrawOperationType.line {
-                let input = shape.geometry
-
-                let geometryBuffer = self.device.makeBuffer(
-                    bytes: input,
-                    length: input.count * 4,
-                    options: .storageModeShared
-                )
-                let colorBuffer = self.device.makeBuffer(
-                    bytes: shape.color,
-                    length: shape.color.count * 4,
-                    options: .storageModeShared
-                )
-                let lineWidthBuffer = self.device.makeBuffer(
-                    bytes: [shape.lineWidth],
-                    length: 4,
-                    options: .storageModeShared
-                )
-
-                let instanceCount = (end - start) / 2
-                renderCommandEncoder.setVertexBuffer(lineWidthBuffer!, offset: 0, index: 4)
-                renderCommandEncoder.setVertexBuffer(geometryBuffer!, offset: 0, index: 3)
-                renderCommandEncoder.setVertexBuffer(colorBuffer!, offset: 0, index: 1)
-
-                renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
-                renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
-                renderCommandEncoder.drawIndexedPrimitives(
-                    type: .triangleStrip,
-                    indexCount: 4,
-                    indexType: MTLIndexType.uint32,
-                    indexBuffer: self.segmentIndexBuffer,
-                    indexBufferOffset: 0,
-                    instanceCount: instanceCount
-                )
-
-                renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
-                renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
-                renderCommandEncoder.drawIndexedPrimitives(
-                    type: .triangleStrip,
-                    indexCount: self.capEdges,
-                    indexType: MTLIndexType.uint32,
-                    indexBuffer: self.capIndexBuffer,
-                    indexBufferOffset: 0,
-                    instanceCount: instanceCount + 1 // + 1 for the last cap
-                )
+                self.drawLines(points: shape.geometry, instanceCount: (end - start) / 2, shape: shape, renderCommandEncoder: renderCommandEncoder)
             } else if shape.type == DrawOperationType.portal {
-                let input = shape.geometry
-
-                // TODO: consider replacing this with shape.getBoundingRect()
-                let startX = input[start + 0], startY = input[start + 1], endX = input[end - 2], endY = input[end - 1]
-                let width = endX - startX
-                let height = endY - startY
-
-                let output: [Float] = [
-                    startX, startY,
-                    startX, startY + height,
-                    endX, endY,
-                    startX + width, startY,
-                    startX, startY,
-                ]
+                guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
+                let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
 
                 let vertices: [PortalPreviewVertex] = [
-                    PortalPreviewVertex(position: vector_float2(x: startX + width, y: startY), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-                    PortalPreviewVertex(position: vector_float2(x: startX, y: startY), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-                    PortalPreviewVertex(position: vector_float2(x: startX, y: startY + height), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y + height), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
 
-                    PortalPreviewVertex(position: vector_float2(x: startX + width, y: startY), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-                    PortalPreviewVertex(position: vector_float2(x: startX, y: startY + height), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
-                    PortalPreviewVertex(position: vector_float2(x: startX + width, y: startY + height), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y + height), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y + height), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
                 ]
 
                 let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalPreviewVertex>.stride * vertices.count, options: .storageModeShared)!
@@ -256,12 +201,66 @@ class Renderer {
 
                 renderCommandEncoder.setFragmentTexture(shape.texture, index: 0)
                 renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
+
+                let points: [Float] = [
+                    x, y,
+                    x, y + height,
+                    x + width, y + height,
+                    x + width, y,
+                    x, y,
+                ]
+
+                self.drawLines(points: points, instanceCount: 4, shape: shape, renderCommandEncoder: renderCommandEncoder)
             }
         }
 
         renderCommandEncoder.endEncoding()
 
         return commandBuffer
+    }
+
+    func drawLines(points: [Float], instanceCount: Int, shape: Shape, renderCommandEncoder: MTLRenderCommandEncoder) {
+        let geometryBuffer = self.device.makeBuffer(
+            bytes: points,
+            length: points.count * 4,
+            options: .storageModeShared
+        )
+        let colorBuffer = self.device.makeBuffer(
+            bytes: shape.color,
+            length: shape.color.count * 4,
+            options: .storageModeShared
+        )
+        let lineWidthBuffer = self.device.makeBuffer(
+            bytes: [shape.lineWidth],
+            length: 4,
+            options: .storageModeShared
+        )
+
+        renderCommandEncoder.setVertexBuffer(lineWidthBuffer!, offset: 0, index: 4)
+        renderCommandEncoder.setVertexBuffer(geometryBuffer!, offset: 0, index: 3)
+        renderCommandEncoder.setVertexBuffer(colorBuffer!, offset: 0, index: 1)
+
+        renderCommandEncoder.setRenderPipelineState(self.segmentRenderPipelineState)
+        renderCommandEncoder.setVertexBuffer(self.segmentVertexBuffer, offset: 0, index: 0)
+        renderCommandEncoder.drawIndexedPrimitives(
+            type: .triangleStrip,
+            indexCount: 4,
+            indexType: MTLIndexType.uint32,
+            indexBuffer: self.segmentIndexBuffer,
+            indexBufferOffset: 0,
+            instanceCount: instanceCount
+        )
+
+        renderCommandEncoder.setRenderPipelineState(self.capRenderPipelineState)
+        renderCommandEncoder.setVertexBuffer(self.capVertexBuffer, offset: 0, index: 0)
+        renderCommandEncoder.drawIndexedPrimitives(
+            type: .triangleStrip,
+            indexCount: self.capEdges,
+            indexType: MTLIndexType.uint32,
+            indexBuffer: self.capIndexBuffer,
+            indexBufferOffset: 0,
+            instanceCount: instanceCount + 1 // + 1 for the last cap
+        )
     }
 
     func renderToBitmap(shapeList: [Shape], firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
