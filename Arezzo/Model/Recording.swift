@@ -121,7 +121,7 @@ class Recording {
             }
 
             let lastTimestamp = portalRecording.timestamps[portalRecording.timestamps.count - 1]
-            portal.texture = renderer!.renderToBitmap(shapeList: portalRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: CGFloat(rect[2]) * 2.0, height: CGFloat(rect[3]) * 2.0))
+            portal.setTexture(texture: renderer!.renderToBitmap(shapeList: portalRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: CGFloat(rect[2]) * 2.0, height: CGFloat(rect[3]) * 2.0)))
         } else {
             print("unhandled op type:", op.type.rawValue)
         }

@@ -25,6 +25,7 @@ class Renderer {
     var width: Float = 0.0
     var height: Float = 0.0
     let capEdges = 21
+    var portalRects: [CGRect] = []
 
     init(frame: CGRect, scale: CGFloat) {
         self.metalLayer.device = self.device
@@ -137,6 +138,7 @@ class Renderer {
         }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return nil }
 
+        self.portalRects = []
         var translation: [Float] = [0.0, 0.0]
 
         // sum up the translation vect from the shapeList
@@ -183,6 +185,8 @@ class Renderer {
             } else if shape.type == DrawOperationType.portal {
                 guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
                 let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
+
+                self.portalRects.append(CGRect(x: CGFloat(x + translation[0]), y: CGFloat(y + translation[1]), width: CGFloat(width), height: CGFloat(height)))
 
                 let vertices: [PortalPreviewVertex] = [
                     PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),

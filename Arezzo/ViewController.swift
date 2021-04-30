@@ -18,6 +18,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var queue: AudioQueueRef?
 
     let toolbar: Toolbar = Toolbar()
+    let portalControls = PortalViewController()
 
     var selectedColor: [Float] = [1.0, 0.0, 0.0, 1.0]
     var lineWidth: Float = DEFAULT_LINE_WIDTH
@@ -49,18 +50,41 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.colorPaletteVC.delegate = self
         self.toolbar.documentVC.delegate = self
 
-        view.addSubview(self.toolbar.view) // add this last so that it appears on top of the metal layer
-
         self.topLevelRecording = Recording()
         self.currentRecording = self.topLevelRecording
+
+        self.portalControls.view.isHidden = true
+        self.view.addSubview(self.portalControls.view)
+        addChild(self.portalControls)
+        self.portalControls.didMove(toParent: self)
+
+        view.addSubview(self.toolbar.view) // add this last so that it appears on top of the metal layer
+    }
+
+    func checkPortalRects(_ inputPoint: CGPoint) -> CGRect? {
+        for portalRect in self.renderer.portalRects {
+            if portalRect.contains(inputPoint) { return portalRect }
+        }
+        return nil
     }
 
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.isRecording, let touch = touches.first else { return }
-
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
+
+        let inputPoint = touch.location(in: view)
+
+        let portalRect = self.checkPortalRects(inputPoint)
+        if portalRect != nil {
+            self.portalControls.view.center.x = portalRect!.midX
+            self.portalControls.view.center.y = portalRect!.midY
+            self.portalControls.view.isHidden = false
+            if self.mode != .pan { return }
+        } else {
+            self.portalControls.view.isHidden = true
+        }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
 
@@ -75,12 +99,19 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.isRecording, let touch = touches.first else { return }
-
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
+
+        let inputPoint = touch.location(in: view)
+
+        let portalRect = self.checkPortalRects(inputPoint)
+        if portalRect != nil {
+            self.portalControls.view.center.x = portalRect!.midX
+            self.portalControls.view.center.y = portalRect!.midY
+            self.portalControls.view.setNeedsDisplay(portalRect!)
+        }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
 
-        let inputPoint = touch.location(in: view)
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == PenDownMode.draw {
             self.currentRecording.addOp(
@@ -101,8 +132,16 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: timestamp)
     }
 
-    override open func touchesEnded(_: Set<UITouch>, with _: UIEvent?) {
-        guard self.isRecording else { return }
+    override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
+        guard self.isRecording, let touch = touches.first else { return }
+
+        let inputPoint = touch.location(in: view)
+        let portalRect = self.checkPortalRects(inputPoint)
+        if portalRect != nil {
+            self.portalControls.view.center.x = portalRect!.midX
+            self.portalControls.view.center.y = portalRect!.midY
+            self.portalControls.view.setNeedsDisplay(portalRect!)
+        }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
 

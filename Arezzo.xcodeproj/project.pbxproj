@@ -51,6 +51,7 @@
 		50971277261429C900DB39FE /* DocumentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50971276261429C900DB39FE /* DocumentViewController.swift */; };
 		50A3B12925D6F8E3003FBB93 /* MetalVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */; };
 		50A9E45B2639BC1B007A3BC9 /* AudioStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E696E2256CBE4400C271D8 /* AudioStream.swift */; };
+		50A9E4A1263B2F94007A3BC9 /* Portal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A9E4A0263B2F94007A3BC9 /* Portal.swift */; };
 		50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */; };
 		50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */; };
 		50C2A70224A67F87000F3B93 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2A70124A67F87000F3B93 /* ViewController.swift */; };
@@ -114,6 +115,7 @@
 		50883249255B39620001E5A2 /* AudioDeviceFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDeviceFinder.swift; sourceTree = "<group>"; };
 		50971276261429C900DB39FE /* DocumentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentViewController.swift; sourceTree = "<group>"; };
 		50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalVideoRecorder.swift; sourceTree = "<group>"; };
+		50A9E4A0263B2F94007A3BC9 /* Portal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Portal.swift; sourceTree = "<group>"; };
 		50C2A6FA24A67F87000F3B93 /* Arezzo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Arezzo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50C2A6FD24A67F87000F3B93 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		50C2A6FF24A67F87000F3B93 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -289,6 +291,7 @@
 				5005C24C260BCC6600DFE391 /* EditingViewController.swift */,
 				50507380260FF9FA00892C14 /* ColorPaletteViewController.swift */,
 				501E676C24D730D10032C7BD /* LargePalette.swift */,
+				50A9E4A0263B2F94007A3BC9 /* Portal.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -509,6 +512,7 @@
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
 				508832422559DC100001E5A2 /* Recorder.swift in Sources */,
+				50A9E4A1263B2F94007A3BC9 /* Portal.swift in Sources */,
 				50E0F2EA2501B9D90054D91F /* Recording.swift in Sources */,
 				50323194257597840050C298 /* RecordingThread.swift in Sources */,
 				50971277261429C900DB39FE /* DocumentViewController.swift in Sources */,
