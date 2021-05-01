@@ -49,6 +49,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.editingVC.delegate = self
         self.toolbar.colorPaletteVC.delegate = self
         self.toolbar.documentVC.delegate = self
+        self.portalControls.delegate = self
 
         self.topLevelRecording = Recording()
         self.currentRecording = self.topLevelRecording
@@ -78,10 +79,9 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let portalRect = self.checkPortalRects(inputPoint)
         if portalRect != nil {
-            self.portalControls.view.center.x = portalRect!.midX
-            self.portalControls.view.center.y = portalRect!.midY
+            self.portalControls.view.frame = portalRect!
             self.portalControls.view.isHidden = false
-            if self.mode != .pan { return }
+            return
         } else {
             self.portalControls.view.isHidden = true
         }
@@ -105,9 +105,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let portalRect = self.checkPortalRects(inputPoint)
         if portalRect != nil {
-            self.portalControls.view.center.x = portalRect!.midX
-            self.portalControls.view.center.y = portalRect!.midY
+            self.portalControls.view.frame = portalRect!
+            self.portalControls.view.isHidden = false
             self.portalControls.view.setNeedsDisplay(portalRect!)
+            return
         }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
@@ -141,6 +142,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.portalControls.view.center.x = portalRect!.midX
             self.portalControls.view.center.y = portalRect!.midY
             self.portalControls.view.setNeedsDisplay(portalRect!)
+            return
         }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
@@ -445,6 +447,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         } else {
             self.currentRecording = self.topLevelRecording
         }
+        self.renderer.renderToScreen(shapeList: self.currentRecording.shapeList, endTimestamp: CFAbsoluteTimeGetCurrent())
+        self.portalControls.view.isHidden = true
+        self.portalControls.view.setNeedsDisplay()
     }
 }
 
