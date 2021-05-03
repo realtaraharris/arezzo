@@ -110,23 +110,25 @@ struct Portal: DrawOperation {
     var type: DrawOperationType
     var point: [Float]
     var timestamp: Double
-    var url: String
+    var name: String
 
-    init(point: [Float], timestamp: Double, url: String) {
+    init(point: [Float], timestamp: Double, name: String) {
         self.type = DrawOperationType.portal
         self.point = point
         self.timestamp = timestamp
-        self.url = url
+        self.name = name
     }
 }
 
 struct UpdatePortal: DrawOperation {
     var type: DrawOperationType
     var timestamp: Double
+    var name: String
 
-    init(timestamp: Double) {
+    init(timestamp: Double, name: String) {
         self.type = DrawOperationType.updatePortal
         self.timestamp = timestamp
+        self.name = name
     }
 }
 

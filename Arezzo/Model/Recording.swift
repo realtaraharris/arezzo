@@ -32,9 +32,13 @@ class Recording {
     var penState: PenState = .down
     var audioData: [Int16] = []
     var timestamps: [Double] = []
-    var url: String = ""
+    var name: String = ""
+    var recordingIndex: RecordingIndex
 
-    var recordings: [Recording] = []
+    init(name: String, recordingIndex: RecordingIndex) {
+        self.name = name
+        self.recordingIndex = recordingIndex
+    }
 
     func getTimestamp(position: Double) -> Double {
         let first = self.timestamps.first!
@@ -81,9 +85,11 @@ class Recording {
             } else if penDownOp.mode == PenDownMode.portal {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                let rec = Recording()
-                self.shapeList.append(Shape(type: DrawOperationType.portal))
-                self.recordings.append(rec)
+                let name = UUID().uuidString
+                self.recordingIndex.addRecording(name: name)
+                let newShape = Shape(type: DrawOperationType.portal)
+                newShape.name = name
+                self.shapeList.append(newShape)
             } else {
                 print("unhandled mode:", penDownOp.mode)
             }
@@ -105,23 +111,26 @@ class Recording {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
         } else if op.type == .updatePortal {
-            if self.recordings.count < 1 { return }
-            let portalRecording = self.recordings[0]
-            if portalRecording.timestamps.count < 1 { return }
+            let updatePortalOp = op as! UpdatePortal
+            if self.recordingIndex.pathStack.count < 2 { return }
 
-            guard let portalIndex = self.shapeList.firstIndex(where: { $0.type == .portal }) else {
-                print("error - failed to update portal preview texture: could not find portal")
+            let portalRecording = self.recordingIndex.getRecordingByUrl(name: self.recordingIndex.pathStack[self.recordingIndex.pathStack.count - 2])!
+
+            print("portalRecording.shapeList:", portalRecording.shapeList.map { $0.name }, updatePortalOp.name)
+
+            guard let portalIndex = portalRecording.shapeList.firstIndex(where: { $0.type == .portal && $0.name == updatePortalOp.name }) else {
+                print("error - failed to update portal preview texture: could not find portal", updatePortalOp.name)
                 return
             }
 
-            let portal = self.shapeList[portalIndex]
+            let portal = portalRecording.shapeList[portalIndex]
             guard let rect = portal.getBoundingRect(endTimestamp: op.timestamp) else {
                 print("error - failed to update portal preview texture: could not get portal bounding rect")
                 return
             }
 
             let lastTimestamp = portalRecording.timestamps[portalRecording.timestamps.count - 1]
-            portal.setTexture(texture: renderer!.renderToBitmap(shapeList: portalRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: CGFloat(rect[2]) * 2.0, height: CGFloat(rect[3]) * 2.0)))
+            portal.setTexture(texture: renderer!.renderToBitmap(shapeList: self.recordingIndex.currentRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: CGFloat(rect[2]) * 2.0, height: CGFloat(rect[3]) * 2.0)))
         } else {
             print("unhandled op type:", op.type.rawValue)
         }

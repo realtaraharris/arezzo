@@ -131,7 +131,7 @@ class RecordingViewController: UIViewController {
     }
 
     @objc func switchPortals() {
-        self.delegate?.switchPortals()
+        self.delegate?.exitPortal()
     }
 
     /*

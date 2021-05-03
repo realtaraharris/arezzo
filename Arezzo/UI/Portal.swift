@@ -34,6 +34,7 @@ class PortalView: UIControl {
 class PortalViewController: UIViewController {
     var playButton: UIButton = UIButton(type: .custom)
     var recordButton: UIButton = UIButton(type: .custom)
+    var targetName: String!
 
     var delegate: ToolbarDelegate?
 
@@ -76,6 +77,6 @@ class PortalViewController: UIViewController {
     }
 
     @objc func record() {
-        self.delegate?.switchPortals()
+        self.delegate?.enterPortal(destination: self.targetName!)
     }
 }

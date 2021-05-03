@@ -68,6 +68,7 @@
 		50E902EA2639BAA200A0675A /* MetalVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */; };
 		50E902EB2639BAA200A0675A /* MakeSampleBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */; };
 		50E902EC2639BAA200A0675A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506D851D2639B56B001940F2 /* Utilities.swift */; };
+		50F8C05F263DCAB00006EAC8 /* Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F8C05E263DCAB00006EAC8 /* Index.swift */; };
 		50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 /* End PBXBuildFile section */
 
@@ -130,6 +131,7 @@
 		50E0F2E92501B9D90054D91F /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
 		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
 		50E88406257989B200BB6321 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		50F8C05E263DCAB00006EAC8 /* Index.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Index.swift; sourceTree = "<group>"; };
 		50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -235,6 +237,7 @@
 				50E0F2E92501B9D90054D91F /* Recording.swift */,
 				50596396253FB73D00FF8B29 /* Shape.swift */,
 				50323188257028270050C298 /* Timestamps.swift */,
+				50F8C05E263DCAB00006EAC8 /* Index.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -503,6 +506,7 @@
 				504F5D4025DCD28000EC6034 /* MakeSampleBuffer.swift in Sources */,
 				5005C247260A7EFA00DFE391 /* PlaybackViewController.swift in Sources */,
 				501487722631495E004E6806 /* Renderer.swift in Sources */,
+				50F8C05F263DCAB00006EAC8 /* Index.swift in Sources */,
 				50596397253FB73D00FF8B29 /* Shape.swift in Sources */,
 				5005C24D260BCC6600DFE391 /* EditingViewController.swift in Sources */,
 				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,

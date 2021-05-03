@@ -15,7 +15,8 @@ class Shape {
     var color: [Float] = []
     var lineWidth: Float = DEFAULT_LINE_WIDTH
     var type: DrawOperationType
-    var texture: MTLTexture!
+    var texture: MTLTexture! // TODO: make this and URL into a different kind of Shape
+    var name: String!
 
     init(type: DrawOperationType) {
         self.type = type

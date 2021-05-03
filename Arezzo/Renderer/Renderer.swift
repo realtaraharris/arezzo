@@ -11,6 +11,11 @@ import Metal
 import QuartzCore
 import simd
 
+struct PortalRect {
+    var rect: CGRect
+    var name: String
+}
+
 class Renderer {
     var device: MTLDevice = MTLCreateSystemDefaultDevice()!
     var metalLayer: CAMetalLayer = CAMetalLayer()
@@ -25,7 +30,7 @@ class Renderer {
     var width: Float = 0.0
     var height: Float = 0.0
     let capEdges = 21
-    var portalRects: [CGRect] = []
+    var portalRects: [PortalRect] = []
 
     init(frame: CGRect, scale: CGFloat) {
         self.metalLayer.device = self.device
@@ -186,7 +191,12 @@ class Renderer {
                 guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
                 let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
 
-                self.portalRects.append(CGRect(x: CGFloat(x + translation[0]), y: CGFloat(y + translation[1]), width: CGFloat(width), height: CGFloat(height)))
+                self.portalRects.append(
+                    PortalRect(
+                        rect: CGRect(x: CGFloat(x + translation[0]), y: CGFloat(y + translation[1]), width: CGFloat(width), height: CGFloat(height)),
+                        name: shape.name
+                    )
+                )
 
                 let vertices: [PortalPreviewVertex] = [
                     PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
