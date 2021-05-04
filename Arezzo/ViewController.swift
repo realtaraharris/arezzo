@@ -89,7 +89,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                lineWidth: self.lineWidth,
                                                                timestamp: timestamp,
-                                                               mode: self.mode), renderer: self.renderer)
+                                                               mode: self.mode))
 
         self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
     }
@@ -114,15 +114,15 @@ class ViewController: UIViewController, ToolbarDelegate {
         let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == PenDownMode.draw {
             self.recordingIndex.currentRecording.addOp(
-                op: Point(point: point, timestamp: timestamp), renderer: self.renderer
+                op: Point(point: point, timestamp: timestamp)
             )
         } else if self.mode == PenDownMode.pan {
             self.recordingIndex.currentRecording.addOp(
-                op: Pan(point: point, timestamp: timestamp), renderer: self.renderer
+                op: Pan(point: point, timestamp: timestamp)
             )
         } else if self.mode == PenDownMode.portal {
             self.recordingIndex.currentRecording.addOp(
-                op: Portal(point: point, timestamp: timestamp, name: ""), renderer: self.renderer
+                op: Portal(point: point, timestamp: timestamp, name: "")
             )
         } else {
             print("invalid mode: \(self.mode)")
@@ -145,9 +145,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = CFAbsoluteTimeGetCurrent()
 
-        self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp), renderer: self.renderer)
-        let currentName = self.recordingIndex.currentRecording.name
-        self.recordingIndex.currentRecording.addOp(op: UpdatePortal(timestamp: timestamp, name: currentName), renderer: self.renderer)
+        self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp))
         self.recordingIndex.currentRecording.commitProvisionalOps()
 
         self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
@@ -361,7 +359,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func startRecording() {
-        self.recordingIndex.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()), renderer: self.renderer)
+        self.recordingIndex.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()))
 
         self.isRecording = true
         self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
@@ -402,7 +400,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                     self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
-            self.recordingIndex.currentRecording.deserialize(filename: filename, renderer: self.renderer, progressCallback)
+            self.recordingIndex.currentRecording.deserialize(filename: filename, progressCallback)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
@@ -447,8 +445,38 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func exitPortal() {
+        let pathStack = self.recordingIndex.pathStack
+
+        for index in (1 ... pathStack.count).reversed() {
+            if index > 1 {
+                let source = pathStack[index - 1]
+                let target = pathStack[index - 2]
+                renderPortalPreview(source: source, target: target)
+            }
+        }
+
         self.recordingIndex.popRecording()
         self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: CFAbsoluteTimeGetCurrent())
+    }
+
+    func renderPortalPreview(source: String, target: String) {
+        let sourceRecording = self.recordingIndex.getRecordingByUrl(name: source)!
+        let destRecording = self.recordingIndex.getRecordingByUrl(name: target)!
+        let destShape = self.findPortalShape(destRecording.shapeList, source)
+        if destShape == nil { return }
+
+        let boundingRect = destShape?.getBoundingRect(endTimestamp: CFAbsoluteTimeGetCurrent())!
+
+        destShape!.setTexture(texture: self.renderer.renderToBitmap(shapeList: sourceRecording.shapeList, firstTimestamp: 0, endTimestamp: CFAbsoluteTimeGetCurrent(), size: CGSize(width: CGFloat(boundingRect![2]) * 2.0, height: CGFloat(boundingRect![3]) * 2.0)))
+    }
+
+    func findPortalShape(_ shapeList: [Shape], _ name: String) -> Shape? {
+        guard let shapeIndex = shapeList.firstIndex(where: { $0.type == .portal && $0.name == name }) else {
+            print("error - failed to find portal shape", name)
+            return nil
+        }
+
+        return shapeList[shapeIndex]
     }
 }
 

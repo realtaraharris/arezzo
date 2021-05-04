@@ -68,7 +68,7 @@ class Recording {
         Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
     }
 
-    func addOp(op: DrawOperation, renderer: Renderer?) {
+    func addOp(op: DrawOperation) {
         self.opList.append(op)
         self.timestamps.append(op.timestamp)
 
@@ -110,27 +110,6 @@ class Recording {
         } else if op.type == .audioClip {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
-        } else if op.type == .updatePortal {
-            let updatePortalOp = op as! UpdatePortal
-            if self.recordingIndex.pathStack.count < 2 { return }
-
-            let portalRecording = self.recordingIndex.getRecordingByUrl(name: self.recordingIndex.pathStack[self.recordingIndex.pathStack.count - 2])!
-
-            print("portalRecording.shapeList:", portalRecording.shapeList.map { $0.name }, updatePortalOp.name)
-
-            guard let portalIndex = portalRecording.shapeList.firstIndex(where: { $0.type == .portal && $0.name == updatePortalOp.name }) else {
-                print("error - failed to update portal preview texture: could not find portal", updatePortalOp.name)
-                return
-            }
-
-            let portal = portalRecording.shapeList[portalIndex]
-            guard let rect = portal.getBoundingRect(endTimestamp: op.timestamp) else {
-                print("error - failed to update portal preview texture: could not get portal bounding rect")
-                return
-            }
-
-            let lastTimestamp = portalRecording.timestamps[portalRecording.timestamps.count - 1]
-            portal.setTexture(texture: renderer!.renderToBitmap(shapeList: self.recordingIndex.currentRecording.shapeList, firstTimestamp: 0, endTimestamp: lastTimestamp, size: CGSize(width: CGFloat(rect[2]) * 2.0, height: CGFloat(rect[3]) * 2.0)))
         } else {
             print("unhandled op type:", op.type.rawValue)
         }
@@ -178,7 +157,7 @@ class Recording {
         }
     }
 
-    func deserialize(filename: String, renderer: Renderer, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
+    func deserialize(filename: String, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
 
         do {
@@ -187,7 +166,7 @@ class Recording {
             let decoded = try decoder.decode([DrawOperationWrapper].self)
 
             self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation, renderer: renderer)
+                self.addOp(op: $0.drawOperation)
                 return $0.drawOperation
             }
         } catch {
@@ -216,7 +195,7 @@ class Recording {
             let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)
 
             self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation, renderer: renderer)
+                self.addOp(op: $0.drawOperation)
                 return $0.drawOperation
             }
         } catch {

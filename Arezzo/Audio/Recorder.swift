@@ -10,11 +10,11 @@ import Foundation
 
 class RecordingState {
     var running: Bool
-    var drawOperationCollector: Recording
+    var recording: Recording
 
-    init(running: Bool, drawOperationCollector: Recording) {
+    init(running: Bool, recording: Recording) {
         self.running = running
-        self.drawOperationCollector = drawOperationCollector
+        self.recording = recording
     }
 }
 
@@ -34,7 +34,7 @@ func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef,
     let timestamp = CFAbsoluteTimeGetCurrent()
     let audioSamples: [Int16] = Array(int16Buffer)
     if audioSamples.count > 0 {
-        recorder.pointee.drawOperationCollector.addOp(op: AudioClip(timestamp: timestamp, audioSamples: audioSamples), renderer: nil)
+        recorder.pointee.recording.addOp(op: AudioClip(timestamp: timestamp, audioSamples: audioSamples))
     }
 
     // enqueue the buffer, or re-enqueue it if it's a used one

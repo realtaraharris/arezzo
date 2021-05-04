@@ -27,14 +27,12 @@ class RecordingIndex {
     func pushRecording(name: String) {
         self.currentRecording = self.getRecordingByUrl(name: name)
         self.pathStack.append(name)
-        print("pushRecording, pathStack:", self.pathStack)
     }
 
     func popRecording() {
         guard self.pathStack.count > 1 else { return }
         self.pathStack.removeLast()
         self.currentRecording = self.getRecordingByUrl(name: self.pathStack.last!)
-        print("popRecording, pathStack:", self.pathStack)
     }
 
     func getRecordingByUrl(name: String) -> Recording! {
