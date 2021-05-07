@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
     var saveButton: UIButton = UIButton(type: .custom)
     var restoreButton: UIButton = UIButton(type: .custom)
-    var restoreFilePicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType(filenameExtension: "bin")!], asCopy: false)
+    var restoreFilePicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType(filenameExtension: "json")!], asCopy: false)
     var exportButton: UIButton = UIButton(type: .custom)
     var saveIndicator: UIActivityIndicatorView = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
     var restoreProgressIndicator: UIProgressView = UIProgressView()

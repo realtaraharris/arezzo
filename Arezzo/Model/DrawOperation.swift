@@ -74,13 +74,15 @@ struct PenDown: DrawOperation {
     var lineWidth: Float
     var timestamp: Double
     var mode: PenDownMode
+    var portalName: String
 
-    init(color: [Float], lineWidth: Float, timestamp: Double, mode: PenDownMode) {
+    init(color: [Float], lineWidth: Float, timestamp: Double, mode: PenDownMode, portalName: String) {
         self.type = DrawOperationType.penDown
         self.color = color
         self.lineWidth = lineWidth
         self.timestamp = timestamp
         self.mode = mode
+        self.portalName = portalName
     }
 }
 
@@ -110,13 +112,11 @@ struct Portal: DrawOperation {
     var type: DrawOperationType
     var point: [Float]
     var timestamp: Double
-    var name: String
 
-    init(point: [Float], timestamp: Double, name: String) {
+    init(point: [Float], timestamp: Double) {
         self.type = DrawOperationType.portal
         self.point = point
         self.timestamp = timestamp
-        self.name = name
     }
 }
 

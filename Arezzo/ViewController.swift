@@ -86,10 +86,22 @@ class ViewController: UIViewController, ToolbarDelegate {
         let timestamp = CFAbsoluteTimeGetCurrent()
 
         self.recordingIndex.currentRecording.beginProvisionalOps()
-        self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
-                                                               lineWidth: self.lineWidth,
-                                                               timestamp: timestamp,
-                                                               mode: self.mode))
+
+        if self.mode == PenDownMode.portal {
+            let name = UUID().uuidString
+            self.recordingIndex.addRecording(name: name)
+            self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
+                                                                   lineWidth: self.lineWidth,
+                                                                   timestamp: timestamp,
+                                                                   mode: self.mode,
+                                                                   portalName: name))
+        } else {
+            self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
+                                                                   lineWidth: self.lineWidth,
+                                                                   timestamp: timestamp,
+                                                                   mode: self.mode,
+                                                                   portalName: ""))
+        }
 
         self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
     }
@@ -122,7 +134,7 @@ class ViewController: UIViewController, ToolbarDelegate {
             )
         } else if self.mode == PenDownMode.portal {
             self.recordingIndex.currentRecording.addOp(
-                op: Portal(point: point, timestamp: timestamp, name: "")
+                op: Portal(point: point, timestamp: timestamp)
             )
         } else {
             print("invalid mode: \(self.mode)")
@@ -381,7 +393,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.toolbar.documentVC.saveIndicator.startAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = false
             }
-            self.recordingIndex.currentRecording.serialize(filename: filename)
+            self.recordingIndex.save(filename: filename)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.saveIndicator.stopAnimating()
                 self.toolbar.documentVC.saveButton.isEnabled = true
@@ -400,7 +412,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                     self.toolbar.documentVC.restoreProgressIndicator.progress = progress
                 }
             }
-            self.recordingIndex.currentRecording.deserialize(filename: filename, progressCallback)
+            self.recordingIndex.restore(filename: filename)
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true

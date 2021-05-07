@@ -85,10 +85,8 @@ class Recording {
             } else if penDownOp.mode == PenDownMode.portal {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                let name = UUID().uuidString
-                self.recordingIndex.addRecording(name: name)
                 let newShape = Shape(type: DrawOperationType.portal)
-                newShape.name = name
+                newShape.name = penDownOp.portalName
                 self.shapeList.append(newShape)
             } else {
                 print("unhandled mode:", penDownOp.mode)
@@ -187,7 +185,7 @@ class Recording {
         }
     }
 
-    func deserializeJson(filename: String, renderer: Renderer) {
+    func deserializeJson(filename: String) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
         do {
