@@ -119,7 +119,7 @@ class Renderer {
         }
     }
 
-    func render(shapeList: [Shape], endTimestamp: Double, texture: MTLTexture) -> MTLCommandBuffer? {
+    func render(recordingIndex: RecordingIndex, name: String, endTimestamp: Double, texture: MTLTexture, depth: Int) -> MTLCommandBuffer? {
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
@@ -143,8 +143,9 @@ class Renderer {
         }
         guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return nil }
 
-        self.portalRects = []
         var translation: [Float] = [0.0, 0.0]
+
+        let shapeList = recordingIndex.recordings[name]!.shapeList
 
         // sum up the translation vect from the shapeList
         for shape in shapeList {
@@ -191,12 +192,20 @@ class Renderer {
                 guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
                 let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
 
-                self.portalRects.append(
-                    PortalRect(
-                        rect: CGRect(x: CGFloat(x + translation[0]), y: CGFloat(y + translation[1]), width: CGFloat(width), height: CGFloat(height)),
-                        name: shape.name
+                if width <= 1.0 || height <= 1.0 { continue }
+
+                if depth == 0 {
+                    self.portalRects.append(
+                        PortalRect(
+                            rect: CGRect(x: CGFloat(x + translation[0]), y: CGFloat(y + translation[1]), width: CGFloat(width), height: CGFloat(height)),
+                            name: shape.name
+                        )
                     )
-                )
+                }
+
+                let texture = self.renderToBitmap(recordingIndex: recordingIndex, name: shape.name, firstTimestamp: 0, endTimestamp: CFAbsoluteTimeGetCurrent(), size: CGSize(width: Double(width) * 2.0, height: Double(height) * 2.0), depth: depth + 1)
+
+                // MARK: draw portal texture
 
                 let vertices: [PortalPreviewVertex] = [
                     PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
@@ -213,8 +222,10 @@ class Renderer {
                 renderCommandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
                 renderCommandEncoder.setRenderPipelineState(self.pipelineState)
 
-                renderCommandEncoder.setFragmentTexture(shape.texture, index: 0)
+                renderCommandEncoder.setFragmentTexture(texture, index: 0)
                 renderCommandEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
+
+                // MARK: draw portal lines
 
                 let points: [Float] = [
                     x, y,
@@ -277,7 +288,7 @@ class Renderer {
         )
     }
 
-    func renderToBitmap(shapeList: [Shape], firstTimestamp _: Double, endTimestamp: Double, size: CGSize) -> MTLTexture {
+    func renderToBitmap(recordingIndex: RecordingIndex, name: String, firstTimestamp _: Double, endTimestamp: Double, size: CGSize, depth: Int) -> MTLTexture {
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = .type2D
         textureDescriptor.pixelFormat = .bgra8Unorm
@@ -288,7 +299,7 @@ class Renderer {
         textureDescriptor.storageMode = .shared
         let texture: MTLTexture = self.device.makeTexture(descriptor: textureDescriptor)!
 
-        let commandBuffer: MTLCommandBuffer = self.render(shapeList: shapeList, endTimestamp: endTimestamp, texture: texture)!
+        let commandBuffer: MTLCommandBuffer = self.render(recordingIndex: recordingIndex, name: name, endTimestamp: endTimestamp, texture: texture, depth: depth)!
 
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
@@ -296,15 +307,15 @@ class Renderer {
         return texture
     }
 
-    func renderToVideo(shapeList: [Shape], firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let texture: MTLTexture = self.renderToBitmap(shapeList: shapeList, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: CGFloat(self.width), height: CGFloat(self.height))) // TODO: pass in the desired size
+    func renderToVideo(recordingIndex: RecordingIndex, name: String, firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
+        let texture: MTLTexture = self.renderToBitmap(recordingIndex: recordingIndex, name: name, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: CGFloat(self.width), height: CGFloat(self.height)), depth: 0) // TODO: pass in the desired size
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
-    func renderToScreen(shapeList: [Shape], endTimestamp: Double) {
+    func renderToScreen(recordingIndex: RecordingIndex, name: String, endTimestamp: Double) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 
-        let commandBuffer: MTLCommandBuffer = self.render(shapeList: shapeList, endTimestamp: endTimestamp, texture: drawable.texture)!
+        let commandBuffer: MTLCommandBuffer = self.render(recordingIndex: recordingIndex, name: name, endTimestamp: endTimestamp, texture: drawable.texture, depth: 0)!
 
         commandBuffer.present(drawable)
         commandBuffer.commit()

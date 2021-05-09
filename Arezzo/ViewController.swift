@@ -103,7 +103,10 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                                    portalName: ""))
         }
 
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: timestamp)
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -140,7 +143,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             print("invalid mode: \(self.mode)")
         }
 
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: timestamp)
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -160,7 +166,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp))
         self.recordingIndex.currentRecording.commitProvisionalOps()
 
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: timestamp)
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
@@ -168,7 +177,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard self.isRecording else { return }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: timestamp)
     }
 
     // MARK: delegate methods
@@ -223,7 +235,9 @@ class ViewController: UIViewController, ToolbarDelegate {
                 return
             }
 
-            self.renderer.renderToVideo(shapeList: self.recordingIndex.currentRecording.shapeList, firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
+            self.renderer.renderToVideo(recordingIndex: self.recordingIndex,
+                                        name: self.recordingIndex.currentRecording.name,
+                                        firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
 
             for op in self.recordingIndex.currentRecording.opList {
                 if op.type != .audioClip || op.timestamp != currentTime { continue }
@@ -354,7 +368,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             if runNumber < self.currentRunNumber { return }
             self.currentRunNumber = runNumber
 
-            self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: currentTime)
+            self.renderer.portalRects = []
+            self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                         name: self.recordingIndex.currentRecording.name,
+                                         endTimestamp: currentTime)
 
             let fireDate = playbackStart + nextTime - firstTime
 
@@ -424,7 +441,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     func clear() {
         self.recordingIndex.currentRecording.clear()
         let timestamp = CFAbsoluteTimeGetCurrent()
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: timestamp)
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: timestamp)
     }
 
     func setLineWidth(_ lineWidth: Float) {
@@ -437,7 +457,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.stopPlaying()
         }
         if self.recordingIndex.currentRecording.timestamps.count == 0 { return }
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: self.recordingIndex.currentRecording.getTimestamp(position: Double(playbackPosition)))
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: self.recordingIndex.currentRecording.getTimestamp(position: Double(playbackPosition)))
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
         if wasPlaying {
@@ -451,44 +474,20 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func enterPortal(destination: String) {
         self.recordingIndex.pushRecording(name: destination)
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: CFAbsoluteTimeGetCurrent())
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: CFAbsoluteTimeGetCurrent())
         self.portalControls.view.isHidden = true
         self.portalControls.view.setNeedsDisplay()
     }
 
     func exitPortal() {
-        let pathStack = self.recordingIndex.pathStack
-
-        for index in (1 ... pathStack.count).reversed() {
-            if index > 1 {
-                let source = pathStack[index - 1]
-                let target = pathStack[index - 2]
-                renderPortalPreview(source: source, target: target)
-            }
-        }
-
         self.recordingIndex.popRecording()
-        self.renderer.renderToScreen(shapeList: self.recordingIndex.currentRecording.shapeList, endTimestamp: CFAbsoluteTimeGetCurrent())
-    }
-
-    func renderPortalPreview(source: String, target: String) {
-        let sourceRecording = self.recordingIndex.getRecordingByUrl(name: source)!
-        let destRecording = self.recordingIndex.getRecordingByUrl(name: target)!
-        let destShape = self.findPortalShape(destRecording.shapeList, source)
-        if destShape == nil { return }
-
-        let boundingRect = destShape?.getBoundingRect(endTimestamp: CFAbsoluteTimeGetCurrent())!
-
-        destShape!.setTexture(texture: self.renderer.renderToBitmap(shapeList: sourceRecording.shapeList, firstTimestamp: 0, endTimestamp: CFAbsoluteTimeGetCurrent(), size: CGSize(width: CGFloat(boundingRect![2]) * 2.0, height: CGFloat(boundingRect![3]) * 2.0)))
-    }
-
-    func findPortalShape(_ shapeList: [Shape], _ name: String) -> Shape? {
-        guard let shapeIndex = shapeList.firstIndex(where: { $0.type == .portal && $0.name == name }) else {
-            print("error - failed to find portal shape", name)
-            return nil
-        }
-
-        return shapeList[shapeIndex]
+        self.renderer.portalRects = []
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: CFAbsoluteTimeGetCurrent())
     }
 }
 

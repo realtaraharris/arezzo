@@ -9,21 +9,19 @@
 import Foundation
 
 class RecordingIndex {
-    var recordings: [Recording] = []
-    var urls: [String] = []
+    var recordings: [String: Recording] = [:]
     var currentRecording: Recording!
     var pathStack: [String] = []
 
     init() {
         self.addRecording(name: "Root")
-        self.currentRecording = self.recordings[0]
+        self.currentRecording = self.recordings["Root"]
         self.pushRecording(name: "Root")
     }
 
     func addRecording(name: String) -> Recording {
         let recording = Recording(name: name, recordingIndex: self)
-        self.recordings.append(recording)
-        self.urls.append(name)
+        self.recordings[name] = recording
 
         return recording
     }
@@ -40,23 +38,19 @@ class RecordingIndex {
     }
 
     func getRecordingByUrl(name: String) -> Recording! {
-        guard let index = self.recordings.firstIndex(where: { $0.name == name }) else {
-            print("error - could not find recording")
-            return nil
-        }
-        return self.recordings[index]
+        self.recordings[name]
     }
 
     func save(filename: String) {
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
         do {
-            let jsonData = try JSONEncoder().encode(self.urls)
+            let jsonData = try JSONEncoder().encode(Array(self.recordings.keys))
             let jsonString = String(data: jsonData, encoding: .utf8)!
             try jsonString.write(to: path, atomically: true, encoding: String.Encoding.utf8)
 
-            for recording in self.recordings {
-                recording.serialize(filename: recording.name)
+            for (name, recording) in self.recordings {
+                recording.serialize(filename: name)
             }
         } catch {
             print(error)
@@ -64,7 +58,6 @@ class RecordingIndex {
     }
 
     func restore(filename: String) {
-        self.urls.removeAll()
         self.recordings.removeAll()
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 

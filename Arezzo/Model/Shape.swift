@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Metal
 
 class Shape {
     var geometry: [Float] = []
@@ -15,7 +14,6 @@ class Shape {
     var color: [Float] = []
     var lineWidth: Float = DEFAULT_LINE_WIDTH
     var type: DrawOperationType
-    var texture: MTLTexture! // TODO: make this and URL into a different kind of Shape
     var name: String!
 
     init(type: DrawOperationType) {
@@ -27,10 +25,6 @@ class Shape {
         self.lineWidth = lineWidth
         self.timestamp.append(timestamp)
         self.geometry.append(contentsOf: point)
-    }
-
-    func setTexture(texture: MTLTexture) {
-        self.texture = texture
     }
 
     func getIndex(timestamp: Double) -> Int {
