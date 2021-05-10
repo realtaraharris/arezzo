@@ -11,6 +11,7 @@ import UIKit
 
 class RecordingViewController: UIViewController {
     var recordButton: UIButton = UIButton(type: .custom)
+    var drawButton: UIButton = UIButton(type: .custom)
     var panButton: UIButton = UIButton(type: .custom)
     var zoomButton: UIButton = UIButton(type: .custom)
     var undoButton: UIButton = UIButton(type: .custom)
@@ -38,10 +39,18 @@ class RecordingViewController: UIViewController {
         self.recordButton.addTarget(self, action: #selector(self.record), for: .touchUpInside)
         stackView.addArrangedSubview(self.recordButton)
 
-        configureButton(self.panButton, UIImage(systemName: "pencil")!)
-        self.panButton.addTarget(self, action: #selector(self.pan), for: .touchUpInside)
-        self.panButton.tintColor = self.view.tintColor
+        configureButton(self.drawButton, UIImage(systemName: "pencil")!)
+        self.drawButton.addTarget(self, action: #selector(self.enterDrawMode), for: .touchUpInside)
+        self.drawButton.tintColor = self.view.tintColor
+        stackView.addArrangedSubview(self.drawButton)
+
+        configureButton(self.panButton, UIImage(systemName: "hand.raised")!)
+        self.panButton.addTarget(self, action: #selector(self.enterPanMode), for: .touchUpInside)
         stackView.addArrangedSubview(self.panButton)
+
+        configureButton(self.portalButton, UIImage(systemName: "p.circle")!)
+        self.portalButton.addTarget(self, action: #selector(self.enterPortalMode), for: .touchUpInside)
+        stackView.addArrangedSubview(self.portalButton)
 
         configureButton(self.zoomButton, UIImage(systemName: "plus.magnifyingglass")!)
         self.zoomButton.addTarget(self, action: #selector(self.zoom), for: .touchUpInside)
@@ -54,10 +63,6 @@ class RecordingViewController: UIViewController {
         configureButton(self.redoButton, UIImage(systemName: "arrow.uturn.forward")!)
         self.redoButton.addTarget(self, action: #selector(self.redo), for: .touchUpInside)
         stackView.addArrangedSubview(self.redoButton)
-
-        configureButton(self.portalButton, UIImage(systemName: "p.circle")!)
-        self.portalButton.addTarget(self, action: #selector(self.addPortal), for: .touchUpInside)
-        stackView.addArrangedSubview(self.portalButton)
 
         configureButton(self.tempButton, UIImage(systemName: "bolt")!)
         self.tempButton.addTarget(self, action: #selector(self.switchPortals), for: .touchUpInside)
@@ -96,22 +101,25 @@ class RecordingViewController: UIViewController {
         self.recording = !self.recording
     }
 
-    @objc func pan() {
-        if self.mode != .draw {
-            self.delegate?.setPenDownMode(mode: .draw)
-        } else {
-            self.delegate?.setPenDownMode(mode: .pan)
-        }
+    @objc func enterDrawMode() {
+        self.delegate?.setPenDownMode(mode: .draw)
+        self.drawButton.tintColor = self.view.tintColor
+        self.panButton.tintColor = .black
+        self.portalButton.tintColor = .black
+    }
 
-        self.panButton.setBackgroundImage(
-            self.mode == .draw ? UIImage(systemName: "hand.raised") : UIImage(systemName: "pencil"), for: .normal
-        )
+    @objc func enterPanMode() {
+        self.delegate?.setPenDownMode(mode: .pan)
+        self.drawButton.tintColor = .black
+        self.panButton.tintColor = self.view.tintColor
+        self.portalButton.tintColor = .black
+    }
 
-        if self.mode == .draw {
-            self.mode = .pan
-        } else {
-            self.mode = .draw
-        }
+    @objc func enterPortalMode() {
+        self.delegate?.setPenDownMode(mode: .portal)
+        self.drawButton.tintColor = .black
+        self.panButton.tintColor = .black
+        self.portalButton.tintColor = self.view.tintColor
     }
 
     @objc func zoom() {
@@ -124,10 +132,6 @@ class RecordingViewController: UIViewController {
 
     @objc func redo() {
         print("toggling redo")
-    }
-
-    @objc func addPortal() {
-        self.delegate?.setPenDownMode(mode: .portal)
     }
 
     @objc func switchPortals() {

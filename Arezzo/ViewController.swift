@@ -170,6 +170,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: timestamp)
+
+        if self.mode == .portal {
+            self.toolbar.recordingVC.enterDrawMode()
+        }
     }
 
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
