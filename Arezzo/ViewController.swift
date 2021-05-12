@@ -493,6 +493,20 @@ class ViewController: UIViewController, ToolbarDelegate {
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
     }
+
+    func undo() {
+        self.recordingIndex.currentRecording.addOp(op: Undo(timestamp: CFAbsoluteTimeGetCurrent()))
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: CFAbsoluteTimeGetCurrent())
+    }
+
+    func redo() {
+        self.recordingIndex.currentRecording.addOp(op: Redo(timestamp: CFAbsoluteTimeGetCurrent()))
+        self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                     name: self.recordingIndex.currentRecording.name,
+                                     endTimestamp: CFAbsoluteTimeGetCurrent())
+    }
 }
 
 public enum TouchType: Equatable, CaseIterable {

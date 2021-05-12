@@ -108,6 +108,14 @@ class Recording {
         } else if op.type == .audioClip {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
+        } else if op.type == .undo {
+            let undoShape = Shape(type: DrawOperationType.undo)
+            undoShape.timestamp.append(op.timestamp)
+            self.shapeList.append(undoShape)
+        } else if op.type == .redo {
+            let redoShape = Shape(type: DrawOperationType.redo)
+            redoShape.timestamp.append(op.timestamp)
+            self.shapeList.append(redoShape)
         } else {
             print("unhandled op type:", op.type.rawValue)
         }

@@ -127,11 +127,11 @@ class RecordingViewController: UIViewController {
     }
 
     @objc func undo() {
-        print("toggling undo")
+        self.delegate?.undo()
     }
 
     @objc func redo() {
-        print("toggling redo")
+        self.delegate?.redo()
     }
 
     @objc func switchPortals() {

@@ -20,6 +20,10 @@ class Shape {
         self.type = type
     }
 
+    func isUndoRedo() -> Bool {
+        self.type == DrawOperationType.undo || self.type == DrawOperationType.redo
+    }
+
     func addShapePoint(point: [Float], timestamp: Double, color: [Float], lineWidth: Float) {
         self.color = color
         self.lineWidth = lineWidth

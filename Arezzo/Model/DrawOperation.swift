@@ -120,8 +120,28 @@ struct Portal: DrawOperation {
     }
 }
 
+struct Undo: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+
+    init(timestamp: Double) {
+        self.type = DrawOperationType.undo
+        self.timestamp = timestamp
+    }
+}
+
+struct Redo: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+
+    init(timestamp: Double) {
+        self.type = DrawOperationType.redo
+        self.timestamp = timestamp
+    }
+}
+
 enum DrawOperationType: String, BinaryCodable {
-    case line, pan, point, penDown, penUp, audioClip, portal, viewport
+    case line, pan, point, penDown, penUp, audioClip, portal, viewport, undo, redo
 
     var metatype: DrawOperation.Type {
         switch self {
@@ -141,6 +161,10 @@ enum DrawOperationType: String, BinaryCodable {
             return Portal.self
         case .viewport:
             return Viewport.self
+        case .undo:
+            return Undo.self
+        case .redo:
+            return Redo.self
         }
     }
 }

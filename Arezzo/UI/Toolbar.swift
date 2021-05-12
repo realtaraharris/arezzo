@@ -33,6 +33,9 @@ protocol ToolbarDelegate {
     func restore(filename: String)
     func clear()
 
+    func undo()
+    func redo()
+
     func startExport(filename: String)
 
     func setLineWidth(_ lineWidth: Float)

@@ -146,9 +146,13 @@ class Renderer {
         var translation: [Float] = [0.0, 0.0]
 
         let shapeList = recordingIndex.recordings[name]!.shapeList
+        var deepSkipList: Set<Int> = []
+        var skipList: [Int] = []
+        var undoDepth = 0
+        var lastRenderableShapeIndex = 0
 
         // sum up the translation vect from the shapeList
-        for shape in shapeList {
+        for (index, shape) in shapeList.enumerated() {
             if shape.type == DrawOperationType.pan {
                 if shape.geometry.count == 0 { continue }
                 let startX = shape.geometry[0]
@@ -159,10 +163,37 @@ class Renderer {
                     translation[1] += Float(shape.geometry[end - 1] - startY)
                 }
             }
+
+            // MARK: undo/redo
+
+            if index == 0 { continue } // no shapes to undo
+
+            let previousShape = shapeList[index - 1]
+
+            // reset if we are at a boundary
+            if previousShape.isUndoRedo(), !shape.isUndoRedo() {
+                deepSkipList.formUnion(Set(skipList))
+                skipList = []
+                lastRenderableShapeIndex = index
+                undoDepth = 0
+            } else if !shape.isUndoRedo() {
+                lastRenderableShapeIndex += 1
+            }
+
+            if shape.type == DrawOperationType.undo, shape.timestamp[0] <= endTimestamp {
+                skipList.append(lastRenderableShapeIndex - undoDepth)
+                undoDepth += 1
+            } else if shape.type == DrawOperationType.redo, shape.timestamp[0] <= endTimestamp {
+                undoDepth -= 1
+                skipList.popLast()
+            }
         }
+
         renderCommandEncoder.setVertexBuffer(self.uniformTranslation(translation), offset: 0, index: 2)
 
-        for shape in shapeList {
+        for (index, shape) in shapeList.enumerated() {
+            if deepSkipList.contains(index) || skipList.contains(index) { continue }
+
             // each time we encounter a translation, we subtract that from the final one calculated above
             if shape.type == DrawOperationType.pan {
                 if shape.geometry.count == 0 { continue }
