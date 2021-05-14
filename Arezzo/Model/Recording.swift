@@ -34,6 +34,9 @@ class Recording {
     var timestamps: [Double] = []
     var name: String = ""
     var recordingIndex: RecordingIndex
+    var undoLevel: Int = 0
+    var undoable: Bool = false
+    var redoable: Bool = false
 
     init(name: String, recordingIndex: RecordingIndex) {
         self.name = name
@@ -77,6 +80,13 @@ class Recording {
             self.penState = .down
 
             if penDownOp.mode == PenDownMode.draw {
+                if self.shapeList.count > 0 {
+                    let lastShape = self.shapeList[self.shapeList.count - 1]
+                    if lastShape.type == .undo || lastShape.type == .redo {
+                        self.undoable = false
+                        self.redoable = self.undoLevel > 0
+                    }
+                }
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
                 self.shapeList.append(Shape(type: DrawOperationType.line))
@@ -105,14 +115,18 @@ class Recording {
             lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
         } else if op.type == .penUp {
             self.penState = .up
+            self.undoable = true
+            self.redoable = self.undoLevel > 0
         } else if op.type == .audioClip {
             let audioClipOp = op as! AudioClip
             self.audioData.append(contentsOf: audioClipOp.audioSamples)
         } else if op.type == .undo {
+            self.undoLevel += 1
             let undoShape = Shape(type: DrawOperationType.undo)
             undoShape.timestamp.append(op.timestamp)
             self.shapeList.append(undoShape)
         } else if op.type == .redo {
+            self.undoLevel -= 1
             let redoShape = Shape(type: DrawOperationType.redo)
             redoShape.timestamp.append(op.timestamp)
             self.shapeList.append(redoShape)

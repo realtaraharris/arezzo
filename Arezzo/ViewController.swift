@@ -107,6 +107,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: timestamp)
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -147,6 +149,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: timestamp)
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -170,6 +174,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: timestamp)
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
 
         if self.mode == .portal {
             self.toolbar.recordingVC.enterDrawMode()
@@ -185,6 +191,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: timestamp)
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 
     // MARK: delegate methods
@@ -376,6 +384,8 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                          name: self.recordingIndex.currentRecording.name,
                                          endTimestamp: currentTime)
+            self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+            self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
 
             let fireDate = playbackStart + nextTime - firstTime
 
@@ -449,6 +459,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: timestamp)
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 
     func setLineWidth(_ lineWidth: Float) {
@@ -465,6 +477,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: self.recordingIndex.currentRecording.getTimestamp(position: Double(playbackPosition)))
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+
         self.startPosition = Double(playbackPosition)
         self.endPosition = 1.0
         if wasPlaying {
@@ -482,6 +497,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+
         self.portalControls.view.isHidden = true
         self.portalControls.view.setNeedsDisplay()
     }
@@ -492,6 +510,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 
     func undo() {
@@ -499,6 +519,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 
     func redo() {
@@ -506,6 +528,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
+        self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+        self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
     }
 }
 

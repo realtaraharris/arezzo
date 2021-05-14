@@ -30,7 +30,11 @@ class Renderer {
     var width: Float = 0.0
     var height: Float = 0.0
     let capEdges = 21
+
+    // these memebers must remain exposed for use by the view controller
     var portalRects: [PortalRect] = []
+    var canUndo: Bool = false
+    var canRedo: Bool = false
 
     init(frame: CGRect, scale: CGFloat) {
         self.metalLayer.device = self.device
@@ -149,7 +153,8 @@ class Renderer {
         var deepSkipList: Set<Int> = []
         var skipList: [Int] = []
         var undoDepth = 0
-        var lastRenderableShapeIndex = 0
+        var lastUndoableShapeIndex = 0
+        var lastRenderedShapeIndex = 0
 
         // sum up the translation vect from the shapeList
         for (index, shape) in shapeList.enumerated() {
@@ -166,6 +171,8 @@ class Renderer {
 
             // MARK: undo/redo
 
+            if shapeList.count == 1 { self.canUndo = true }
+
             if index == 0 { continue } // no shapes to undo
 
             let previousShape = shapeList[index - 1]
@@ -174,18 +181,22 @@ class Renderer {
             if previousShape.isUndoRedo(), !shape.isUndoRedo() {
                 deepSkipList.formUnion(Set(skipList))
                 skipList = []
-                lastRenderableShapeIndex = index
+                lastUndoableShapeIndex = index
                 undoDepth = 0
+                self.canRedo = false
             } else if !shape.isUndoRedo() {
-                lastRenderableShapeIndex += 1
+                lastUndoableShapeIndex += 1
+                self.canRedo = false
             }
 
             if shape.type == DrawOperationType.undo, shape.timestamp[0] <= endTimestamp {
-                skipList.append(lastRenderableShapeIndex - undoDepth)
+                skipList.append(lastUndoableShapeIndex - undoDepth)
                 undoDepth += 1
+                self.canRedo = true
             } else if shape.type == DrawOperationType.redo, shape.timestamp[0] <= endTimestamp {
                 undoDepth -= 1
-                skipList.popLast()
+                skipList.removeLast()
+                self.canRedo = undoDepth > 0
             }
         }
 
@@ -268,6 +279,14 @@ class Renderer {
 
                 self.drawLines(points: points, instanceCount: 4, shape: shape, renderCommandEncoder: renderCommandEncoder)
             }
+
+            lastRenderedShapeIndex = index + 1
+        }
+
+        if lastRenderedShapeIndex > 0 {
+            self.canUndo = true
+        } else {
+            self.canUndo = false
         }
 
         renderCommandEncoder.endEncoding()
