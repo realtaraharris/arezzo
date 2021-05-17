@@ -19,7 +19,7 @@ class RecordingIndex {
         self.pushRecording(name: "Root")
     }
 
-    func addRecording(name: String) -> Recording {
+    @discardableResult func addRecording(name: String) -> Recording {
         let recording = Recording(name: name, recordingIndex: self)
         self.recordings[name] = recording
 
