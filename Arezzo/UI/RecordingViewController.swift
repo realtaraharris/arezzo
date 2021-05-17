@@ -18,12 +18,14 @@ class RecordingViewController: UIViewController {
     var redoButton: UIButton = UIButton(type: .custom)
     var clearButton: UIButton = UIButton(type: .custom)
     var portalButton: UIButton = UIButton(type: .custom)
+    var micButton: UIButton = UIButton(type: .custom)
 
     var tempButton: UIButton = UIButton(type: .custom)
 
     var delegate: ToolbarDelegate?
     var recording: Bool = false
     var mode: PenDownMode = .draw
+    var muted: Bool = true
 
     override func loadView() {
         self.view = UIStackView()
@@ -67,6 +69,10 @@ class RecordingViewController: UIViewController {
         configureButton(self.tempButton, UIImage(systemName: "bolt")!)
         self.tempButton.addTarget(self, action: #selector(self.switchPortals), for: .touchUpInside)
         stackView.addArrangedSubview(self.tempButton)
+
+        configureButton(self.micButton, UIImage(systemName: "mic.slash")!)
+        self.micButton.addTarget(self, action: #selector(self.mic), for: .touchUpInside)
+        stackView.addArrangedSubview(self.micButton)
 
         /*
          clearButton!.translatesAutoresizingMaskIntoConstraints = false
@@ -136,6 +142,17 @@ class RecordingViewController: UIViewController {
 
     @objc func switchPortals() {
         self.delegate?.exitPortal()
+    }
+
+    @objc func mic() {
+        if self.muted {
+            self.micButton.setBackgroundImage(UIImage(systemName: "mic"), for: .normal)
+            self.muted = false
+        } else {
+            self.micButton.setBackgroundImage(UIImage(systemName: "mic.slash"), for: .normal)
+            self.muted = true
+        }
+        self.delegate?.recordAudio(self.muted)
     }
 
     /*

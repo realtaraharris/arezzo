@@ -44,6 +44,8 @@ protocol ToolbarDelegate {
 
     func enterPortal(destination: String)
     func exitPortal()
+
+    func recordAudio(_ muted: Bool)
 }
 
 class ToolbarView: UIControl {

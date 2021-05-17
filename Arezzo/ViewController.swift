@@ -30,6 +30,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
+    var muted: Bool = true
 
     var recordingIndex: RecordingIndex = RecordingIndex()
 
@@ -530,6 +531,11 @@ class ViewController: UIViewController, ToolbarDelegate {
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
         self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+    }
+
+    func recordAudio(_ muted: Bool) {
+        self.muted = muted
+        print("self.muted:", self.muted)
     }
 }
 
