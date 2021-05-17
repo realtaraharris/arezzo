@@ -28,13 +28,12 @@ class ViewController: UIViewController, ToolbarDelegate {
     var startPosition: Double = 0.0
     var endPosition: Double = 1.0
     var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
+    var recordingState: RecordingState = RecordingState(running: false, recording: nil)
     var runNumber: Int = 0
     var currentRunNumber: Int = 0
     var muted: Bool = true
 
     var recordingIndex: RecordingIndex = RecordingIndex()
-
-    var recordingThread: Thread = Thread() // TODO: get rid of this
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -406,13 +405,32 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.recordingIndex.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()))
 
         self.isRecording = true
-        self.recordingThread = Thread(target: self, selector: #selector(self.recording(thread:)), object: nil)
-        self.recordingThread.start()
+
+        // MARK: Starts audio recording
+
+        self.recordingState.recording = self.recordingIndex.currentRecording
+
+        check(AudioQueueNewInput(&audioFormat, inputCallback, &self.recordingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
+
+        var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
+
+        self.recordingState.running = true
+
+        for i in 0 ..< BUFFER_COUNT {
+            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
+            check(AudioQueueEnqueueBuffer(self.queue!, buffers[i]!, 0, nil))
+        }
+
+        check(AudioQueueStart(self.queue!, nil))
     }
 
     func stopRecording() {
         self.isRecording = false
-        self.recordingThread.cancel()
+
+        // MARK: Stops audio recording
+
+        check(AudioQueueStop(self.queue!, true))
+        check(AudioQueueDispose(self.queue!, true))
     }
 
     func setPenDownMode(mode: PenDownMode) {

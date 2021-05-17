@@ -10,17 +10,15 @@ import Foundation
 
 class RecordingState {
     var running: Bool
-    var recording: Recording
+    var recording: Recording!
 
-    init(running: Bool, recording: Recording) {
+    init(running: Bool, recording: Recording!) {
         self.running = running
         self.recording = recording
     }
 }
 
 func inputCallback(inUserData: UnsafeMutableRawPointer?, inQueue: AudioQueueRef, inBuffer: AudioQueueBufferRef, inStartTime _: UnsafePointer<AudioTimeStamp>, inNumPackets _: UInt32, inPacketDesc _: UnsafePointer<AudioStreamPacketDescription>?) {
-//    print("in inputCallback()")
-
     guard let recorder = inUserData?.assumingMemoryBound(to: RecordingState.self) else {
         return
     }
