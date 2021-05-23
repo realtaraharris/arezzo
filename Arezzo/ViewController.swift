@@ -27,10 +27,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var isRecording: Bool = false
     var startPosition: Double = 0.0
     var endPosition: Double = 1.0
-    var playingState: PlayingState = PlayingState(running: false, lastIndexRead: 0, audioData: [])
+    var playingState: PlayingState = PlayingState(running: false)
     var recordingState: RecordingState = RecordingState(running: false, recording: nil)
-    var runNumber: Int = 0
-    var currentRunNumber: Int = 0
     var muted: Bool = true
 
     var recordingIndex: RecordingIndex = RecordingIndex()
@@ -234,7 +232,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         videoRecorder.startRecording(firstTimestamp)
 
-        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
+//        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
 
         let frameCount: Float = Float(self.recordingIndex.currentRecording.timestamps.count)
         var framesRendered = 0
@@ -284,14 +282,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
     }
 
+    // MARK: playback
+
     func startPlaying() {
         if self.isPlaying { return }
 
         self.isPlaying = true
-        self.playingState.audioData = self.recordingIndex.currentRecording.audioData
-        self.playingState.lastIndexRead = 0
-        self.playback(runNumber: self.runNumber)
-        self.runNumber += 1
+        self.playback()
     }
 
     func stopPlaying() {
@@ -305,109 +302,126 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.isPlaying = false
     }
 
-    func playback(runNumber: Int) {
-        guard self.recordingIndex.currentRecording.timestamps.count > 0 else {
-            return
+    /*
+               0         a   a'       b
+      recorded |---------|===,========|---------|
+      playback |---------------------------------------|===,========|---------|
+               0                                       c   c'
+
+      timeDelta = b - a
+      currentPct = (c'-c + a'-a)/timeDelta
+
+      where
+        c' = playbackCursor
+        c = playbackStart
+        a' = recordedCursor
+        a = recordedStart
+     */
+
+    func playback() {
+        var audioOpIndexes: [Int] = []
+        var drawOpIndexes: [Int] = []
+        var currentDrawOpIndex = 0
+        let firstTime = self.recordingIndex.currentRecording.getTimestamp(position: self.startPosition)
+        let lastTime = self.recordingIndex.currentRecording.opList.last!.timestamp
+        let duration = lastTime - firstTime
+        let playbackStart = CFAbsoluteTimeGetCurrent()
+        let steps: Double = 100
+        let progressUpdateInterval: Double = duration / steps
+        var progressStep: Double = self.startPosition
+
+        for (index, op) in self.recordingIndex.currentRecording.opList.enumerated() {
+            if op.timestamp < firstTime { continue }
+            if op.type == .audioClip {
+                audioOpIndexes.append(index)
+            } else {
+                drawOpIndexes.append(index)
+            }
+        }
+        print("audioOpIndexes:", audioOpIndexes)
+        print("drawOpIndexes:", drawOpIndexes)
+
+        self.playingState.currentRecording = self.recordingIndex.currentRecording
+        self.playingState.currentAudioOpIndex = 0
+        self.playingState.audioOpIndexes = audioOpIndexes
+        self.playingState.running = true
+
+        func renderNext(_: CFRunLoopTimer?) {
+            if currentDrawOpIndex == 0 {
+                check(AudioQueueStart(self.queue!, nil))
+            }
+
+            if currentDrawOpIndex >= drawOpIndexes.count { return }
+
+            let opIndex = drawOpIndexes[currentDrawOpIndex]
+            let op = self.recordingIndex.currentRecording.opList[opIndex]
+
+            self.renderer.portalRects = []
+            self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                         name: self.recordingIndex.currentRecording.name,
+                                         endTimestamp: op.timestamp)
+            self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
+            self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+
+            print("currentDrawOpIndex:", currentDrawOpIndex, "opIndex:", opIndex, "op.timestamp", op.timestamp, "time:", CFAbsoluteTimeGetCurrent(), "delta:", CFAbsoluteTimeGetCurrent() - op.timestamp)
+            currentDrawOpIndex += 1
+
+            if currentDrawOpIndex >= drawOpIndexes.count { return }
+
+            let nextOpIndex = drawOpIndexes[currentDrawOpIndex]
+            let nextOp = self.recordingIndex.currentRecording.opList[nextOpIndex]
+            let fireDate = playbackStart + nextOp.timestamp - firstTime
+
+            // TODO: make nextRenderTimer private?
+            self.nextRenderTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
+            RunLoop.current.add(self.nextRenderTimer!, forMode: .common)
+        }
+
+        func updateProgress(_: CFRunLoopTimer?) {
+            if !self.playingState.running { return }
+            print("progressStep:", progressStep)
+            self.toolbar.playbackVC.playbackSlider.setValueEx(value: Float(progressStep / steps))
+            progressStep += 1
+
+            if progressStep > steps { return }
+
+            let fireDate = playbackStart + (progressUpdateInterval * progressStep)
+            let nextUpdateTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, updateProgress)
+            RunLoop.current.add(nextUpdateTimer!, forMode: .common)
         }
 
         check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
 
         var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
-
-        self.playingState.running = true
-
         for i in 0 ..< BUFFER_COUNT {
             check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
             outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
-
-            if !self.playingState.running {
-                break
-            }
         }
-
-        let (startIndex, endIndex) = self.recordingIndex.currentRecording.getTimestampIndices(startPosition: self.startPosition, endPosition: self.endPosition)
-        var timestampIterator = self.recordingIndex.currentRecording.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
-
-        let recordedCursor = self.recordingIndex.currentRecording.timestamps[startIndex]
-        let recordedStart = self.recordingIndex.currentRecording.timestamps[0]
-        let timeOffset = recordedCursor - recordedStart
-
-        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-
-        guard timestampIterator.count > 0 else { return }
-
-        let timeStart = self.recordingIndex.currentRecording.timestamps[0]
-        let timeEnd = self.recordingIndex.currentRecording.timestamps[self.recordingIndex.currentRecording.timestamps.count - 1]
-
-        let timeDelta = timeEnd - timeStart
-
-        let (firstTime, _) = timestampIterator.next()!
-        let playbackStart = CFAbsoluteTimeGetCurrent()
-
-        /*
-                   0         a   a'       b
-          recorded |---------|===,========|---------|
-          playback |---------------------------------------|===,========|---------|
-                   0                                       c   c'
-
-          timeDelta = b - a
-          currentPct = (c'-c + a'-a)/timeDelta
-
-          where
-            c' = playbackCursor
-            c = playbackStart
-            a' = recordedCursor
-            a = recordedStart
-         */
-
-        func renderNext(_: CFRunLoopTimer?) {
-            let playbackCursor = CFAbsoluteTimeGetCurrent()
-            let position: Float = Float((playbackCursor - playbackStart + recordedCursor - recordedStart) / timeDelta)
-
-            self.toolbar.playbackVC.playbackSlider.setValueEx(value: position)
-
-            if !self.isPlaying {
-                return
-            }
-            let (currentTime, nextTime) = timestampIterator.next()!
-
-            if nextTime == -1 {
-                self.toolbar.playbackVC.playbackSlider.setValueEx(value: 1.0)
-                self.playingState.running = false
-                return
-            }
-
-            if runNumber < self.currentRunNumber { return }
-            self.currentRunNumber = runNumber
-
-            self.renderer.portalRects = []
-            self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
-                                         name: self.recordingIndex.currentRecording.name,
-                                         endTimestamp: currentTime)
-            self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
-            self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
-
-            let fireDate = playbackStart + nextTime - firstTime
-
-            self.nextRenderTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, renderNext)
-            RunLoop.current.add(self.nextRenderTimer!, forMode: .common)
-        }
+        AudioQueuePrime(self.queue!, 0, nil)
 
         let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, renderNext)
         RunLoop.current.add(timer!, forMode: .common)
 
-        check(AudioQueueStart(self.queue!, nil))
-
-        CFRunLoopRunInMode(CFRunLoopMode.defaultMode, BUFFER_DURATION, false)
+        let progressTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, CFAbsoluteTimeGetCurrent(), 0, 0, 0, updateProgress)
+        RunLoop.current.add(progressTimer!, forMode: .common)
     }
 
     func startRecording() {
         self.recordingIndex.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()))
 
         self.isRecording = true
+        self.startAudioRecording()
+    }
 
-        // MARK: Starts audio recording
+    func stopRecording() {
+        self.isRecording = false
+        self.stopAudioRecording()
+    }
 
+    // MARK: audio recording
+
+    func startAudioRecording() {
+        if self.muted { return }
         self.recordingState.recording = self.recordingIndex.currentRecording
 
         check(AudioQueueNewInput(&audioFormat, inputCallback, &self.recordingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
@@ -424,11 +438,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         check(AudioQueueStart(self.queue!, nil))
     }
 
-    func stopRecording() {
-        self.isRecording = false
-
-        // MARK: Stops audio recording
-
+    func stopAudioRecording() {
+        if !self.recordingState.running { return }
         check(AudioQueueStop(self.queue!, true))
         check(AudioQueueDispose(self.queue!, true))
     }
@@ -553,6 +564,12 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func recordAudio(_ muted: Bool) {
         self.muted = muted
+
+        if self.muted, self.isRecording {
+            self.stopAudioRecording()
+        } else if !self.muted, self.isRecording {
+            self.startRecording()
+        }
         print("self.muted:", self.muted)
     }
 }

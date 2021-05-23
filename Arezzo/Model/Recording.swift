@@ -30,8 +30,7 @@ class Recording {
     var currentLineWidth = DEFAULT_LINE_WIDTH
 
     var penState: PenState = .down
-    var audioData: [Int16] = []
-    var timestamps: [Double] = []
+    var timestamps: [Double] = [] // TODO: remove
     var name: String = ""
     var recordingIndex: RecordingIndex
     var undoLevel: Int = 0
@@ -53,6 +52,7 @@ class Recording {
         return self.timestamps[targetTimestampIndex]
     }
 
+    // TODO: remove
     func getTimestampIndices(startPosition: Double, endPosition: Double) -> (startIndex: Int, endIndex: Int) {
         let first = self.timestamps.first!
         let last = self.timestamps.last!
@@ -67,6 +67,7 @@ class Recording {
         return (startIndex, endIndex)
     }
 
+    // TODO: remove
     func getTimestampIterator(startIndex: Int, endIndex: Int) -> TimestampIterator {
         Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
     }
@@ -118,8 +119,6 @@ class Recording {
             self.undoable = true
             self.redoable = self.undoLevel > 0
         } else if op.type == .audioClip {
-            let audioClipOp = op as! AudioClip
-            self.audioData.append(contentsOf: audioClipOp.audioSamples)
         } else if op.type == .undo {
             self.undoLevel += 1
             let undoShape = Shape(type: DrawOperationType.undo)
@@ -157,8 +156,6 @@ class Recording {
         self.shapeList = []
         self.opList = []
         self.timestamps = []
-
-        self.audioData = []
 
         self.provisionalShapeIndex = 0
         self.provisionalOpIndex = 0

@@ -10,13 +10,12 @@ import Foundation
 
 class PlayingState {
     var running: Bool
-    var lastIndexRead: Int
-    var audioData: [Int16]
+    var currentAudioOpIndex: Int?
+    var currentRecording: Recording?
+    var audioOpIndexes: [Int]?
 
-    init(running: Bool, lastIndexRead: Int, audioData: [Int16]) {
+    init(running: Bool) {
         self.running = running
-        self.lastIndexRead = lastIndexRead
-        self.audioData = audioData
     }
 }
 
@@ -28,26 +27,22 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
 
     if player.pointee.running == false { return }
 
+    let currentAudioOpIndex = player.pointee.currentAudioOpIndex!
+
+    let audioOpIndexes = player.pointee.audioOpIndexes!
+    if currentAudioOpIndex >= audioOpIndexes.count { return }
+
+    let opIndex = audioOpIndexes[currentAudioOpIndex]
+    let audioOp = player.pointee.currentRecording!.opList[opIndex] as! AudioClip
+    print("currentAudioOpIndex:", currentAudioOpIndex, "opIndex:", opIndex, "audoOp.timestamp:", audioOp.timestamp, "time:", CFAbsoluteTimeGetCurrent(), "delta:", CFAbsoluteTimeGetCurrent() - audioOp.timestamp)
+    let audioSamples = audioOp.audioSamples
+    let sliceCount = audioOp.audioSamples.count
     let bytesPerChannel = MemoryLayout<Int16>.size
-    let sliceStart = player.pointee.lastIndexRead
-    let sliceEnd = min(player.pointee.audioData.count, player.pointee.lastIndexRead + bufferByteSize / bytesPerChannel)
-
-    if sliceEnd >= player.pointee.audioData.count {
-        player.pointee.running = false
-        print("found end of audio data")
-        return
-    }
-
-    let slice = Array(player.pointee.audioData[sliceStart ..< sliceEnd])
-    let sliceCount = slice.count
-
-    // print("slice start:", sliceStart, "slice end:", sliceEnd, "audioData.count", audioData.count, "slice count:", sliceCount)
-
-    // need to be careful to convert from counts of Ints to bytes
-    memcpy(inBuffer.pointee.mAudioData, slice, sliceCount * bytesPerChannel)
+    memcpy(inBuffer.pointee.mAudioData, audioSamples, sliceCount * bytesPerChannel)
     inBuffer.pointee.mAudioDataByteSize = UInt32(sliceCount * bytesPerChannel)
-    player.pointee.lastIndexRead += sliceCount
 
     // enqueue the buffer, or re-enqueue it if it's a used one
     check(AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nil))
+
+    player.pointee.currentAudioOpIndex! += 1
 }
