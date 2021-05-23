@@ -338,6 +338,8 @@ class ViewController: UIViewController, ToolbarDelegate {
      */
 
     func playback() {
+        if self.recordingIndex.currentRecording.opList.count == 0 { return }
+
         var audioOpIndexes: [Int] = []
         var drawOpIndexes: [Int] = []
         var currentDrawOpIndex = 0

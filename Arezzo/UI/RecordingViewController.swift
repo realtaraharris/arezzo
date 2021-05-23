@@ -74,6 +74,10 @@ class RecordingViewController: UIViewController {
         self.micButton.addTarget(self, action: #selector(self.mic), for: .touchUpInside)
         stackView.addArrangedSubview(self.micButton)
 
+        let padding: UIView = UIView()
+        configurePadding(padding)
+        stackView.addArrangedSubview(padding)
+
         /*
          clearButton!.translatesAutoresizingMaskIntoConstraints = false
          clearButton!.layer.cornerRadius = cornerRadius

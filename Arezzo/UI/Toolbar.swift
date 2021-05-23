@@ -19,6 +19,13 @@ func configureButton(_ button: UIButton, _ icon: UIImage) {
     button.setBackgroundImage(icon, for: .normal)
 }
 
+func configurePadding(_ padding: UIView) {
+    padding.translatesAutoresizingMaskIntoConstraints = false
+    padding.widthAnchor.constraint(equalToConstant: 20.0).isActive = true
+    padding.heightAnchor.constraint(equalToConstant: 44.0).isActive = true
+    padding.clipsToBounds = true
+}
+
 protocol ToolbarDelegate {
     func startRecording()
     func stopRecording()
@@ -134,13 +141,17 @@ class Toolbar: UIViewController {
         self.recordingModeButton.addTarget(self, action: #selector(self.enterRecordingMode), for: .touchUpInside)
         self.stackView.addArrangedSubview(self.recordingModeButton)
 
-        configureButton(self.editingModeButton, UIImage(systemName: "slider.horizontal.3")!)
-        self.editingModeButton.addTarget(self, action: #selector(self.enterEditingMode), for: .touchUpInside)
-        self.stackView.addArrangedSubview(self.editingModeButton)
+//        configureButton(self.editingModeButton, UIImage(systemName: "slider.horizontal.3")!)
+//        self.editingModeButton.addTarget(self, action: #selector(self.enterEditingMode), for: .touchUpInside)
+//        self.stackView.addArrangedSubview(self.editingModeButton)
 
         configureButton(self.playbackModeButton, UIImage(systemName: "play.circle")!)
         self.playbackModeButton.addTarget(self, action: #selector(self.enterPlaybackMode), for: .touchUpInside)
         self.stackView.addArrangedSubview(self.playbackModeButton)
+
+        let padding: UIView = UIView()
+        configurePadding(padding)
+        self.stackView.addArrangedSubview(padding)
 
         self.stackView.axis = .horizontal
         self.stackView.alignment = .top
@@ -148,7 +159,7 @@ class Toolbar: UIViewController {
 
         view.backgroundColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.5)
         view.isUserInteractionEnabled = true
-        view.frame = CGRect(x: 16, y: 44, width: 1000, height: 120)
+        view.frame = CGRect(x: 16, y: 44, width: 1100, height: 120)
 
         let toolbarX = UserDefaults.standard.float(forKey: "ToolbarPositionX")
         let toolbarY = UserDefaults.standard.float(forKey: "ToolbarPositionY")

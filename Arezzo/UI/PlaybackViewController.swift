@@ -34,9 +34,9 @@ class PlaybackViewController: UIViewController {
         self.playbackButton.addTarget(self, action: #selector(self.togglePlayback), for: .touchUpInside)
         buttonStack.addArrangedSubview(self.playbackButton)
 
-        configureButton(self.fastForwardButton, UIImage(systemName: "forward.fill")!)
-        self.fastForwardButton.addTarget(self, action: #selector(self.toggleFastForward), for: .touchUpInside)
-        buttonStack.addArrangedSubview(self.fastForwardButton)
+//        configureButton(self.fastForwardButton, UIImage(systemName: "forward.fill")!)
+//        self.fastForwardButton.addTarget(self, action: #selector(self.toggleFastForward), for: .touchUpInside)
+//        buttonStack.addArrangedSubview(self.fastForwardButton)
 
         stackView.addArrangedSubview(buttonStack)
 

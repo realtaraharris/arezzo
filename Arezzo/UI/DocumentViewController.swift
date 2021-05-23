@@ -62,6 +62,10 @@ class DocumentViewController: UIViewController, UIDocumentPickerDelegate {
         self.documentNameLabel.text = "Untitled"
         stackView.addArrangedSubview(self.documentNameLabel)
 
+        let padding: UIView = UIView()
+        configurePadding(padding)
+        stackView.addArrangedSubview(padding)
+
         let centerOffset: CGFloat = 30.0
         NSLayoutConstraint.activate([
             self.saveIndicator.centerYAnchor.constraint(equalTo: self.saveButton.centerYAnchor, constant: centerOffset),
