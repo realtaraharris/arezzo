@@ -52,7 +52,7 @@ class Recording {
         return self.timestamps[targetTimestampIndex]
     }
 
-    // TODO: remove
+    // TODO: remove?
     func getTimestampIndices(startPosition: Double, endPosition: Double) -> (startIndex: Int, endIndex: Int) {
         let first = self.timestamps.first!
         let last = self.timestamps.last!
@@ -67,7 +67,7 @@ class Recording {
         return (startIndex, endIndex)
     }
 
-    // TODO: remove
+    // TODO: remove?
     func getTimestampIterator(startIndex: Int, endIndex: Int) -> TimestampIterator {
         Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
     }

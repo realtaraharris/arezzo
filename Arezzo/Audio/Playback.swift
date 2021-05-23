@@ -25,7 +25,7 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
         return
     }
 
-    if player.pointee.running == false { return }
+    if !player.pointee.running { return }
 
     let currentAudioOpIndex = player.pointee.currentAudioOpIndex!
 
@@ -34,7 +34,7 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
 
     let opIndex = audioOpIndexes[currentAudioOpIndex]
     let audioOp = player.pointee.currentRecording!.opList[opIndex] as! AudioClip
-    print("currentAudioOpIndex:", currentAudioOpIndex, "opIndex:", opIndex, "audoOp.timestamp:", audioOp.timestamp, "time:", CFAbsoluteTimeGetCurrent(), "delta:", CFAbsoluteTimeGetCurrent() - audioOp.timestamp)
+//    print("currentAudioOpIndex:", currentAudioOpIndex, "opIndex:", opIndex, "audoOp.timestamp:", audioOp.timestamp, "time:", CFAbsoluteTimeGetCurrent(), "delta:", CFAbsoluteTimeGetCurrent() - audioOp.timestamp)
     let audioSamples = audioOp.audioSamples
     let sliceCount = audioOp.audioSamples.count
     let bytesPerChannel = MemoryLayout<Int16>.size
