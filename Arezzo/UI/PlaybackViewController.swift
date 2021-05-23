@@ -52,8 +52,10 @@ class PlaybackViewController: UIViewController {
     @objc func togglePlayback() {
         print("togglePlayback()")
         if !self.playing {
+            self.playbackButton.setBackgroundImage(UIImage(systemName: "pause.fill"), for: .normal)
             self.delegate?.startPlaying()
         } else {
+            self.playbackButton.setBackgroundImage(UIImage(systemName: "play.fill"), for: .normal)
             self.delegate?.stopPlaying()
         }
 
@@ -63,6 +65,12 @@ class PlaybackViewController: UIViewController {
     @objc func toggleFastForward() {}
 
     @objc func playbackSliderChanged(_ sender: UISlider!) {
+        self.readyToPlay()
         self.delegate?.setPlaybackPosition(sender.value)
+    }
+
+    @objc func readyToPlay() {
+        self.playbackButton.setBackgroundImage(UIImage(systemName: "play.fill"), for: .normal)
+        self.playing = false
     }
 }

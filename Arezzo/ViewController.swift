@@ -401,7 +401,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             self.toolbar.playbackVC.playbackSlider.setValueEx(value: Float(Double(progressStep) / Double(steps)))
             progressStep += 1
 
-            if progressStep > steps { return }
+            if progressStep > steps {
+                self.toolbar.playbackVC.readyToPlay()
+                return
+            }
 
             let fireDate = playbackStart + (progressUpdateInterval * Double(progressStep - startProgressStep))
             self.updateProgressTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, updateProgress)
