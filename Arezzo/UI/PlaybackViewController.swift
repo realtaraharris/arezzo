@@ -49,6 +49,10 @@ class PlaybackViewController: UIViewController {
         stackView.addArrangedSubview(self.playbackSlider)
     }
 
+    func sync() {
+        self.playbackSlider.value = Float((self.delegate?.getPlaybackPosition())!)
+    }
+
     @objc func togglePlayback() {
         print("togglePlayback()")
         if !self.playing {

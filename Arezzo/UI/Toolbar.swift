@@ -47,6 +47,7 @@ protocol ToolbarDelegate {
 
     func setLineWidth(_ lineWidth: Float)
     func setPlaybackPosition(_ playbackPosition: Float)
+    func getPlaybackPosition() -> Double
     func getPlaybackTimestamp() -> Double
 
     func enterPortal(destination: String)
@@ -132,6 +133,8 @@ class Toolbar: UIViewController {
     let playbackVC = PlaybackViewController()
     let colorPaletteVC = ColorPaletteViewController()
 
+    var delegate: ToolbarDelegate?
+
     override func loadView() {
         view = ToolbarView()
     }
@@ -189,6 +192,8 @@ class Toolbar: UIViewController {
         self.addArrangedChild(self.documentVC)
         self.addArrangedChild(self.recordingVC)
         self.addArrangedChild(self.colorPaletteVC)
+
+        self.delegate?.setPlaybackPosition(1.0)
     }
 
     @objc func enterEditingMode() {
@@ -210,5 +215,8 @@ class Toolbar: UIViewController {
         self.removeAllArrangedChildren()
         self.addArrangedChild(self.documentVC)
         self.addArrangedChild(self.playbackVC)
+
+        self.delegate?.setPlaybackPosition(0.0)
+        self.playbackVC.sync()
     }
 }

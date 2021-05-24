@@ -13,8 +13,6 @@ import UIKit
 class ViewController: UIViewController, ToolbarDelegate {
     var renderer: Renderer!
     var timer: CADisplayLink!
-    var updateScreenTimer: CFRunLoopTimer?
-    var updateProgressTimer: CFRunLoopTimer?
     var allowedTouchTypes: [TouchType] = [.finger, .pencil]
     var queue: AudioQueueRef?
 
@@ -30,6 +28,7 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playingState: PlayingState = PlayingState(running: false)
     var recordingState: RecordingState = RecordingState(running: false, recording: nil)
     var muted: Bool = true
+    var playbackTerminationId: UInt64 = 0
 
     var recordingIndex: RecordingIndex = RecordingIndex()
 
@@ -41,6 +40,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.renderer = Renderer(frame: view.layer.frame, scale: UIScreen.main.scale)
         view.layer.addSublayer(self.renderer.metalLayer)
 
+        self.toolbar.delegate = self
         self.toolbar.recordingVC.delegate = self
         self.toolbar.playbackVC.delegate = self
         self.toolbar.editingVC.delegate = self
@@ -294,16 +294,15 @@ class ViewController: UIViewController, ToolbarDelegate {
     func stopPlaying() {
         self.playingState.running = false
 
-        CFRunLoopTimerInvalidate(self.updateScreenTimer)
-        CFRunLoopTimerInvalidate(self.updateProgressTimer)
         check(AudioQueueStop(self.queue!, true))
         check(AudioQueueDispose(self.queue!, true))
         self.isPlaying = false
+
+        self.playbackTerminationId += 1 // causes playback timers with the previous playId to terminate
     }
 
     func setPlaybackPosition(_ playbackPosition: Float) {
         if self.recordingIndex.currentRecording.opList.count == 0 { return }
-//        let wasPlaying = self.isPlaying
         if self.isPlaying {
             self.stopPlaying()
         }
@@ -315,10 +314,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
 
         self.startPosition = Double(playbackPosition)
-        // TODO: need to track timers and cancel them fully in order to do this. right now this results in buggy double playback!
-//        if wasPlaying {
-//            self.startPlaying()
-//        }
+    }
+
+    func getPlaybackPosition() -> Double {
+        self.startPosition
     }
 
     /*
@@ -352,6 +351,10 @@ class ViewController: UIViewController, ToolbarDelegate {
         let progressUpdateInterval: Double = duration / Double(steps)
         var progressStep: Int = Int(self.startPosition * Double(steps))
         let startProgressStep: Int = progressStep
+        let terminationId = self.playbackTerminationId
+
+        var updateScreenTimer: CFRunLoopTimer?
+        var updateProgressTimer: CFRunLoopTimer?
 
         for (index, op) in self.recordingIndex.currentRecording.opList.enumerated() {
             if op.timestamp < startTime { continue }
@@ -368,7 +371,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.playingState.running = true
 
         func updateScreen(_: CFRunLoopTimer?) {
-            if !self.playingState.running { return }
+            if !self.playingState.running || terminationId < self.playbackTerminationId { return }
 
             if currentDrawOpIndex == 0 {
                 check(AudioQueueStart(self.queue!, nil))
@@ -394,12 +397,12 @@ class ViewController: UIViewController, ToolbarDelegate {
             let nextOp = self.recordingIndex.currentRecording.opList[nextOpIndex]
             let fireDate = playbackStart + nextOp.timestamp - startTime
 
-            self.updateScreenTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, updateScreen)
-            RunLoop.current.add(self.updateScreenTimer!, forMode: .common)
+            updateScreenTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, updateScreen)
+            RunLoop.current.add(updateScreenTimer!, forMode: .common)
         }
 
         func updateProgress(_: CFRunLoopTimer?) {
-            if !self.playingState.running { return }
+            if !self.playingState.running || terminationId < self.playbackTerminationId { return }
             self.toolbar.playbackVC.playbackSlider.setValueEx(value: Float(Double(progressStep) / Double(steps)))
             progressStep += 1
 
@@ -409,8 +412,8 @@ class ViewController: UIViewController, ToolbarDelegate {
             }
 
             let fireDate = playbackStart + (progressUpdateInterval * Double(progressStep - startProgressStep))
-            self.updateProgressTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, updateProgress)
-            RunLoop.current.add(self.updateProgressTimer!, forMode: .common)
+            updateProgressTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, 0, 0, 0, updateProgress)
+            RunLoop.current.add(updateProgressTimer!, forMode: .common)
         }
 
         check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
@@ -422,11 +425,11 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
         AudioQueuePrime(self.queue!, 0, nil)
 
-        let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, updateScreen)
-        RunLoop.current.add(timer!, forMode: .common)
+        updateScreenTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, updateScreen)
+        RunLoop.current.add(updateScreenTimer!, forMode: .common)
 
-        let progressTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, updateProgress)
-        RunLoop.current.add(progressTimer!, forMode: .common)
+        updateProgressTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, updateProgress)
+        RunLoop.current.add(updateProgressTimer!, forMode: .common)
     }
 
     func getPlaybackTimestamp() -> Double {
