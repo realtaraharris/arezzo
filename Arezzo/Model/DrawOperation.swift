@@ -88,10 +88,20 @@ struct PenDown: DrawOperation {
 
 struct PenUp: DrawOperation {
     var type: DrawOperationType
-    var timestamp: Double = 0
+    var timestamp: Double
 
     init(timestamp: Double) {
         self.type = DrawOperationType.penUp
+        self.timestamp = timestamp
+    }
+}
+
+struct AudioStart: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+
+    init(timestamp: Double) {
+        self.type = DrawOperationType.audioStart
         self.timestamp = timestamp
     }
 }
@@ -105,6 +115,16 @@ struct AudioClip: DrawOperation {
         self.type = DrawOperationType.audioClip
         self.timestamp = timestamp
         self.audioSamples = audioSamples
+    }
+}
+
+struct AudioStop: DrawOperation {
+    var type: DrawOperationType
+    var timestamp: Double
+
+    init(timestamp: Double) {
+        self.type = DrawOperationType.audioStop
+        self.timestamp = timestamp
     }
 }
 
@@ -141,7 +161,7 @@ struct Redo: DrawOperation {
 }
 
 enum DrawOperationType: String, BinaryCodable {
-    case line, pan, point, penDown, penUp, audioClip, portal, viewport, undo, redo
+    case line, pan, point, penDown, penUp, audioStart, audioClip, audioStop, portal, viewport, undo, redo
 
     var metatype: DrawOperation.Type {
         switch self {
@@ -155,8 +175,12 @@ enum DrawOperationType: String, BinaryCodable {
             return PenDown.self
         case .penUp:
             return PenUp.self
+        case .audioStart:
+            return AudioStart.self
         case .audioClip:
             return AudioClip.self
+        case .audioStop:
+            return AudioStop.self
         case .portal:
             return Portal.self
         case .viewport:
