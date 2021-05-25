@@ -355,6 +355,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         var updateScreenTimer: CFRunLoopTimer?
         var updateProgressTimer: CFRunLoopTimer?
+        var updateAudioTimer: CFRunLoopTimer?
 
         for (index, op) in self.recordingIndex.currentRecording.opList.enumerated() {
             if op.timestamp < startTime { continue }
@@ -365,19 +366,8 @@ class ViewController: UIViewController, ToolbarDelegate {
             }
         }
 
-        self.playingState.currentRecording = self.recordingIndex.currentRecording
-        self.playingState.currentAudioOpIndex = 0
-        self.playingState.audioOpIndexes = audioOpIndexes
-        self.playingState.running = true
-
         func updateScreen(_: CFRunLoopTimer?) {
-            if !self.playingState.running || terminationId < self.playbackTerminationId { return }
-
-            if currentDrawOpIndex == 0 {
-                check(AudioQueueStart(self.queue!, nil))
-            }
-
-            if currentDrawOpIndex >= drawOpIndexes.count { return }
+            if !self.playingState.running || terminationId < self.playbackTerminationId || currentDrawOpIndex >= drawOpIndexes.count { return }
 
             let opIndex = drawOpIndexes[currentDrawOpIndex]
             let op = self.recordingIndex.currentRecording.opList[opIndex]
@@ -418,12 +408,31 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         check(AudioQueueNewOutput(&audioFormat, outputCallback, &self.playingState, CFRunLoopGetCurrent(), CFRunLoopMode.commonModes.rawValue, 0, &self.queue))
 
+        self.playingState.currentRecording = self.recordingIndex.currentRecording
+        self.playingState.currentAudioOpIndex = 0
+        self.playingState.audioOpIndexes = audioOpIndexes
+
         var buffers: [AudioQueueBufferRef?] = Array<AudioQueueBufferRef?>.init(repeating: nil, count: BUFFER_COUNT)
-        for i in 0 ..< BUFFER_COUNT {
-            check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
-            outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
+        self.playingState.running = true
+
+        func updateAudio(_: CFRunLoopTimer?) {
+            if !self.playingState.running || terminationId < self.playbackTerminationId { return }
+
+            for i in 0 ..< BUFFER_COUNT {
+                check(AudioQueueAllocateBuffer(self.queue!, UInt32(bufferByteSize), &buffers[i]))
+                outputCallback(inUserData: &self.playingState, inAQ: self.queue!, inBuffer: buffers[i]!)
+            }
+
+            AudioQueuePrime(self.queue!, 0, nil)
+            check(AudioQueueStart(self.queue!, nil))
         }
-        AudioQueuePrime(self.queue!, 0, nil)
+
+        let drawOpTimestamp = self.recordingIndex.currentRecording.opList[drawOpIndexes[0]].timestamp
+        let audioOpTimestamp = self.recordingIndex.currentRecording.opList[audioOpIndexes[0]].timestamp
+        let audioStart = playbackStart + audioOpTimestamp - drawOpTimestamp
+
+        updateAudioTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, audioStart, 0, 0, 0, updateAudio)
+        RunLoop.current.add(updateAudioTimer!, forMode: .common)
 
         updateScreenTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, updateScreen)
         RunLoop.current.add(updateScreenTimer!, forMode: .common)
