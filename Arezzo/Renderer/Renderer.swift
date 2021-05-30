@@ -357,11 +357,6 @@ class Renderer {
         return texture
     }
 
-    func renderToVideo(recordingIndex: RecordingIndex, name: String, firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let texture: MTLTexture = self.renderToBitmap(recordingIndex: recordingIndex, name: name, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: CGFloat(self.width), height: CGFloat(self.height)), depth: 0) // TODO: pass in the desired size
-        videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
-    }
-
     func renderToScreen(recordingIndex: RecordingIndex, name: String, endTimestamp: Double) {
         guard let drawable: CAMetalDrawable = metalLayer.nextDrawable() else { return }
 

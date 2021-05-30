@@ -223,48 +223,47 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let videoRecorder = MetalVideoRecorder(outputURL: outputUrl, size: outputSize)!
 
-        let (startIndex, endIndex) = self.recordingIndex.currentRecording.getTimestampIndices(startPosition: self.startPosition, endPosition: 1.0)
-        var timestampIterator = self.recordingIndex.currentRecording.getTimestampIterator(startIndex: startIndex, endIndex: endIndex)
+        let firstTime = self.recordingIndex.currentRecording.opList.first!.timestamp
+        let lastTime = self.recordingIndex.currentRecording.opList.last!.timestamp
+        let duration = lastTime - firstTime
 
-        let firstPlaybackTimestamp = self.recordingIndex.currentRecording.timestamps[startIndex]
-        let firstTimestamp = self.recordingIndex.currentRecording.timestamps[0]
-//        let timeOffset = firstPlaybackTimestamp - firstTimestamp
+        videoRecorder.startRecording(firstTime)
 
-        videoRecorder.startRecording(firstTimestamp)
-
-//        self.playingState.lastIndexRead = calcBufferOffset(timeOffset: timeOffset)
-
-        let frameCount: Float = Float(self.recordingIndex.currentRecording.timestamps.count)
-        var framesRendered = 0
-
-        func renderNext() {
-            let (currentTime, nextTime) = timestampIterator.next()!
-
-            if nextTime == -1 {
-                self.playingState.running = false
-                return
-            }
-
-            self.renderer.renderToVideo(recordingIndex: self.recordingIndex,
-                                        name: self.recordingIndex.currentRecording.name,
-                                        firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
-
-            for op in self.recordingIndex.currentRecording.opList {
-                if op.type != .audioClip || op.timestamp != currentTime { continue }
+        func renderNext(_: Int, _ op: DrawOperation) {
+            switch op.type {
+            case .line, .pan, .point, .portal, .viewport, .undo, .redo:
+                let texture: MTLTexture = self.renderer.renderToBitmap(
+                    recordingIndex: self.recordingIndex,
+                    name: self.recordingIndex.currentRecording.name,
+                    firstTimestamp: firstTime,
+                    endTimestamp: op.timestamp,
+                    size: CGSize(width: CGFloat(outputSize.width), height: CGFloat(outputSize.height)),
+                    depth: 0
+                )
+                videoRecorder.writeFrame(forTexture: texture, timestamp: op.timestamp)
+            case .penDown, .penUp:
+                break
+            case .audioStart:
+                break
+            case .audioClip:
                 let audioClip = op as! AudioClip
                 let samples = createAudio(sampleBytes: audioClip.audioSamples, startFrm: audioClip.timestamp, nFrames: audioClip.audioSamples.count / 2, sampleRate: SAMPLE_RATE, numChannels: UInt32(CHANNEL_COUNT))
+
+                print("samples?.presentationTimeStamp:", samples?.presentationTimeStamp, "op.timestamp:", op.timestamp, "samples?.outputPresentationTimeStamp:", samples?.outputPresentationTimeStamp, samples.debugDescription)
+
                 videoRecorder.writeAudio(samples: samples!)
+            case .audioStop:
+                break
             }
 
             DispatchQueue.main.async {
-                self.toolbar.documentVC.exportProgressIndicator.progress = Float(framesRendered) / frameCount
-                framesRendered += 1
+                let tickDelta = op.timestamp - firstTime
+                self.toolbar.documentVC.exportProgressIndicator.progress = Float(tickDelta) / Float(duration)
             }
         }
-        self.playingState.running = true
 
-        while self.playingState.running {
-            renderNext()
+        for (index, op) in self.recordingIndex.currentRecording.opList.enumerated() {
+            renderNext(index, op)
         }
 
         videoRecorder.endRecording {
