@@ -41,9 +41,9 @@ class Shape {
 
             // return values are multiplied by 2 because there are two components for each point
             if input[currentIndex] == timestamp {
-                return currentIndex * 2
+                return (currentIndex + 1) * 2
             } else if lowerIndex > upperIndex {
-                return upperIndex * 2
+                return (upperIndex + 1) * 2
             } else {
                 if input[currentIndex] > timestamp {
                     upperIndex = currentIndex - 1

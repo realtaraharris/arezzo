@@ -9,6 +9,7 @@
 import BinaryCoder
 import CoreGraphics
 import Foundation
+import GameKit
 import Metal
 
 enum PenState {
@@ -37,9 +38,13 @@ class Recording {
     var undoable: Bool = false
     var redoable: Bool = false
 
+    var tree: GKQuadtree<NSObject>
+
     init(name: String, recordingIndex: RecordingIndex) {
         self.name = name
         self.recordingIndex = recordingIndex
+
+        self.tree = GKQuadtree(boundingQuad: GKQuad(quadMin: SIMD2<Float>(0.0, 0.0), quadMax: SIMD2<Float>(Float.greatestFiniteMagnitude, Float.greatestFiniteMagnitude)), minimumCellSize: 100.0)
     }
 
     func getTimestamp(position: Double) -> Double {
@@ -76,6 +81,9 @@ class Recording {
         self.opList.append(op)
         self.timestamps.append(op.timestamp)
 
+        // TODO: pass in current viewport.
+        let output = self.tree.elements(in: GKQuad(quadMin: SIMD2<Float>(0.0, 0.0), quadMax: SIMD2<Float>(1000.0, 1000.0)))
+
         if op.type == .penDown {
             let penDownOp = op as! PenDown
             self.penState = .down
@@ -106,14 +114,17 @@ class Recording {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
             lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
+            self.tree.add(op.timestamp as NSObject, at: SIMD2<Float>(panOp.point[0], panOp.point[1]))
         } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
             lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
+            self.tree.add(op.timestamp as NSObject, at: SIMD2<Float>(pointOp.point[0], pointOp.point[1]))
         } else if op.type == .portal {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let portalOp = op as! Portal
             lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
+            self.tree.add(op.timestamp as NSObject, at: SIMD2<Float>(portalOp.point[0], portalOp.point[1]))
         } else if op.type == .penUp {
             self.penState = .up
             self.undoable = true

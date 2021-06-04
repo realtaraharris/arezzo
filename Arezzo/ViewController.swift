@@ -29,6 +29,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     var recordingState: RecordingState = RecordingState(running: false, recording: nil)
     var muted: Bool = true
     var playbackTerminationId: UInt64 = 0
+    var totalPan: [Float] = [0, 0]
+    var lastPan: [Float] = [0, 0]
+    var finalPanMove: [Float] = [0, 0]
+    var collectFirstPan = false
 
     var recordingIndex: RecordingIndex = RecordingIndex()
 
@@ -63,15 +67,21 @@ class ViewController: UIViewController, ToolbarDelegate {
         return nil
     }
 
+    func getTouchLocation(_ touch: UITouch) -> [Float] {
+        let inputPoint = touch.location(in: view)
+
+        return [Float(inputPoint.x) + self.totalPan[0], Float(inputPoint.y) + self.totalPan[1]]
+    }
+
     // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.isRecording, let touch = touches.first else { return }
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
-        let inputPoint = touch.location(in: view)
+        let inputPoint = self.getTouchLocation(touch)
 
-        let portalRect = self.checkPortalRects(inputPoint)
+        let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
             self.portalControls.view.frame = portalRect!.rect
             self.portalControls.view.isHidden = false
@@ -93,6 +103,13 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
                                                                    portalName: name))
+        } else if self.mode == PenDownMode.pan {
+            self.collectFirstPan = true
+            self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
+                                                                   lineWidth: self.lineWidth,
+                                                                   timestamp: timestamp,
+                                                                   mode: self.mode,
+                                                                   portalName: ""))
         } else {
             self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                    lineWidth: self.lineWidth,
@@ -113,9 +130,9 @@ class ViewController: UIViewController, ToolbarDelegate {
         guard self.isRecording, let touch = touches.first else { return }
         guard self.allowedTouchTypes.flatMap({ $0.uiTouchTypes }).contains(touch.type) else { return }
 
-        let inputPoint = touch.location(in: view)
+        let inputPoint = self.getTouchLocation(touch)
 
-        let portalRect = self.checkPortalRects(inputPoint)
+        let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
             self.portalControls.view.frame = portalRect!.rect
             self.portalControls.view.isHidden = false
@@ -126,18 +143,25 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let timestamp = CFAbsoluteTimeGetCurrent()
 
-        let point = [Float(inputPoint.x), Float(inputPoint.y)]
         if self.mode == PenDownMode.draw {
             self.recordingIndex.currentRecording.addOp(
-                op: Point(point: point, timestamp: timestamp)
+                op: Point(point: inputPoint, timestamp: timestamp)
             )
         } else if self.mode == PenDownMode.pan {
+            if self.collectFirstPan {
+                let tmp = touch.location(in: view)
+                self.lastPan = [Float(tmp.x), Float(tmp.y)]
+                print("lastPan:", self.lastPan)
+                self.collectFirstPan = false
+            }
+            let panTouch = touch.location(in: view)
             self.recordingIndex.currentRecording.addOp(
-                op: Pan(point: point, timestamp: timestamp)
+                op: Pan(point: [Float(panTouch.x), Float(panTouch.y)], timestamp: timestamp)
             )
+            self.finalPanMove = [Float(panTouch.x), Float(panTouch.y)]
         } else if self.mode == PenDownMode.portal {
             self.recordingIndex.currentRecording.addOp(
-                op: Portal(point: point, timestamp: timestamp)
+                op: Portal(point: inputPoint, timestamp: timestamp)
             )
         } else {
             print("invalid mode: \(self.mode)")
@@ -154,8 +178,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.isRecording, let touch = touches.first else { return }
 
-        let inputPoint = touch.location(in: view)
-        let portalRect = self.checkPortalRects(inputPoint)
+        let inputPoint = self.getTouchLocation(touch)
+        let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
             self.portalControls.view.center.x = portalRect!.rect.midX
             self.portalControls.view.center.y = portalRect!.rect.midY
@@ -164,6 +188,20 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
+
+        if self.mode == PenDownMode.pan {
+//            let panTouch = touch.location(in: view)
+
+//            print("(I) totalPan before:", self.totalPan)
+            let totalPanDelta = [
+                self.lastPan[0] - self.finalPanMove[0],
+                self.lastPan[1] - self.finalPanMove[1],
+            ]
+            print("(I) totalPanDelta:", totalPanDelta)
+            self.totalPan[0] += totalPanDelta[0]
+            self.totalPan[1] += totalPanDelta[1]
+//            print("(I) totalPan after:", self.totalPan)
+        }
 
         self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp))
         self.recordingIndex.currentRecording.commitProvisionalOps()

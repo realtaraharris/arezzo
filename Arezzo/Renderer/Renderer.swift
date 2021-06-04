@@ -205,21 +205,6 @@ class Renderer {
         for (index, shape) in shapeList.enumerated() {
             if deepSkipList.contains(index) || skipList.contains(index) { continue }
 
-            // each time we encounter a translation, we subtract that from the final one calculated above
-            if shape.type == DrawOperationType.pan {
-                if shape.geometry.count == 0 { continue }
-                let startX = shape.geometry[0]
-                let startY = shape.geometry[1]
-                let end = shape.getIndex(timestamp: endTimestamp)
-                if end >= 2 {
-                    translation[0] -= Float(shape.geometry[end - 2] - startX)
-                    translation[1] -= Float(shape.geometry[end - 1] - startY)
-                }
-
-                renderCommandEncoder.setVertexBuffer(self.uniformTranslation(translation), offset: 0, index: 2)
-                continue
-            }
-
             if shape.timestamp.count == 0 { continue }
             // if shape.notInWindow() { continue }
 
@@ -229,7 +214,7 @@ class Renderer {
             if start > end || start == end { continue }
 
             if shape.type == DrawOperationType.line {
-                self.drawLines(points: shape.geometry, instanceCount: (end - start) / 2, shape: shape, renderCommandEncoder: renderCommandEncoder)
+                self.drawLines(points: shape.geometry, instanceCount: (end - start - 1) / 2, shape: shape, renderCommandEncoder: renderCommandEncoder)
             } else if shape.type == DrawOperationType.portal {
                 guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
                 let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
