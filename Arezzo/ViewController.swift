@@ -104,18 +104,25 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                                    mode: self.mode,
                                                                    portalName: name))
         } else if self.mode == PenDownMode.pan {
-            self.collectFirstPan = true
             self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                    lineWidth: self.lineWidth,
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
                                                                    portalName: ""))
+            self.lastPan = inputPoint
+
+            self.recordingIndex.currentRecording.addOp(
+                op: Pan(point: inputPoint, timestamp: timestamp)
+            )
         } else {
             self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                    lineWidth: self.lineWidth,
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
                                                                    portalName: ""))
+            self.recordingIndex.currentRecording.addOp(
+                op: Point(point: inputPoint, timestamp: timestamp)
+            )
         }
 
         self.renderer.portalRects = []
@@ -148,17 +155,10 @@ class ViewController: UIViewController, ToolbarDelegate {
                 op: Point(point: inputPoint, timestamp: timestamp)
             )
         } else if self.mode == PenDownMode.pan {
-            if self.collectFirstPan {
-                let tmp = touch.location(in: view)
-                self.lastPan = [Float(tmp.x), Float(tmp.y)]
-                print("lastPan:", self.lastPan)
-                self.collectFirstPan = false
-            }
-            let panTouch = touch.location(in: view)
+            let panTouch = self.getTouchLocation(touch)
             self.recordingIndex.currentRecording.addOp(
-                op: Pan(point: [Float(panTouch.x), Float(panTouch.y)], timestamp: timestamp)
+                op: Pan(point: panTouch, timestamp: timestamp)
             )
-            self.finalPanMove = [Float(panTouch.x), Float(panTouch.y)]
         } else if self.mode == PenDownMode.portal {
             self.recordingIndex.currentRecording.addOp(
                 op: Portal(point: inputPoint, timestamp: timestamp)
@@ -190,17 +190,11 @@ class ViewController: UIViewController, ToolbarDelegate {
         let timestamp = CFAbsoluteTimeGetCurrent()
 
         if self.mode == PenDownMode.pan {
-//            let panTouch = touch.location(in: view)
-
-//            print("(I) totalPan before:", self.totalPan)
-            let totalPanDelta = [
-                self.lastPan[0] - self.finalPanMove[0],
-                self.lastPan[1] - self.finalPanMove[1],
-            ]
-            print("(I) totalPanDelta:", totalPanDelta)
-            self.totalPan[0] += totalPanDelta[0]
-            self.totalPan[1] += totalPanDelta[1]
-//            print("(I) totalPan after:", self.totalPan)
+            self.recordingIndex.currentRecording.addOp(
+                op: Pan(point: inputPoint, timestamp: timestamp)
+            )
+            self.totalPan[0] += self.lastPan[0] - inputPoint[0]
+            self.totalPan[1] += self.lastPan[1] - inputPoint[1]
         }
 
         self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp))
