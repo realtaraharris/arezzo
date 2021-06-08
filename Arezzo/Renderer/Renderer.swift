@@ -156,16 +156,17 @@ class Renderer {
         var lastUndoableShapeIndex = 0
         var lastRenderedShapeIndex = 0
 
-        // sum up the translation vect from the shapeList
         for (index, shape) in shapeList.enumerated() {
+            // MARK: panning
+
+            // TODO: if we rework this loop and evaluate it in reverse order,
+            // we can stop overwriting `translation` at the very first pan op we find
             if shape.type == DrawOperationType.pan {
                 if shape.geometry.count == 0 { continue }
-                let startX = shape.geometry[0]
-                let startY = shape.geometry[1]
                 let end = shape.getIndex(timestamp: endTimestamp)
                 if end >= 2 {
-                    translation[0] += Float(shape.geometry[end - 2] - startX)
-                    translation[1] += Float(shape.geometry[end - 1] - startY)
+                    translation[0] = shape.geometry[end - 2]
+                    translation[1] = shape.geometry[end - 1]
                 }
             }
 
