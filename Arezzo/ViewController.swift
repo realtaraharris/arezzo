@@ -616,6 +616,19 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.lineWidth = lineWidth
     }
 
+    func updateTotalPan() {
+        // find the last pan op
+        let lastPanOp = self.recordingIndex.currentRecording.opList.last { (op: DrawOperation) -> Bool in op.type == .pan }
+
+        // update the totalPan vector
+        if lastPanOp != nil {
+            let op = lastPanOp as! Pan
+            self.totalPan = [op.point[0], op.point[1]]
+        } else {
+            self.totalPan = [0, 0]
+        }
+    }
+
     func enterPortal(destination: String) {
         self.recordingIndex.pushRecording(name: destination)
         self.renderer.portalRects = []
@@ -624,6 +637,8 @@ class ViewController: UIViewController, ToolbarDelegate {
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
         self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+
+        self.updateTotalPan()
 
         self.portalControls.view.isHidden = true
         self.portalControls.view.setNeedsDisplay()
@@ -637,6 +652,8 @@ class ViewController: UIViewController, ToolbarDelegate {
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
         self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+
+        self.updateTotalPan()
     }
 
     func undo() {
