@@ -31,6 +31,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     var playbackTerminationId: UInt64 = 0
     var totalPan: [Float] = [0, 0]
     var lastPan: [Float] = [0, 0]
+    var isPanning = false
+    var panStartedInPortal = false
 
     var recordingIndex: RecordingIndex = RecordingIndex()
 
@@ -86,8 +88,11 @@ class ViewController: UIViewController, ToolbarDelegate {
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
             self.portalControls.view.frame = portalRect!.rect
+            self.portalControls.view.center.x = portalRect!.rect.midX + CGFloat(self.totalPan[0])
+            self.portalControls.view.center.y = portalRect!.rect.midY + CGFloat(self.totalPan[1])
             self.portalControls.view.isHidden = false
             self.portalControls.targetName = portalRect!.name
+            self.panStartedInPortal = true
             return
         } else {
             self.portalControls.view.isHidden = true
@@ -105,6 +110,9 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
                                                                    portalName: name))
+            self.recordingIndex.currentRecording.addOp(
+                op: Point(point: inputPoint, timestamp: timestamp)
+            )
         } else if self.mode == PenDownMode.pan {
             self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                    lineWidth: self.lineWidth,
@@ -112,6 +120,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                                    mode: self.mode,
                                                                    portalName: ""))
             self.lastPan = self.getTouchLocation(touch)
+            self.isPanning = true
 
             self.recordingIndex.currentRecording.addOp(
                 op: Pan(point: self.totalPan, timestamp: timestamp)
@@ -142,13 +151,16 @@ class ViewController: UIViewController, ToolbarDelegate {
         let inputPoint = self.getTouchLocationWithPan(touch)
 
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
-        if portalRect != nil {
-            self.portalControls.view.frame = portalRect!.rect
+        if portalRect != nil, !self.isPanning {
+            self.portalControls.view.center.x = portalRect!.rect.midX + CGFloat(self.totalPan[0])
+            self.portalControls.view.center.y = portalRect!.rect.midY + CGFloat(self.totalPan[1])
             self.portalControls.view.isHidden = false
             self.portalControls.targetName = portalRect!.name
             self.portalControls.view.setNeedsDisplay(portalRect!.rect)
             return
         }
+
+        if self.panStartedInPortal { return }
 
         let timestamp = CFAbsoluteTimeGetCurrent()
 
@@ -184,11 +196,16 @@ class ViewController: UIViewController, ToolbarDelegate {
     override open func touchesEnded(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.isRecording, let touch = touches.first else { return }
 
+        if self.panStartedInPortal {
+            self.panStartedInPortal = false
+            return
+        }
+
         let inputPoint = self.getTouchLocationWithPan(touch)
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
-            self.portalControls.view.center.x = portalRect!.rect.midX
-            self.portalControls.view.center.y = portalRect!.rect.midY
+            self.portalControls.view.center.x = portalRect!.rect.midX + CGFloat(self.totalPan[0])
+            self.portalControls.view.center.y = portalRect!.rect.midY + CGFloat(self.totalPan[1])
             self.portalControls.view.setNeedsDisplay(portalRect!.rect)
             return
         }
@@ -205,6 +222,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 op: Pan(point: tmp, timestamp: timestamp)
             )
             self.totalPan = tmp
+            self.isPanning = false
         }
 
         self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp))
@@ -225,6 +243,8 @@ class ViewController: UIViewController, ToolbarDelegate {
     override open func touchesCancelled(_: Set<UITouch>, with _: UIEvent?) {
         self.recordingIndex.currentRecording.cancelProvisionalOps()
         guard self.isRecording else { return }
+
+        self.panStartedInPortal = false
 
         let timestamp = CFAbsoluteTimeGetCurrent()
         self.renderer.portalRects = []
@@ -639,6 +659,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
 
         self.updateTotalPan()
+        self.panStartedInPortal = false
 
         self.portalControls.view.isHidden = true
         self.portalControls.view.setNeedsDisplay()
@@ -654,6 +675,7 @@ class ViewController: UIViewController, ToolbarDelegate {
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
 
         self.updateTotalPan()
+        self.panStartedInPortal = false
     }
 
     func undo() {

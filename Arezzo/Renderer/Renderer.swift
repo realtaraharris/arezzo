@@ -225,7 +225,7 @@ class Renderer {
                 if depth == 0 {
                     self.portalRects.append(
                         PortalRect(
-                            rect: CGRect(x: CGFloat(x + translation[0]), y: CGFloat(y + translation[1]), width: CGFloat(width), height: CGFloat(height)),
+                            rect: CGRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(width), height: CGFloat(height)),
                             name: shape.name
                         )
                     )
