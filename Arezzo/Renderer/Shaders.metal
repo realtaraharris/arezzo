@@ -17,17 +17,9 @@ struct VertexOut {
 };
 
 struct Uniforms {
-    float width;
-    float height;
     float4x4 modelViewMatrix;
+    float aspectRatio;
 };
-
-float2 screenSpaceToMetalSpace (float2 position, float width, float height) {
-    return float2(
-        (2.0f * position.x / width) - 2.0f,
-        (-2.0f * position.y / height) + 2.0f
-    );
-}
 
 vertex VertexOut line_segment_vertex(
     constant packed_float2 *vertex_array[[buffer(0)]],
@@ -49,9 +41,10 @@ vertex VertexOut line_segment_vertex(
     float2 pointB = points[instanceId + 1];
     float2 xBasis = pointB - pointA;
     float2 yBasis = normalize(float2(-xBasis.y, xBasis.x));
-    float2 point = pointA + xBasis * position.x + yBasis * lineWidth * position.y;
+    yBasis.y = yBasis.y * uniforms.aspectRatio;
+    float2 point = pointA + xBasis * position.x + yBasis * position.y;
 
-    vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
+    vo.position = uniforms.modelViewMatrix * float4(point[0], point[1], 0.0, 1.0);
     vo.color = color;
 
     return vo;
@@ -72,9 +65,9 @@ vertex VertexOut line_cap_vertex(
     const float4 color = colors[0];
     const float2 position = vertex_array[vid];
 
-    float2 point = points[instanceId] + position * lineWidth;
+    float2 point = points[instanceId] + position;
 
-    vo.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
+    vo.position = uniforms.modelViewMatrix * float4(point[0], point[1], 0.0, 1.0);
     vo.color = color;
 
     return vo;
@@ -105,7 +98,7 @@ vertex PortalRasterizerData portal_vertex(
     PortalRasterizerData out;
 
     float2 point = vertexArray[vertexID].position.xy;
-    out.position = uniforms.modelViewMatrix * float4(screenSpaceToMetalSpace(point, uniforms.width, uniforms.height), 0.0, 1.0);
+    out.position = uniforms.modelViewMatrix * float4(point[0], point[1], 0.0, 1.0);
     out.textureCoordinate = vertexArray[vertexID].textureCoordinate;
 
     return out;

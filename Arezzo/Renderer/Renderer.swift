@@ -43,12 +43,19 @@ class Renderer {
         self.metalLayer.frame = frame
         self.metalLayer.drawableSize = CGSize(width: frame.width * scale, height: frame.height * scale)
 
+        let aspectRatio = Float(frame.width / frame.height)
+        print("aspectRatio:", 1 / aspectRatio)
+
+        let lineScale: Float = 50.0
+
         let segmentVertices: [Float] = [
-            0.0, -0.5,
-            0.0, 0.5,
-            1.0, 0.5,
-            1.0, -0.5,
+            0.0, -0.5 / lineScale,
+            0.0, 0.5 / lineScale,
+            1.0, 0.5 / lineScale,
+            1.0, -0.5 / lineScale,
         ]
+
+        print(segmentVertices)
         let segmentIndices: [UInt32] = shapeIndices(edges: 4)
         segmentVertexBuffer = self.device.makeBuffer(bytes: segmentVertices,
                                                      length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),
@@ -57,7 +64,8 @@ class Renderer {
                                                          length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
                                                          options: .storageModeShared)
 
-        let capVertices: [Float] = circleGeometry(edges: capEdges)
+        // TODO: do aspect ratio multiplication in the shader
+        let capVertices: [Float] = circleGeometry(edges: capEdges, lineScale: lineScale, aspectRatio: aspectRatio)
         let capIndices: [UInt32] = shapeIndices(edges: capEdges)
         capVertexBuffer = self.device.makeBuffer(bytes: capVertices,
                                                  length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
@@ -361,13 +369,11 @@ class Renderer {
     }
 
     func uniformTranslation(_ translation: [Float]) -> MTLBuffer {
-        let frameWidth: Float = Float(self.width)
-        let frameHeight: Float = Float(self.height)
         let modelViewMatrix: Matrix4x4 = Matrix4x4.translate(
-            x: (2.0 * translation[0] / frameWidth) + 1.0,
-            y: (-2.0 * translation[1] / frameHeight) - 1.0
+            x: translation[0],
+            y: translation[1]
         )
-        let uniform = Uniforms(width: Float(self.width), height: Float(self.height), modelViewMatrix: modelViewMatrix)
+        let uniform = Uniforms(modelViewMatrix: modelViewMatrix, aspectRatio: Float(self.width) / Float(self.height))
         let uniformBuffer: MTLBuffer = self.device.makeBuffer(
             length: MemoryLayout<Uniforms>.size,
             options: []

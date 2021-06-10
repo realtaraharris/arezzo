@@ -67,17 +67,24 @@ class ViewController: UIViewController, ToolbarDelegate {
         return nil
     }
 
+    // MARK: - input event handlers
+
+    func screenSpaceToMetalSpace(_ position: [Float], _ width: Float, _ height: Float) -> [Float] {
+        let inverseViewSize = [1.0 / Float(width), 1.0 / Float(height)]
+        let clipX = (2.0 * position[0] * inverseViewSize[0]) - 1.0
+        let clipY = (2.0 * -position[1] * inverseViewSize[1]) + 1.0
+        return [clipX, clipY]
+    }
+
     func getTouchLocation(_ touch: UITouch) -> [Float] {
         let inputPoint = touch.location(in: view)
-        return [Float(inputPoint.x), Float(inputPoint.y)]
+        return self.screenSpaceToMetalSpace([Float(inputPoint.x), Float(inputPoint.y)], Float(self.view.frame.width), Float(self.view.frame.height))
     }
 
     func getTouchLocationWithPan(_ touch: UITouch) -> [Float] {
         let inputPoint = touch.location(in: view)
-        return [Float(inputPoint.x) - self.totalPan[0], Float(inputPoint.y) - self.totalPan[1]]
+        return self.screenSpaceToMetalSpace([Float(inputPoint.x) - self.totalPan[0], Float(inputPoint.y) - self.totalPan[1]], Float(self.view.frame.width), Float(self.view.frame.height))
     }
-
-    // MARK: - input event handlers
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
         guard self.isRecording, let touch = touches.first else { return }

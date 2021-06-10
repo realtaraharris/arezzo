@@ -8,4 +8,4 @@
 
 import Foundation
 
-let DEFAULT_LINE_WIDTH: Float = 5
+let DEFAULT_LINE_WIDTH: Float = 1.0 / 10.0

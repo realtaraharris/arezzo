@@ -33,9 +33,8 @@ struct Matrix4x4 {
 }
 
 struct Uniforms {
-    let width: Float
-    let height: Float
     let modelViewMatrix: Matrix4x4
+    let aspectRatio: Float
 }
 
 struct PortalPreviewVertex {
