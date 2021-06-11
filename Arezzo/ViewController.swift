@@ -97,7 +97,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
-            self.portalControls.view.frame = self.translateRect(portalRect!.rect)
+            let pannedRect = portalRect!.rect.offsetBy(dx: CGFloat(self.totalPan[0]), dy: CGFloat(self.totalPan[1]))
+            self.portalControls.view.frame = self.translateRect(pannedRect)
             self.portalControls.view.isHidden = false
             self.portalControls.targetName = portalRect!.name
             self.panStartedInPortal = true
@@ -172,8 +173,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil, !self.isPanning {
-            self.portalControls.view.center.x = portalRect!.rect.midX + CGFloat(self.totalPan[0])
-            self.portalControls.view.center.y = portalRect!.rect.midY + CGFloat(self.totalPan[1])
+            let pannedRect = portalRect!.rect.offsetBy(dx: CGFloat(self.totalPan[0]), dy: CGFloat(self.totalPan[1]))
+            self.portalControls.view.frame = self.translateRect(pannedRect)
             self.portalControls.view.isHidden = false
             self.portalControls.targetName = portalRect!.name
             self.portalControls.view.setNeedsDisplay(portalRect!.rect)
@@ -224,8 +225,8 @@ class ViewController: UIViewController, ToolbarDelegate {
         let inputPoint = self.getTouchLocationWithPan(touch)
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
-            self.portalControls.view.center.x = portalRect!.rect.midX + CGFloat(self.totalPan[0])
-            self.portalControls.view.center.y = portalRect!.rect.midY + CGFloat(self.totalPan[1])
+            let pannedRect = portalRect!.rect.offsetBy(dx: CGFloat(self.totalPan[0]), dy: CGFloat(self.totalPan[1]))
+            self.portalControls.view.frame = self.translateRect(pannedRect)
             self.portalControls.view.setNeedsDisplay(portalRect!.rect)
             return
         }
