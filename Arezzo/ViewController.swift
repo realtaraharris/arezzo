@@ -69,8 +69,10 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     // MARK: - input event handlers
 
-    func screenSpaceToMetalSpace(_ position: [Float], _ width: Float, _ height: Float) -> [Float] {
-        let inverseViewSize = [1.0 / Float(width), 1.0 / Float(height)]
+    func screenSpaceToMetalSpace(_ position: [Float]) -> [Float] {
+        let width: Float = Float(self.view.frame.width)
+        let height: Float = Float(self.view.frame.height)
+        let inverseViewSize = [1.0 / width, 1.0 / height]
         let clipX = (2.0 * position[0] * inverseViewSize[0]) - 1.0
         let clipY = (2.0 * -position[1] * inverseViewSize[1]) + 1.0
         return [clipX, clipY]
@@ -78,12 +80,13 @@ class ViewController: UIViewController, ToolbarDelegate {
 
     func getTouchLocation(_ touch: UITouch) -> [Float] {
         let inputPoint = touch.location(in: view)
-        return self.screenSpaceToMetalSpace([Float(inputPoint.x), Float(inputPoint.y)], Float(self.view.frame.width), Float(self.view.frame.height))
+        return self.screenSpaceToMetalSpace([Float(inputPoint.x), Float(inputPoint.y)])
     }
 
     func getTouchLocationWithPan(_ touch: UITouch) -> [Float] {
         let inputPoint = touch.location(in: view)
-        return self.screenSpaceToMetalSpace([Float(inputPoint.x) - self.totalPan[0], Float(inputPoint.y) - self.totalPan[1]], Float(self.view.frame.width), Float(self.view.frame.height))
+        let metalPoint = self.screenSpaceToMetalSpace([Float(inputPoint.x), Float(inputPoint.y)])
+        return [metalPoint[0] - self.totalPan[0], metalPoint[1] - self.totalPan[1]]
     }
 
     override open func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent?) {
