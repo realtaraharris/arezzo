@@ -40,7 +40,7 @@ vertex VertexOut line_segment_vertex(
     float2 pointA = points[instanceId];
     float2 pointB = points[instanceId + 1];
     float2 xBasis = pointB - pointA;
-    float2 yBasis = normalize(float2(-xBasis.y, xBasis.x));
+    float2 yBasis = normalize(float2(-xBasis.y, xBasis.x)) * lineWidth;
     yBasis.y = yBasis.y * uniforms.aspectRatio;
     float2 point = pointA + xBasis * position.x + yBasis * position.y;
 
@@ -66,7 +66,7 @@ vertex VertexOut line_cap_vertex(
     float2 position = circle_vertices[vid];
     position.y *= uniforms.aspectRatio;
 
-    float2 point = line_points[instanceId] + position;
+    float2 point = line_points[instanceId] + position * lineWidth;
 
     vo.position = uniforms.modelViewMatrix * float4(point[0], point[1], 0.0, 1.0);
     vo.color = color;

@@ -48,13 +48,11 @@ class Renderer {
         self.width = Float(frame.width)
         self.height = Float(frame.height)
 
-        let lineScale: Float = 50.0
-
         let segmentVertices: [Float] = [
-            0.0, -0.5 / lineScale,
-            0.0, 0.5 / lineScale,
-            1.0, 0.5 / lineScale,
-            1.0, -0.5 / lineScale,
+            0.0, -0.5,
+            0.0, 0.5,
+            1.0, 0.5,
+            1.0, -0.5,
         ]
 
         print(segmentVertices)
@@ -66,7 +64,7 @@ class Renderer {
                                                          length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
                                                          options: .storageModeShared)
 
-        let capVertices: [Float] = circleGeometry(edges: capEdges, lineScale: lineScale)
+        let capVertices: [Float] = circleGeometry(edges: capEdges)
         let capIndices: [UInt32] = shapeIndices(edges: capEdges)
         capVertexBuffer = self.device.makeBuffer(bytes: capVertices,
                                                  length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),

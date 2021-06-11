@@ -19,6 +19,7 @@ class RecordingViewController: UIViewController {
     var clearButton: UIButton = UIButton(type: .custom)
     var portalButton: UIButton = UIButton(type: .custom)
     var micButton: UIButton = UIButton(type: .custom)
+    var penThicknessButton: UIButton = UIButton(type: .custom)
 
     var tempButton: UIButton = UIButton(type: .custom)
 
@@ -26,6 +27,7 @@ class RecordingViewController: UIViewController {
     var recording: Bool = false
     var mode: PenDownMode = .draw
     var muted: Bool = true
+    var penThickness: Float = DEFAULT_LINE_WIDTH
 
     override func loadView() {
         self.view = UIStackView()
@@ -74,6 +76,10 @@ class RecordingViewController: UIViewController {
         self.micButton.addTarget(self, action: #selector(self.mic), for: .touchUpInside)
         stackView.addArrangedSubview(self.micButton)
 
+        configureButton(self.penThicknessButton, UIImage(systemName: "exclamationmark")!)
+        self.penThicknessButton.addTarget(self, action: #selector(self.setPenThickness), for: .touchUpInside)
+        stackView.addArrangedSubview(self.penThicknessButton)
+
         let padding: UIView = UIView()
         configurePadding(padding)
         stackView.addArrangedSubview(padding)
@@ -86,13 +92,6 @@ class RecordingViewController: UIViewController {
          clearButton!.setTitle("Clear", for: .normal)
          clearButton!.addTarget(self, action: #selector(clear), for: .touchUpInside)
          view.addSubview(clearButton!)
-
-         let thicknessSlider = UISlider()
-         thicknessSlider.minimumValue = 5.0
-         thicknessSlider.maximumValue = 50.0
-         thicknessSlider.translatesAutoresizingMaskIntoConstraints = false
-         thicknessSlider.addTarget(self, action: #selector(thicknessSliderChanged), for: .valueChanged)
-         view.addSubview(thicknessSlider)
          */
     }
 
@@ -163,9 +162,19 @@ class RecordingViewController: UIViewController {
      @objc func clear() {
          delegate?.clear()
      }
+     */
 
-     @objc func thicknessSliderChanged(_ sender: UISlider!) {
-         delegate?.setLineWidth(sender.value)
-     }
-      */
+    @objc func setPenThickness() {
+        if (self.penThickness == DEFAULT_LINE_WIDTH) {
+            self.penThicknessButton.setBackgroundImage(UIImage(systemName: "exclamationmark.2"), for: .normal)
+            self.penThickness = LINE_WIDTH_1
+        } else if (self.penThickness == LINE_WIDTH_1) {
+            self.penThicknessButton.setBackgroundImage(UIImage(systemName: "exclamationmark.3"), for: .normal)
+            self.penThickness = LINE_WIDTH_2
+        } else {
+            self.penThicknessButton.setBackgroundImage(UIImage(systemName: "exclamationmark"), for: .normal)
+            self.penThickness = DEFAULT_LINE_WIDTH
+        }
+        self.delegate?.setLineWidth(self.penThickness)
+    }
 }
