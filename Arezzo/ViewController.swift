@@ -94,9 +94,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         let portalRect = self.checkPortalRects(CGPoint(x: CGFloat(inputPoint[0]), y: CGFloat(inputPoint[1])))
         if portalRect != nil {
-            self.portalControls.view.frame = portalRect!.rect
-            self.portalControls.view.center.x = portalRect!.rect.midX + CGFloat(self.totalPan[0])
-            self.portalControls.view.center.y = portalRect!.rect.midY + CGFloat(self.totalPan[1])
+            self.portalControls.view.frame = self.translateRect(portalRect!.rect)
             self.portalControls.view.isHidden = false
             self.portalControls.targetName = portalRect!.name
             self.panStartedInPortal = true
@@ -149,6 +147,18 @@ class ViewController: UIViewController, ToolbarDelegate {
                                      endTimestamp: timestamp)
         self.toolbar.recordingVC.undoButton.isEnabled = self.renderer.canUndo
         self.toolbar.recordingVC.redoButton.isEnabled = self.renderer.canRedo
+    }
+
+    func translateRect(_ rect: CGRect) -> CGRect {
+        let scale: CGFloat = UIScreen.main.scale
+        let width: CGFloat = self.view.frame.width
+        let height: CGFloat = self.view.frame.height
+        return CGRect(
+            x: ((rect.minX + 1.0) / scale) * width,
+            y: ((1.0 - rect.maxY) / scale) * height,
+            width: rect.width * width / scale,
+            height: rect.height * height / scale
+        )
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
@@ -316,7 +326,7 @@ class ViewController: UIViewController, ToolbarDelegate {
 
             self.renderer.renderToVideo(recordingIndex: self.recordingIndex,
                                         name: self.recordingIndex.currentRecording.name,
-                                        firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder)
+                                        firstTimestamp: firstPlaybackTimestamp, endTimestamp: currentTime, videoRecorder: videoRecorder, size: CGSize(width: CGFloat(self.view.frame.width), height: CGFloat(self.view.frame.height)))
 
             for op in self.recordingIndex.currentRecording.opList {
                 if op.type != .audioClip || op.timestamp != currentTime { continue }

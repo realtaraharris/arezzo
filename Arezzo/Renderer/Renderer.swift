@@ -27,6 +27,7 @@ class Renderer {
     var segmentRenderPipelineState: MTLRenderPipelineState!
     var capRenderPipelineState: MTLRenderPipelineState!
     var pipelineState: MTLRenderPipelineState!
+    var aspectRatio: Float = 0.0
     var width: Float = 0.0
     var height: Float = 0.0
     let capEdges = 21
@@ -43,8 +44,9 @@ class Renderer {
         self.metalLayer.frame = frame
         self.metalLayer.drawableSize = CGSize(width: frame.width * scale, height: frame.height * scale)
 
-        let aspectRatio = Float(frame.width / frame.height)
-        print("aspectRatio:", 1 / aspectRatio)
+        self.aspectRatio = Float(frame.width / frame.height)
+        self.width = Float(frame.width)
+        self.height = Float(frame.height)
 
         let lineScale: Float = 50.0
 
@@ -64,8 +66,7 @@ class Renderer {
                                                          length: segmentIndices.count * MemoryLayout.size(ofValue: segmentIndices[0]),
                                                          options: .storageModeShared)
 
-        // TODO: do aspect ratio multiplication in the shader
-        let capVertices: [Float] = circleGeometry(edges: capEdges, lineScale: lineScale, aspectRatio: aspectRatio)
+        let capVertices: [Float] = circleGeometry(edges: capEdges, lineScale: lineScale)
         let capIndices: [UInt32] = shapeIndices(edges: capEdges)
         capVertexBuffer = self.device.makeBuffer(bytes: capVertices,
                                                  length: capVertices.count * MemoryLayout.size(ofValue: capVertices[0]),
@@ -115,9 +116,6 @@ class Renderer {
         }
 
         self.commandQueue = self.device.makeCommandQueue() // this is expensive to create, so we save a reference to it
-
-        self.width = Float(frame.width)
-        self.height = Float(frame.height)
     }
 
     func triggerProgrammaticCapture() {
@@ -228,7 +226,7 @@ class Renderer {
                 guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
                 let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
 
-                if width <= 1.0 || height <= 1.0 { continue }
+                if width == 0.0 || height == 0.0 { continue }
 
                 if depth == 0 {
                     self.portalRects.append(
@@ -239,18 +237,20 @@ class Renderer {
                     )
                 }
 
-                let texture = self.renderToBitmap(recordingIndex: recordingIndex, name: shape.name, firstTimestamp: 0, endTimestamp: CFAbsoluteTimeGetCurrent(), size: CGSize(width: Double(width) * 2.0, height: Double(height) * 2.0), depth: depth + 1)
+                let texWidth: Double = Double((abs(width) + 1.0) * self.width)
+                let texHeight: Double = Double((abs(height) + 1.0) * self.height)
+                let texture = self.renderToBitmap(recordingIndex: recordingIndex, name: shape.name, firstTimestamp: 0, endTimestamp: CFAbsoluteTimeGetCurrent(), size: CGSize(width: texWidth * 2.0, height: texHeight * 2.0), depth: depth + 1)
 
                 // MARK: draw portal texture
 
                 let vertices: [PortalPreviewVertex] = [
-                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-                    PortalPreviewVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
-                    PortalPreviewVertex(position: vector_float2(x: x, y: y + height), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y + height), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
 
-                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
-                    PortalPreviewVertex(position: vector_float2(x: x, y: y + height), textureCoordinate: vector_float2(x: 0.0, y: 1.0)),
-                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y + height), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y), textureCoordinate: vector_float2(x: 1.0, y: 1.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x, y: y + height), textureCoordinate: vector_float2(x: 0.0, y: 0.0)),
+                    PortalPreviewVertex(position: vector_float2(x: x + width, y: y + height), textureCoordinate: vector_float2(x: 1.0, y: 0.0)),
                 ]
 
                 let vertexBuffer = self.device.makeBuffer(bytes: vertices, length: MemoryLayout<PortalPreviewVertex>.stride * vertices.count, options: .storageModeShared)!
@@ -351,8 +351,8 @@ class Renderer {
         return texture
     }
 
-    func renderToVideo(recordingIndex: RecordingIndex, name: String, firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder) {
-        let texture: MTLTexture = self.renderToBitmap(recordingIndex: recordingIndex, name: name, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: CGSize(width: CGFloat(self.width), height: CGFloat(self.height)), depth: 0) // TODO: pass in the desired size
+    func renderToVideo(recordingIndex: RecordingIndex, name: String, firstTimestamp: Double, endTimestamp: Double, videoRecorder: MetalVideoRecorder, size: CGSize) {
+        let texture: MTLTexture = self.renderToBitmap(recordingIndex: recordingIndex, name: name, firstTimestamp: firstTimestamp, endTimestamp: endTimestamp, size: size, depth: 0)
         videoRecorder.writeFrame(forTexture: texture, timestamp: endTimestamp)
     }
 
@@ -373,7 +373,7 @@ class Renderer {
             x: translation[0],
             y: translation[1]
         )
-        let uniform = Uniforms(modelViewMatrix: modelViewMatrix, aspectRatio: Float(self.width) / Float(self.height))
+        let uniform = Uniforms(modelViewMatrix: modelViewMatrix, aspectRatio: self.aspectRatio)
         let uniformBuffer: MTLBuffer = self.device.makeBuffer(
             length: MemoryLayout<Uniforms>.size,
             options: []

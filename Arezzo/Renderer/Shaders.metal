@@ -22,7 +22,7 @@ struct Uniforms {
 };
 
 vertex VertexOut line_segment_vertex(
-    constant packed_float2 *vertex_array[[buffer(0)]],
+    constant packed_float2 *segment_vertices[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
     constant packed_float2 *points[[buffer(3)]],
@@ -35,7 +35,7 @@ vertex VertexOut line_segment_vertex(
     const float lineWidth = widths[0];
 
     const float4 color = colors[0];
-    const float2 position = vertex_array[vid];
+    const float2 position = segment_vertices[vid];
 
     float2 pointA = points[instanceId];
     float2 pointB = points[instanceId + 1];
@@ -51,10 +51,10 @@ vertex VertexOut line_segment_vertex(
 }
 
 vertex VertexOut line_cap_vertex(
-    constant packed_float2 *vertex_array[[buffer(0)]],
+    constant packed_float2 *circle_vertices[[buffer(0)]],
     constant float4 *colors[[buffer(1)]],
     constant Uniforms &uniforms[[buffer(2)]],
-    constant packed_float2 *points[[buffer(3)]],
+    constant packed_float2 *line_points[[buffer(3)]],
     constant float *widths[[buffer(4)]],
     unsigned int vid[[vertex_id]],
     const uint instanceId [[instance_id]]
@@ -63,9 +63,10 @@ vertex VertexOut line_cap_vertex(
 
     const float lineWidth = widths[0];
     const float4 color = colors[0];
-    const float2 position = vertex_array[vid];
+    float2 position = circle_vertices[vid];
+    position.y *= uniforms.aspectRatio;
 
-    float2 point = points[instanceId] + position;
+    float2 point = line_points[instanceId] + position;
 
     vo.position = uniforms.modelViewMatrix * float4(point[0], point[1], 0.0, 1.0);
     vo.color = color;
