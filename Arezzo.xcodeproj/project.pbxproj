@@ -30,6 +30,7 @@
 		501E676D24D730D10032C7BD /* LargePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501E676C24D730D10032C7BD /* LargePalette.swift */; };
 		5031E82B2639BA050010625C /* Utillities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CCCB9B24EE245E0085F134 /* Utillities.swift */; };
 		50323189257028270050C298 /* Timestamps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50323188257028270050C298 /* Timestamps.swift */; };
+		503A2B1A267D59C700EF1B0C /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503A2B19267D59C700EF1B0C /* Queue.swift */; };
 		504F5D4025DCD28000EC6034 /* MakeSampleBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */; };
 		50507381260FF9FA00892C14 /* ColorPaletteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50507380260FF9FA00892C14 /* ColorPaletteViewController.swift */; };
 		505074352531A73D0011C9C9 /* ArezzoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505074342531A73D0011C9C9 /* ArezzoTests.swift */; };
@@ -97,6 +98,7 @@
 		501C58EF24FEC273001972F1 /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
 		501E676C24D730D10032C7BD /* LargePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargePalette.swift; sourceTree = "<group>"; };
 		50323188257028270050C298 /* Timestamps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timestamps.swift; sourceTree = "<group>"; };
+		503A2B19267D59C700EF1B0C /* Queue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
 		504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeSampleBuffer.swift; sourceTree = "<group>"; };
 		50507380260FF9FA00892C14 /* ColorPaletteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPaletteViewController.swift; sourceTree = "<group>"; };
 		505074322531A73D0011C9C9 /* ArezzoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ArezzoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,6 +126,7 @@
 		50C2A70B24A67F8A000F3B93 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50C2A71124A68667000F3B93 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		50CCCB9B24EE245E0085F134 /* Utillities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utillities.swift; sourceTree = "<group>"; };
+		50DAC46B2687A56900A40075 /* BinaryCoder */ = {isa = PBXFileReference; lastKnownFileType = text; path = BinaryCoder; sourceTree = SOURCE_ROOT; };
 		50DEB4D72602F01C00854D72 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		50DEB4FB260668AC00854D72 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = /Users/max/maxharris.org/arezzo/README.md; sourceTree = "<absolute>"; };
 		50E0F2E92501B9D90054D91F /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
@@ -228,6 +231,7 @@
 				50596396253FB73D00FF8B29 /* Shape.swift */,
 				50323188257028270050C298 /* Timestamps.swift */,
 				50F8C05E263DCAB00006EAC8 /* Index.swift */,
+				503A2B19267D59C700EF1B0C /* Queue.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -256,6 +260,7 @@
 		50C2A6FC24A67F87000F3B93 /* Arezzo */ = {
 			isa = PBXGroup;
 			children = (
+				50DAC46B2687A56900A40075 /* BinaryCoder */,
 				509BCAD82639B46000DF7FA5 /* Model */,
 				509BCACF2639B3CB00DF7FA5 /* Video */,
 				509BCACE2639B38700DF7FA5 /* Renderer */,
@@ -506,6 +511,7 @@
 				50C2A70024A67F87000F3B93 /* SceneDelegate.swift in Sources */,
 				508832422559DC100001E5A2 /* Recorder.swift in Sources */,
 				50A9E4A1263B2F94007A3BC9 /* Portal.swift in Sources */,
+				503A2B1A267D59C700EF1B0C /* Queue.swift in Sources */,
 				50E0F2EA2501B9D90054D91F /* Recording.swift in Sources */,
 				50971277261429C900DB39FE /* DocumentViewController.swift in Sources */,
 				50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */,

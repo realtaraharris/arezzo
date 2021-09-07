@@ -33,7 +33,7 @@ func outputCallback(inUserData: UnsafeMutableRawPointer?, inAQ: AudioQueueRef, i
     if currentAudioOpIndex >= audioOpIndexes.count { return }
 
     let opIndex = audioOpIndexes[currentAudioOpIndex]
-    let audioOp = player.pointee.currentRecording!.opList[opIndex] as! AudioClip
+    let audioOp = player.pointee.currentRecording!.getOp(opIndex) as! AudioClip
 //    print("currentAudioOpIndex:", currentAudioOpIndex, "opIndex:", opIndex, "audoOp.timestamp:", audioOp.timestamp, "time:", CFAbsoluteTimeGetCurrent(), "delta:", CFAbsoluteTimeGetCurrent() - audioOp.timestamp)
     let audioSamples = audioOp.audioSamples
     let sliceCount = audioOp.audioSamples.count

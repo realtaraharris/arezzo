@@ -165,10 +165,10 @@ class RecordingViewController: UIViewController {
      */
 
     @objc func setPenThickness() {
-        if (self.penThickness == DEFAULT_LINE_WIDTH) {
+        if self.penThickness == DEFAULT_LINE_WIDTH {
             self.penThicknessButton.setBackgroundImage(UIImage(systemName: "exclamationmark.2"), for: .normal)
             self.penThickness = LINE_WIDTH_1
-        } else if (self.penThickness == LINE_WIDTH_1) {
+        } else if self.penThickness == LINE_WIDTH_1 {
             self.penThicknessButton.setBackgroundImage(UIImage(systemName: "exclamationmark.3"), for: .normal)
             self.penThickness = LINE_WIDTH_2
         } else {

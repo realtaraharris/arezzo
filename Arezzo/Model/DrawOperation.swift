@@ -44,11 +44,13 @@ struct Pan: DrawOperation {
     var type: DrawOperationType
     var point: [Float]
     var timestamp: Double
+    var oldestVisibleTimestamp: Double
 
-    init(point: [Float], timestamp: Double) {
+    init(point: [Float], timestamp: Double, oldestVisibleTimestamp: Double) {
         self.type = DrawOperationType.pan
         self.point = point
         self.timestamp = timestamp
+        self.oldestVisibleTimestamp = oldestVisibleTimestamp
     }
 }
 
@@ -160,6 +162,10 @@ struct Redo: DrawOperation {
     }
 }
 
+// enum DrawOperationType2: BinaryCodable {
+//    case line, pan, point, penDown, penUp, audioStart, audioClip, audioStop, portal, viewport, undo, redo
+// }
+
 enum DrawOperationType: String, BinaryCodable {
     case line, pan, point, penDown, penUp, audioStart, audioClip, audioStop, portal, viewport, undo, redo
 
@@ -197,11 +203,11 @@ struct DrawOperationWrapper {
     var drawOperation: DrawOperation
 }
 
-extension DrawOperationWrapper: BinaryCodable {
-    private enum CodingKeys: CodingKey {
-        case type, drawOperation
-    }
+enum CodingKeys: CodingKey {
+    case type, drawOperation
+}
 
+extension DrawOperationWrapper: BinaryCodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(DrawOperationType.self, forKey: .type)
