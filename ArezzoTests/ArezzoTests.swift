@@ -37,9 +37,9 @@ class ArezzoTests: XCTestCase {
         f.addShapePoint(point: [531.5544, 341.54828], timestamp: 1_602_408_787_213, color: color, lineWidth: lineWidth)
         f.addShapePoint(point: [556.4631, 342.81653], timestamp: 1_602_408_787_221, color: color, lineWidth: lineWidth)
 
-        XCTAssert(f.getIndex(timestamp: 1_602_408_787_221) == 10)
-        XCTAssert(f.getIndex(timestamp: -1) == -2)
-        XCTAssert(f.getIndex(timestamp: 1_602_408_786_194) == 6)
+        XCTAssertEqual(f.getIndex(timestamp: 1_602_408_787_221), 12)
+        XCTAssertEqual(f.getIndex(timestamp: -1), 0)
+        XCTAssertEqual(f.getIndex(timestamp: 1_602_408_786_194), 8)
     }
 
     func testCircle() {
@@ -59,19 +59,19 @@ class ArezzoTests: XCTestCase {
     }
 
     func testCollector() {
-        let recording = Recording()
-        let renderer = Renderer(frame: CGRect(x: 0, y: 0, width: 100, height: 100), scale: 2.0)
+        let recordingIndex = RecordingIndex()
+        let recording = recordingIndex.currentRecording!
 
         XCTAssertEqual(recording.opList.count, 0)
 
         recording.beginProvisionalOps()
-        recording.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []), renderer: renderer)
-        recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw), renderer: renderer)
-        recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
-        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
-        recording.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .pan), renderer: renderer)
-        recording.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
-        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        recording.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []))
+        recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw, portalName: ""))
+        recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
+        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        recording.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .pan, portalName: ""))
+        recording.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()))
+        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
 
         XCTAssertEqual(recording.opList[0].type, .audioClip)
         XCTAssertEqual(recording.opList[1].type, .penDown)
@@ -89,11 +89,11 @@ class ArezzoTests: XCTestCase {
         XCTAssertEqual(recording.timestamps.count, 0)
 
         recording.beginProvisionalOps()
-        recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw), renderer: renderer)
-        recording.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
-        recording.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
-        recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
-        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), renderer: renderer)
+        recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw, portalName: ""))
+        recording.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()))
+        recording.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()))
+        recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
+        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
 
         recording.commitProvisionalOps()
         recording.cancelProvisionalOps()

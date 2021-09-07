@@ -24,6 +24,20 @@
 		5005C23D260A518600DFE391 /* RecordingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5005C23C260A518600DFE391 /* RecordingViewController.swift */; };
 		5005C247260A7EFA00DFE391 /* PlaybackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5005C246260A7EFA00DFE391 /* PlaybackViewController.swift */; };
 		5005C24D260BCC6600DFE391 /* EditingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5005C24C260BCC6600DFE391 /* EditingViewController.swift */; };
+		500AD39026E7DC7C0056D35E /* Octree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38B26E7DC7C0056D35E /* Octree.swift */; };
+		500AD39126E7DC7C0056D35E /* Octree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38B26E7DC7C0056D35E /* Octree.swift */; };
+		500AD39226E7DC7C0056D35E /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38C26E7DC7C0056D35E /* Queue.swift */; };
+		500AD39326E7DC7C0056D35E /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38C26E7DC7C0056D35E /* Queue.swift */; };
+		500AD39426E7DC7C0056D35E /* DrawOperationNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38D26E7DC7C0056D35E /* DrawOperationNew.swift */; };
+		500AD39526E7DC7C0056D35E /* DrawOperationNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38D26E7DC7C0056D35E /* DrawOperationNew.swift */; };
+		500AD39626E7DC7C0056D35E /* MappedTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38E26E7DC7C0056D35E /* MappedTree.swift */; };
+		500AD39726E7DC7C0056D35E /* MappedTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38E26E7DC7C0056D35E /* MappedTree.swift */; };
+		500AD39826E7DC7C0056D35E /* LinkedList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38F26E7DC7C0056D35E /* LinkedList.swift */; };
+		500AD39926E7DC7C0056D35E /* LinkedList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD38F26E7DC7C0056D35E /* LinkedList.swift */; };
+		500AD3B226E7DE2A0056D35E /* RecordingIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F8C05E263DCAB00006EAC8 /* RecordingIndex.swift */; };
+		500AD3CC26E7E4A90056D35E /* IoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD3CB26E7E4A90056D35E /* IoTests.swift */; };
+		500AD3DB26E7E4DE0056D35E /* sha.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD3D926E7E4DE0056D35E /* sha.swift */; };
+		500AD3DC26E7E4DE0056D35E /* SampleDataGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500AD3DA26E7E4DE0056D35E /* SampleDataGenerator.swift */; };
 		500DB82E253CF6F900A30A0D /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500DB82D253CF6F900A30A0D /* Geometry.swift */; };
 		501487722631495E004E6806 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501487712631495E004E6806 /* Renderer.swift */; };
 		501C58F024FEC273001972F1 /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501C58EF24FEC273001972F1 /* Toolbar.swift */; };
@@ -67,7 +81,7 @@
 		50E902EA2639BAA200A0675A /* MetalVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A3B12825D6F8E3003FBB93 /* MetalVideoRecorder.swift */; };
 		50E902EB2639BAA200A0675A /* MakeSampleBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F5D3F25DCD28000EC6034 /* MakeSampleBuffer.swift */; };
 		50E902EC2639BAA200A0675A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506D851D2639B56B001940F2 /* Utilities.swift */; };
-		50F8C05F263DCAB00006EAC8 /* Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F8C05E263DCAB00006EAC8 /* Index.swift */; };
+		50F8C05F263DCAB00006EAC8 /* RecordingIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F8C05E263DCAB00006EAC8 /* RecordingIndex.swift */; };
 		50FF3A6A24E5FD2B00D985FD /* DrawOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +106,14 @@
 		5005C23C260A518600DFE391 /* RecordingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewController.swift; sourceTree = "<group>"; };
 		5005C246260A7EFA00DFE391 /* PlaybackViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackViewController.swift; sourceTree = "<group>"; };
 		5005C24C260BCC6600DFE391 /* EditingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditingViewController.swift; sourceTree = "<group>"; };
+		500AD38B26E7DC7C0056D35E /* Octree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Octree.swift; sourceTree = "<group>"; };
+		500AD38C26E7DC7C0056D35E /* Queue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
+		500AD38D26E7DC7C0056D35E /* DrawOperationNew.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawOperationNew.swift; sourceTree = "<group>"; };
+		500AD38E26E7DC7C0056D35E /* MappedTree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MappedTree.swift; sourceTree = "<group>"; };
+		500AD38F26E7DC7C0056D35E /* LinkedList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkedList.swift; sourceTree = "<group>"; };
+		500AD3CB26E7E4A90056D35E /* IoTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IoTests.swift; sourceTree = "<group>"; };
+		500AD3D926E7E4DE0056D35E /* sha.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = sha.swift; sourceTree = "<group>"; };
+		500AD3DA26E7E4DE0056D35E /* SampleDataGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SampleDataGenerator.swift; sourceTree = "<group>"; };
 		500DB82D253CF6F900A30A0D /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
 		501487712631495E004E6806 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		501C58EF24FEC273001972F1 /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
@@ -129,7 +151,7 @@
 		50E0F2E92501B9D90054D91F /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
 		50E696E2256CBE4400C271D8 /* AudioStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStream.swift; sourceTree = "<group>"; };
 		50E88406257989B200BB6321 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		50F8C05E263DCAB00006EAC8 /* Index.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Index.swift; sourceTree = "<group>"; };
+		50F8C05E263DCAB00006EAC8 /* RecordingIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingIndex.swift; sourceTree = "<group>"; };
 		50FF3A6924E5FD2B00D985FD /* DrawOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawOperation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -160,6 +182,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		500AD38A26E7DBED0056D35E /* IO */ = {
+			isa = PBXGroup;
+			children = (
+				500AD38D26E7DC7C0056D35E /* DrawOperationNew.swift */,
+				500AD38F26E7DC7C0056D35E /* LinkedList.swift */,
+				500AD38E26E7DC7C0056D35E /* MappedTree.swift */,
+				500AD38B26E7DC7C0056D35E /* Octree.swift */,
+				500AD38C26E7DC7C0056D35E /* Queue.swift */,
+			);
+			path = IO;
+			sourceTree = "<group>";
+		};
 		502160AE24C8222C00A658D1 /* Storyboard */ = {
 			isa = PBXGroup;
 			children = (
@@ -172,6 +206,9 @@
 		505074332531A73D0011C9C9 /* ArezzoTests */ = {
 			isa = PBXGroup;
 			children = (
+				500AD3CB26E7E4A90056D35E /* IoTests.swift */,
+				500AD3DA26E7E4DE0056D35E /* SampleDataGenerator.swift */,
+				500AD3D926E7E4DE0056D35E /* sha.swift */,
 				505074342531A73D0011C9C9 /* ArezzoTests.swift */,
 				505074362531A73D0011C9C9 /* Info.plist */,
 			);
@@ -227,7 +264,7 @@
 				50E0F2E92501B9D90054D91F /* Recording.swift */,
 				50596396253FB73D00FF8B29 /* Shape.swift */,
 				50323188257028270050C298 /* Timestamps.swift */,
-				50F8C05E263DCAB00006EAC8 /* Index.swift */,
+				50F8C05E263DCAB00006EAC8 /* RecordingIndex.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -256,6 +293,7 @@
 		50C2A6FC24A67F87000F3B93 /* Arezzo */ = {
 			isa = PBXGroup;
 			children = (
+				500AD38A26E7DBED0056D35E /* IO */,
 				509BCAD82639B46000DF7FA5 /* Model */,
 				509BCACF2639B3CB00DF7FA5 /* Video */,
 				509BCACE2639B38700DF7FA5 /* Renderer */,
@@ -453,6 +491,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				500AD3CC26E7E4A90056D35E /* IoTests.swift in Sources */,
+				500AD3DB26E7E4DE0056D35E /* sha.swift in Sources */,
+				500AD3B226E7DE2A0056D35E /* RecordingIndex.swift in Sources */,
+				500AD39926E7DC7C0056D35E /* LinkedList.swift in Sources */,
+				500AD39726E7DC7C0056D35E /* MappedTree.swift in Sources */,
 				50A9E45B2639BC1B007A3BC9 /* AudioStream.swift in Sources */,
 				50E902EA2639BAA200A0675A /* MetalVideoRecorder.swift in Sources */,
 				50E902EB2639BAA200A0675A /* MakeSampleBuffer.swift in Sources */,
@@ -462,10 +505,14 @@
 				506D853C2639B889001940F2 /* Geometry.swift in Sources */,
 				506D85372639B864001940F2 /* Constants.swift in Sources */,
 				50DEB4EE2605284200854D72 /* Timestamps.swift in Sources */,
+				500AD39126E7DC7C0056D35E /* Octree.swift in Sources */,
+				500AD39326E7DC7C0056D35E /* Queue.swift in Sources */,
 				5059639B253FB76800FF8B29 /* Shape.swift in Sources */,
 				5050744325321BE10011C9C9 /* DrawOperation.swift in Sources */,
+				500AD39526E7DC7C0056D35E /* DrawOperationNew.swift in Sources */,
 				5050743F25321BBF0011C9C9 /* Recording.swift in Sources */,
 				505074352531A73D0011C9C9 /* ArezzoTests.swift in Sources */,
+				500AD3DC26E7E4DE0056D35E /* SampleDataGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -494,12 +541,16 @@
 				508832352559DBC70001E5A2 /* Playback.swift in Sources */,
 				504F5D4025DCD28000EC6034 /* MakeSampleBuffer.swift in Sources */,
 				5005C247260A7EFA00DFE391 /* PlaybackViewController.swift in Sources */,
+				500AD39426E7DC7C0056D35E /* DrawOperationNew.swift in Sources */,
 				501487722631495E004E6806 /* Renderer.swift in Sources */,
-				50F8C05F263DCAB00006EAC8 /* Index.swift in Sources */,
+				50F8C05F263DCAB00006EAC8 /* RecordingIndex.swift in Sources */,
 				50596397253FB73D00FF8B29 /* Shape.swift in Sources */,
 				5005C24D260BCC6600DFE391 /* EditingViewController.swift in Sources */,
+				500AD39026E7DC7C0056D35E /* Octree.swift in Sources */,
+				500AD39626E7DC7C0056D35E /* MappedTree.swift in Sources */,
 				50CCCB9C24EE245E0085F134 /* Utillities.swift in Sources */,
 				500DB82E253CF6F900A30A0D /* Geometry.swift in Sources */,
+				500AD39226E7DC7C0056D35E /* Queue.swift in Sources */,
 				50507381260FF9FA00892C14 /* ColorPaletteViewController.swift in Sources */,
 				5005C23D260A518600DFE391 /* RecordingViewController.swift in Sources */,
 				50C2A6FE24A67F87000F3B93 /* AppDelegate.swift in Sources */,
@@ -509,6 +560,7 @@
 				50E0F2EA2501B9D90054D91F /* Recording.swift in Sources */,
 				50971277261429C900DB39FE /* DocumentViewController.swift in Sources */,
 				50E696E3256CBE4400C271D8 /* AudioStream.swift in Sources */,
+				500AD39826E7DC7C0056D35E /* LinkedList.swift in Sources */,
 				50A3B12925D6F8E3003FBB93 /* MetalVideoRecorder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -547,13 +599,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = ArezzoTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = test.ArezzoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -569,13 +621,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = D2LEWKHUL9;
 				INFOPLIST_FILE = ArezzoTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = test.ArezzoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

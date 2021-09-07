@@ -190,7 +190,7 @@ class Recording {
 
         do {
             let savedData = try Data(contentsOf: path)
-            let decoder = BinaryDecoder(data: [UInt8](savedData), progressCallback: progressCallback, steps: 100)
+            let decoder = BinaryDecoder(data: [UInt8](savedData))
             let decoded = try decoder.decode([DrawOperationWrapper].self)
 
             self.opList = decoded.map {
