@@ -29,8 +29,8 @@ func highBitPositions(_ input: UInt8) -> [Int] {
 }
 
 struct PointInTime: BinaryCodable {
-    var x: Float32
-    var y: Float32
+    var x: Float
+    var y: Float
     var t: Double
 }
 
@@ -95,7 +95,7 @@ public final class Octree {
     init(
         boundingCube cube: CodableCube,
         maxLeavesPerNode: Int = 1,
-        maximumDepth: Int64 = 10,
+        maximumDepth: Int64 = 1000,
         id: Int64
     ) {
         self.cube = cube

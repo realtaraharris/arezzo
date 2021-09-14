@@ -165,7 +165,7 @@ class Renderer {
 
             // TODO: if we rework this loop and evaluate it in reverse order,
             // we can stop overwriting `translation` at the very first pan op we find
-            if shape.type == DrawOperationType.pan {
+            if shape.type == NodeType.pan {
                 if shape.geometry.count == 0 { continue }
                 let end = shape.getIndex(timestamp: endTimestamp)
                 if end >= 2 {
@@ -194,11 +194,11 @@ class Renderer {
                 self.canRedo = false
             }
 
-            if shape.type == DrawOperationType.undo, shape.timestamp[0] <= endTimestamp {
+            if shape.type == NodeType.undo, shape.timestamp[0] <= endTimestamp {
                 skipList.append(lastUndoableShapeIndex - undoDepth)
                 undoDepth += 1
                 self.canRedo = true
-            } else if shape.type == DrawOperationType.redo, shape.timestamp[0] <= endTimestamp {
+            } else if shape.type == NodeType.redo, shape.timestamp[0] <= endTimestamp {
                 undoDepth -= 1
                 skipList.removeLast()
                 self.canRedo = undoDepth > 0
@@ -218,9 +218,9 @@ class Renderer {
 
             if start > end || start == end { continue }
 
-            if shape.type == DrawOperationType.line {
+            if shape.type == NodeType.line {
                 self.drawLines(points: shape.geometry, instanceCount: (end - start - 1) / 2, shape: shape, renderCommandEncoder: renderCommandEncoder)
-            } else if shape.type == DrawOperationType.portal {
+            } else if shape.type == NodeType.portal {
                 guard let rect = shape.getBoundingRect(endTimestamp: endTimestamp) else { continue }
                 let x = rect[0], y = rect[1], width = rect[2], height = rect[3]
 

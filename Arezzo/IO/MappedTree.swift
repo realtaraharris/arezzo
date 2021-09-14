@@ -26,6 +26,7 @@ extension Data {
 func getURL(_ filename: String, _ ext: String) -> URL {
     let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
     let result = paths[0].appendingPathComponent(filename).appendingPathExtension(ext)
+    print("result:", result)
     return result
 }
 
@@ -128,7 +129,7 @@ class MappedTree {
     var treeFh: FileHandle?
     var metaTreeFh: FileHandle?
 
-    init(_ filename: String) throws {
+    init(_ filename: String) {
         self.binFh = mapOpListFile(getURL(filename, "bin")) // stores the binary serialized NodeRecords and draw ops: [nr, nr, nr, op, op, op, ...]
         self.indexFh = mapOpListFile(getURL(filename, "idx")) // stores IndexRecords: [0: (offset: Int64, size: UInt16, type: UInt8), 1: (offset: ...)]
         self.treeFh = mapOpListFile(getURL(filename, "tree")) // stores the tree ids: [0, 1, 2, 3...]
@@ -375,6 +376,7 @@ class MappedTree {
     func restore(_ cube: CodableCube? = nil, _ octree: inout Octree) {
         // quit early if we're already loading out of bounds
         if cube != nil, !octree.cube.intersects(cube!) {
+            print("quit early")
             return
         }
 

@@ -118,30 +118,36 @@ class ViewController: UIViewController, ToolbarDelegate {
                                                                    lineWidth: self.lineWidth,
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
-                                                                   portalName: name))
+                                                                   portalName: name),
+                                                       position: PointInTime(x: 0, y: 0, t: timestamp))
             self.recordingIndex.currentRecording.addOp(
-                op: Point(point: inputPoint, timestamp: timestamp)
+                op: Point(point: inputPoint, timestamp: timestamp),
+                position: PointInTime(x: inputPoint[0], y: inputPoint[1], t: timestamp)
             )
         } else if self.mode == PenDownMode.pan {
             self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                    lineWidth: self.lineWidth,
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
-                                                                   portalName: ""))
+                                                                   portalName: ""),
+                                                       position: PointInTime(x: 0, y: 0, t: timestamp))
             self.lastPan = self.getTouchLocation(touch)
             self.isPanning = true
 
             self.recordingIndex.currentRecording.addOp(
-                op: Pan(point: self.totalPan, timestamp: timestamp)
+                op: Pan(point: self.totalPan, timestamp: timestamp),
+                position: PointInTime(x: 0, y: 0, t: timestamp)
             )
         } else {
             self.recordingIndex.currentRecording.addOp(op: PenDown(color: self.selectedColor,
                                                                    lineWidth: self.lineWidth,
                                                                    timestamp: timestamp,
                                                                    mode: self.mode,
-                                                                   portalName: ""))
+                                                                   portalName: ""),
+                                                       position: PointInTime(x: 0, y: 0, t: timestamp))
             self.recordingIndex.currentRecording.addOp(
-                op: Point(point: inputPoint, timestamp: timestamp)
+                op: Point(point: inputPoint, timestamp: timestamp),
+                position: PointInTime(x: inputPoint[0], y: inputPoint[1], t: timestamp)
             )
         }
 
@@ -187,7 +193,8 @@ class ViewController: UIViewController, ToolbarDelegate {
 
         if self.mode == PenDownMode.draw {
             self.recordingIndex.currentRecording.addOp(
-                op: Point(point: inputPoint, timestamp: timestamp)
+                op: Point(point: inputPoint, timestamp: timestamp),
+                position: PointInTime(x: inputPoint[0], y: inputPoint[1], t: timestamp)
             )
         } else if self.mode == PenDownMode.pan {
             let panTouch = self.getTouchLocation(touch)
@@ -196,11 +203,13 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.totalPan[1] + panTouch[1] - self.lastPan[1],
             ]
             self.recordingIndex.currentRecording.addOp(
-                op: Pan(point: tmp, timestamp: timestamp)
+                op: Pan(point: tmp, timestamp: timestamp),
+                position: PointInTime(x: 0, y: 0, t: timestamp)
             )
         } else if self.mode == PenDownMode.portal {
             self.recordingIndex.currentRecording.addOp(
-                op: Portal(point: inputPoint, timestamp: timestamp)
+                op: Portal(point: inputPoint, timestamp: timestamp),
+                position: PointInTime(x: inputPoint[0], y: inputPoint[1], t: timestamp)
             )
         } else {
             print("invalid mode: \(self.mode)")
@@ -240,13 +249,15 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.totalPan[1] + panTouch[1] - self.lastPan[1],
             ]
             self.recordingIndex.currentRecording.addOp(
-                op: Pan(point: tmp, timestamp: timestamp)
+                op: Pan(point: tmp, timestamp: timestamp),
+                position: PointInTime(x: tmp[0], y: tmp[1], t: timestamp)
             )
             self.totalPan = tmp
             self.isPanning = false
         }
 
-        self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp))
+        self.recordingIndex.currentRecording.addOp(op: PenUp(timestamp: timestamp),
+                                                   position: PointInTime(x: 0, y: 0, t: timestamp))
         self.recordingIndex.currentRecording.commitProvisionalOps()
 
         self.renderer.portalRects = []
@@ -559,7 +570,9 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func startRecording() {
-        self.recordingIndex.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: CFAbsoluteTimeGetCurrent()))
+        let timestamp = CFAbsoluteTimeGetCurrent()
+        self.recordingIndex.currentRecording.addOp(op: Viewport(bounds: [Float(self.view.frame.width), Float(self.view.frame.height)], timestamp: timestamp),
+                                                   position: PointInTime(x: 0, y: 0, t: timestamp))
 
         self.isRecording = true
         self.startAudioRecording()
@@ -587,8 +600,10 @@ class ViewController: UIViewController, ToolbarDelegate {
             check(AudioQueueEnqueueBuffer(self.queue!, buffers[i]!, 0, nil))
         }
 
+        let timestamp = CFAbsoluteTimeGetCurrent()
         self.recordingIndex.currentRecording.addOp(
-            op: AudioStart(timestamp: CFAbsoluteTimeGetCurrent())
+            op: AudioStart(timestamp: timestamp),
+            position: PointInTime(x: 0, y: 0, t: timestamp)
         )
         check(AudioQueueStart(self.queue!, nil))
     }
@@ -596,8 +611,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     func stopAudioRecording() {
         if !self.recordingState.running { return }
 
+        let timestamp = CFAbsoluteTimeGetCurrent()
         self.recordingIndex.currentRecording.addOp(
-            op: AudioStop(timestamp: CFAbsoluteTimeGetCurrent())
+            op: AudioStop(timestamp: timestamp),
+            position: PointInTime(x: 0, y: 0, t: timestamp)
         )
 
         check(AudioQueueStop(self.queue!, true))
@@ -634,6 +651,9 @@ class ViewController: UIViewController, ToolbarDelegate {
                 }
             }
             self.recordingIndex.restore(filename: filename)
+            self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
+                                         name: self.recordingIndex.currentRecording.name,
+                                         endTimestamp: CFAbsoluteTimeGetCurrent())
             DispatchQueue.main.async {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
@@ -700,7 +720,9 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func undo() {
-        self.recordingIndex.currentRecording.addOp(op: Undo(timestamp: CFAbsoluteTimeGetCurrent()))
+        let timestamp = CFAbsoluteTimeGetCurrent()
+        self.recordingIndex.currentRecording.addOp(op: Undo(timestamp: timestamp),
+                                                   position: PointInTime(x: 0, y: 0, t: timestamp))
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())
@@ -709,7 +731,9 @@ class ViewController: UIViewController, ToolbarDelegate {
     }
 
     func redo() {
-        self.recordingIndex.currentRecording.addOp(op: Redo(timestamp: CFAbsoluteTimeGetCurrent()))
+        let timestamp = CFAbsoluteTimeGetCurrent()
+        self.recordingIndex.currentRecording.addOp(op: Redo(timestamp: timestamp),
+                                                   position: PointInTime(x: 0, y: 0, t: timestamp))
         self.renderer.renderToScreen(recordingIndex: self.recordingIndex,
                                      name: self.recordingIndex.currentRecording.name,
                                      endTimestamp: CFAbsoluteTimeGetCurrent())

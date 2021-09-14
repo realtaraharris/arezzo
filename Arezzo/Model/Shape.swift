@@ -13,15 +13,15 @@ class Shape {
     var timestamp: [Double] = []
     var color: [Float] = []
     var lineWidth: Float = DEFAULT_LINE_WIDTH
-    var type: DrawOperationType
+    var type: NodeType
     var name: String!
 
-    init(type: DrawOperationType) {
+    init(type: NodeType) {
         self.type = type
     }
 
     func isUndoRedo() -> Bool {
-        self.type == DrawOperationType.undo || self.type == DrawOperationType.redo
+        self.type == NodeType.undo || self.type == NodeType.redo
     }
 
     func addShapePoint(point: [Float], timestamp: Double, color: [Float], lineWidth: Float) {

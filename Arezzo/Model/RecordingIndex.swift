@@ -61,13 +61,13 @@ class RecordingIndex {
         self.recordings.removeAll()
         let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
 
-        func progressCallback(todoCount: Int, todo: Int) {
-            let progress = Float(todoCount) / Float(todo)
-
-            DispatchQueue.main.async {
-//                self.toolbar.documentVC.restoreProgressIndicator.progress = progress
-            }
-        }
+//        func progressCallback(todoCount: Int, todo: Int) {
+//            let progress = Float(todoCount) / Float(todo)
+//
+//            DispatchQueue.main.async {
+        // //                self.toolbar.documentVC.restoreProgressIndicator.progress = progress
+//            }
+//        }
 
         do {
             let jsonString = try String(contentsOf: path, encoding: .utf8)
@@ -75,7 +75,7 @@ class RecordingIndex {
 
             for name in decoded {
                 let restoredRecording = self.addRecording(name: name)
-                restoredRecording.deserialize(filename: name, progressCallback)
+                restoredRecording.deserialize(filename: name)
                 if name == "Root" {
                     self.currentRecording = restoredRecording
                 }

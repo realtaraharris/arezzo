@@ -38,13 +38,32 @@ class Recording {
     var undoable: Bool = false
     var redoable: Bool = false
 
-    var tree: GKQuadtree<NSObject>
+    private var boundingCube: CodableCube
+    private var activeCube: CodableCube
+    private var tree: Octree
+    private var mapping: MappedTree
+    private var monotonicId: Int64 = 1
+    private var unwrittenSubtrees: [Octree] = []
 
     init(name: String, recordingIndex: RecordingIndex) {
         self.name = name
         self.recordingIndex = recordingIndex
 
-        self.tree = GKQuadtree(boundingQuad: GKQuad(quadMin: SIMD2<Float>(0.0, 0.0), quadMax: SIMD2<Float>(Float.greatestFiniteMagnitude, Float.greatestFiniteMagnitude)), minimumCellSize: 100.0)
+        let now = CFAbsoluteTimeGetCurrent()
+        let later = now + 9_999_999.0
+
+        self.boundingCube = CodableCube(cubeMin: PointInTime(x: -100.0, y: -100.0, t: 0), cubeMax: PointInTime(x: 100.0, y: 100.0, t: later))
+
+        self.activeCube = CodableCube(cubeMin: PointInTime(x: -1.0, y: -1.0, t: 0), cubeMax: PointInTime(x: 1.0, y: 1.0, t: later))
+
+        self.tree = Octree(boundingCube: self.boundingCube, maxLeavesPerNode: 10, maximumDepth: INT64_MAX, id: 0)
+        self.mapping = MappedTree(name)
+    }
+
+    func getMonotonicId() -> Int64 {
+        let returnValue = self.monotonicId
+        self.monotonicId += 1
+        return returnValue
     }
 
     func getTimestamp(position: Double) -> Double {
@@ -77,13 +96,23 @@ class Recording {
         Timestamps(timestamps: Array(self.timestamps[startIndex ..< endIndex])).makeIterator()
     }
 
-    func addOp(op: DrawOperation) {
+    func addOp(op: DrawOperation, position: PointInTime) {
+        guard let encoded = encodeOp(op), let offset = self.mapping.writeOp(encoded) else { return }
+        let id = self.getMonotonicId()
+        print("adding id:", id, position)
+        self.mapping.writeIndex(id, IndexRecord(offset: Int64(offset), size: UInt16(encoded.count), type: op.type.rawValue))
+        self.tree.add(leafData: UInt64(id), position: position, &self.unwrittenSubtrees, self.getMonotonicId)
+
+//        print("self.unwrittenSubtrees:", self.unwrittenSubtrees)
+
         self.opList.append(op)
-        self.timestamps.append(op.timestamp)
+        self.addToShapeList(op: op)
+    }
 
-        // TODO: pass in current viewport.
-        let output = self.tree.elements(in: GKQuad(quadMin: SIMD2<Float>(0.0, 0.0), quadMax: SIMD2<Float>(1000.0, 1000.0)))
+    func addToShapeList(op: DrawOperation) {
+//        self.timestamps.append(op.timestamp)
 
+        // TODO: pass in current viewport
         if op.type == .penDown {
             let penDownOp = op as! PenDown
             self.penState = .down
@@ -98,13 +127,13 @@ class Recording {
                 }
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                self.shapeList.append(Shape(type: DrawOperationType.line))
+                self.shapeList.append(Shape(type: NodeType.line))
             } else if penDownOp.mode == PenDownMode.pan {
-                self.shapeList.append(Shape(type: DrawOperationType.pan))
+                self.shapeList.append(Shape(type: NodeType.pan))
             } else if penDownOp.mode == PenDownMode.portal {
                 self.activeColor = penDownOp.color
                 self.currentLineWidth = penDownOp.lineWidth
-                let newShape = Shape(type: DrawOperationType.portal)
+                let newShape = Shape(type: NodeType.portal)
                 newShape.name = penDownOp.portalName
                 self.shapeList.append(newShape)
             } else {
@@ -114,17 +143,14 @@ class Recording {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let panOp = op as! Pan
             lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
-            self.tree.add(op.timestamp as NSObject, at: SIMD2<Float>(panOp.point[0], panOp.point[1]))
         } else if op.type == .point, self.penState == .down {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let pointOp = op as! Point
             lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
-            self.tree.add(op.timestamp as NSObject, at: SIMD2<Float>(pointOp.point[0], pointOp.point[1]))
         } else if op.type == .portal {
             let lastShape = self.shapeList[self.shapeList.count - 1]
             let portalOp = op as! Portal
             lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
-            self.tree.add(op.timestamp as NSObject, at: SIMD2<Float>(portalOp.point[0], portalOp.point[1]))
         } else if op.type == .penUp {
             self.penState = .up
             self.undoable = true
@@ -132,16 +158,16 @@ class Recording {
         } else if op.type == .audioClip {
         } else if op.type == .undo {
             self.undoLevel += 1
-            let undoShape = Shape(type: DrawOperationType.undo)
+            let undoShape = Shape(type: NodeType.undo)
             undoShape.timestamp.append(op.timestamp)
             self.shapeList.append(undoShape)
         } else if op.type == .redo {
             self.undoLevel -= 1
-            let redoShape = Shape(type: DrawOperationType.redo)
+            let redoShape = Shape(type: NodeType.redo)
             redoShape.timestamp.append(op.timestamp)
             self.shapeList.append(redoShape)
         } else {
-            print("unhandled op type:", op.type.rawValue)
+            print("unhandled op type:", op.type)
         }
     }
 
@@ -173,61 +199,71 @@ class Recording {
         self.provisionalTimestampIndex = 0
     }
 
-    func serialize(filename: String) {
-        let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
-        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
+    func serialize(filename _: String) {
+        self.mapping.printTree(self.tree)
 
-        do {
-            let binaryData: [UInt8] = try BinaryEncoder.encode(wrappedItems)
-            FileManager.default.createFile(atPath: path.path, contents: Data(binaryData))
-        } catch {
-            print(error)
+        // query to see what the tree holds
+        let elements = self.tree.elements(in: self.boundingCube)
+        print("serialize, elements:", elements)
+
+        for subtree in self.unwrittenSubtrees {
+            print("serializing subtree:", subtree)
+            self.mapping.serializeTree(subtree)
         }
+        self.unwrittenSubtrees = []
     }
 
-    func deserialize(filename: String, _ progressCallback: @escaping (_ current: Int, _ total: Int) -> Void) {
-        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("bin")
+    func deserialize(filename: String) {
+        print("in deserialize, filename:", filename)
+        self.mapping.restore(self.boundingCube, &self.tree)
+
+//        self.mapping.printTree(self.tree)
+        let elements = self.tree.elements(in: self.boundingCube).sorted()
 
         do {
-            let savedData = try Data(contentsOf: path)
-            let decoder = BinaryDecoder(data: [UInt8](savedData))
-            let decoded = try decoder.decode([DrawOperationWrapper].self)
+            for id in elements {
+                guard let (opOffset, length, type) = self.mapping.readIndex(Int64(id)), let newOp = self.mapping.readOp(opOffset, length) else {
+                    continue
+                }
 
-            self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation)
-                return $0.drawOperation
+                var theOp: DrawOperation?
+                if type == NodeType.line.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Line.self)
+                } else if type == NodeType.pan.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Pan.self)
+                } else if type == NodeType.point.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Point.self)
+                } else if type == NodeType.penDown.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(PenDown.self)
+                } else if type == NodeType.penUp.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(PenUp.self)
+                } else if type == NodeType.audioStart.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(AudioStart.self)
+                } else if type == NodeType.audioClip.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(AudioClip.self)
+                } else if type == NodeType.audioStop.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(AudioStop.self)
+                } else if type == NodeType.portal.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Portal.self)
+                } else if type == NodeType.viewport.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Viewport.self)
+                } else if type == NodeType.undo.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Undo.self)
+                } else if type == NodeType.redo.rawValue {
+                    theOp = try BinaryDecoder(data: newOp).decode(Redo.self)
+                } else {
+                    print("unhandled type:", type)
+                }
+
+                if theOp != nil {
+                    self.opList.append(theOp!)
+                    self.addToShapeList(op: theOp!)
+                }
             }
         } catch {
             print(error)
         }
-    }
 
-    func serializeJson(filename: String) {
-        let wrappedItems: [DrawOperationWrapper] = self.opList.map { DrawOperationWrapper(drawOperation: $0) }
-        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
-
-        do {
-            let jsonData = try JSONEncoder().encode(wrappedItems)
-            let jsonString = String(data: jsonData, encoding: .utf8)!
-            try jsonString.write(to: path, atomically: true, encoding: String.Encoding.utf8)
-        } catch {
-            print(error)
-        }
-    }
-
-    func deserializeJson(filename: String) {
-        let path = getDocumentsDirectory().appendingPathComponent(filename).appendingPathExtension("json")
-
-        do {
-            let jsonString = try String(contentsOf: path, encoding: .utf8)
-            let decoded = try JSONDecoder().decode([DrawOperationWrapper].self, from: jsonString.data(using: .utf8)!)
-
-            self.opList = decoded.map {
-                self.addOp(op: $0.drawOperation)
-                return $0.drawOperation
-            }
-        } catch {
-            print(error)
-        }
+        print("self.opList:", self.opList)
     }
 }
