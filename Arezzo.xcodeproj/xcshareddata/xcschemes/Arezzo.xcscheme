@@ -39,21 +39,6 @@
                ReferencedContainer = "container:Arezzo.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "505963AA2543A81F00FF8B29"
-               BuildableName = "ArezzoUITests.xctest"
-               BlueprintName = "ArezzoUITests"
-               ReferencedContainer = "container:Arezzo.xcodeproj">
-            </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "ArezzoUITests">
-               </Test>
-            </SkippedTests>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -26,7 +26,7 @@ extension Data {
 func getURL(_ filename: String, _ ext: String) -> URL {
     let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
     let result = paths[0].appendingPathComponent(filename).appendingPathExtension(ext)
-    print("result:", result)
+//    print("result:", result)
     return result
 }
 
@@ -34,6 +34,11 @@ struct IndexRecord {
     var offset: Int64
     var size: UInt16
     var type: UInt8
+}
+
+struct TreeMetadata: BinaryCodable {
+    var bounds: CodableCube
+    var lastId: Int64
 }
 
 struct NodeRecord: BinaryCodable {
@@ -47,7 +52,7 @@ struct TreeNode: BinaryCodable {
 }
 
 let RECORD_SIZE: Int = MemoryLayout<IndexRecord>.size
-let CC_SIZE: Int = MemoryLayout<CodableCube>.size
+let TREEMETA_SIZE: Int = MemoryLayout<TreeMetadata>.size
 let TREENODE_SIZE: Int = MemoryLayout<TreeNode>.size
 
 func mapOpListFile(_ opListPath: URL) -> FileHandle? {
@@ -134,30 +139,32 @@ class MappedTree {
         self.indexFh = mapOpListFile(getURL(filename, "idx")) // stores IndexRecords: [0: (offset: Int64, size: UInt16, type: UInt8), 1: (offset: ...)]
         self.treeFh = mapOpListFile(getURL(filename, "tree")) // stores the tree ids: [0, 1, 2, 3...]
         self.metaTreeFh = mapOpListFile(getURL(filename, "mth")) // struct contains tree bounds: x, y, t
+//        print("opening url: getURL(filename, 'mth')", getURL(filename, "mth"))
     }
 
-    func readMetaTree() -> CodableCube? {
+    func readMetaTree() -> TreeMetadata? {
         do {
             guard let fh = self.metaTreeFh else {
                 print("meta tree file handle unexpectedly unavailable")
                 return nil
             }
             try fh.seek(toOffset: 0)
-            let cc = [UInt8](fh.readData(ofLength: CC_SIZE))
-            return try BinaryDecoder(data: cc).decode(CodableCube.self)
+            let cc = [UInt8](fh.readData(ofLength: TREEMETA_SIZE))
+            return try BinaryDecoder(data: cc).decode(TreeMetadata.self)
         } catch {
             print(error)
         }
         return nil
     }
 
-    func writeMetaTree(_ cube: CodableCube) {
+    func writeMetaTree(_ cube: CodableCube, _ id: Int64) {
         do {
             guard let fh = self.metaTreeFh else {
                 print("meta tree file handle unexpectedly unavailable")
                 return
             }
-            let cd = try BinaryEncoder.encode(cube)
+            let cd = try BinaryEncoder.encode(TreeMetadata(bounds: cube, lastId: id))
+            try fh.seek(toOffset: 0)
             fh.write(Data(cd))
         } catch {
             print(error)
@@ -185,13 +192,22 @@ class MappedTree {
             return nil
         }
 
+        do {
+            try fh.seekToEnd()
+        } catch {
+            print(error)
+        }
+
         let offset = fh.offsetInFile
         fh.write(Data(op))
+
+        print("wrote op to offset:", offset)
         return offset
     }
 
     func writeIndex(_ id: Int64, _ indexRecord: IndexRecord) {
         // TODO: check bounds
+        print("writing index for id:", id)
 
         do {
             guard let fh = self.indexFh else {
@@ -211,6 +227,8 @@ class MappedTree {
     }
 
     func readIndex(_ id: Int64) -> (opOffset: UInt64, length: Int, type: Int)? {
+        print("reading index for id:", id)
+
         do {
             guard let fh = self.indexFh else {
                 print("index file handle unexpectedly unavailable")
@@ -244,18 +262,15 @@ class MappedTree {
 //    }
 
     func writeTreeEntry(_ treeNode: TreeNode) {
-        do {
-            guard let fh = self.treeFh else {
-                print("tree file handle unexpectedly unavailable")
-                return
-            }
+        print("writing tree entry for id:", treeNode.id)
 
-            try fh.seekToEnd()
-            guard let treeNodeBin = encodeTreeNode(treeNode) else { return }
-            fh.write(Data(treeNodeBin))
-        } catch {
-            print(error)
+        guard let fh = self.treeFh else {
+            print("tree file handle unexpectedly unavailable")
+            return
         }
+
+        guard let treeNodeBin = encodeTreeNode(treeNode) else { return }
+        fh.write(Data(treeNodeBin))
     }
 
     func readTreeEntry(_ treeOffset: Int64, length: Int) -> TreeNode? {
@@ -309,8 +324,9 @@ class MappedTree {
         }
     }
 
-    func printTree(_ tree: Octree) {
+    func printTree(_ tree: Octree, _ treeName: String) {
         print("v=====================v")
+        print(" > tree name:", treeName)
         self.printTreeRecursive(0, tree)
         print("^=====================^")
     }
@@ -328,12 +344,16 @@ class MappedTree {
     }
 
     func serializeTree(_ tree: Octree) {
+        do {
+            try self.treeFh?.seek(toOffset: 0)
+        } catch { print(error) }
         var queue = Queue<Octree?>(arrayLiteral: tree)
         var currentDepth: Int64 = 0
         var row: [TreeNode] = []
 
         while queue.count > 0 {
             guard let node = queue.pop() else { continue }
+            print("NODE:", node.id)
 
             if node.encodeChildOccupancy() == 0b0000_0000 { // we are on a leaf node; serialize all children
                 // write a block of ids to go from leaf -> DrawOperationEx
@@ -435,6 +455,7 @@ class MappedTree {
         try self.binFh?.close()
         try self.indexFh?.close()
         try self.treeFh?.close()
+        try self.metaTreeFh?.close()
     }
 
     // TODO: throw this into an extension

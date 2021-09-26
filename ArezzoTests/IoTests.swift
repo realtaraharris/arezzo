@@ -340,7 +340,7 @@ class streaming_treeTests: XCTestCase {
     }
 
     func testBeep() throws {
-        let filename = "unboundedDeserialization"
+        let filename = "beep"
 
         // delete any existing files
         del(getURL(filename, "bin"))
@@ -381,7 +381,7 @@ class streaming_treeTests: XCTestCase {
 //        tree.add(1, at: PointInTime(x: 1.0, y: 1.0, t: 1.0), &unwrittenIds, getMonotonicId)
         XCTAssertEqual(tree.elements(in: boundingCube).sorted(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].sorted())
 
-        mt.writeMetaTree(boundingCube)
+        mt.writeMetaTree(boundingCube, _id)
 
         // so we need to write the treeIds to the .tree file
         // and let's keep another set of opIds for the leaves in the .bin file
@@ -406,8 +406,8 @@ class streaming_treeTests: XCTestCase {
         // now test deserialization
         let mt2 = MappedTree(filename)
 
-        let treeMetadata = mt.readMetaTree()
-        let boundingCube2 = CodableCube(cubeMin: treeMetadata!.cubeMin, cubeMax: treeMetadata!.cubeMax)
+        let treeMetadata = mt2.readMetaTree()
+        let boundingCube2 = CodableCube(cubeMin: treeMetadata!.bounds.cubeMin, cubeMax: treeMetadata!.bounds.cubeMax)
         var octree = Octree(boundingCube: boundingCube2, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: 0)
         mt2.restore(boundingCube, &octree)
 
@@ -452,7 +452,7 @@ class streaming_treeTests: XCTestCase {
         tree.add(leafData: 0, position: PointInTime(x: 5.0, y: 5.0, t: 5.0), &unwrittenSubtrees, getMonotonicId)
         XCTAssertEqual(tree.elements(in: boundingCube).sorted(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].sorted())
 
-        mt.writeMetaTree(boundingCube)
+        mt.writeMetaTree(boundingCube, _id)
         mt.serializeTree(tree)
 
         try mt.close()
@@ -469,8 +469,8 @@ class streaming_treeTests: XCTestCase {
         // now test deserialization
         let mt2 = MappedTree(filename)
 
-        let treeMetadata = mt.readMetaTree()
-        let boundingCube2 = CodableCube(cubeMin: treeMetadata!.cubeMin, cubeMax: treeMetadata!.cubeMax)
+        let treeMetadata = mt2.readMetaTree()
+        let boundingCube2 = CodableCube(cubeMin: treeMetadata!.bounds.cubeMin, cubeMax: treeMetadata!.bounds.cubeMax)
         var octree = Octree(boundingCube: boundingCube2, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: 0)
 
         mt2.restore(boundingCube2, &octree)
@@ -526,7 +526,7 @@ class streaming_treeTests: XCTestCase {
         XCTAssertEqual(tree.elements(in: boundingCube), [3, 4, 7, 8, 9, 10, 12, 11, 13, 14, 16, 15, 2, 1, 6, 5])
 
         mt.serializeTree(tree)
-        mt.writeMetaTree(boundingCube)
+        mt.writeMetaTree(boundingCube, _id)
         try mt.close()
 
         // verify the results
@@ -541,8 +541,8 @@ class streaming_treeTests: XCTestCase {
         // now test deserialization
         let mt2 = MappedTree(filename)
 
-        let treeMetadata = mt.readMetaTree()
-        let boundingCube2 = CodableCube(cubeMin: treeMetadata!.cubeMin, cubeMax: treeMetadata!.cubeMax)
+        let treeMetadata = mt2.readMetaTree()
+        let boundingCube2 = CodableCube(cubeMin: treeMetadata!.bounds.cubeMin, cubeMax: treeMetadata!.bounds.cubeMax)
         let smallCube = CodableCube(cubeMin: PointInTime(x: -1.0, y: -1.0, t: -1.0), cubeMax: PointInTime(x: 1.0, y: 1.0, t: 1.0))
         var octree = Octree(boundingCube: boundingCube2, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: 0) // getMonotonicId())
 
@@ -930,7 +930,8 @@ class streaming_treeTests: XCTestCase {
     }
 
     func testGo() {
-        let mt = MappedTree("foo")
+        let filename = "testGo"
+        let mt = MappedTree(filename)
 
         let boundingCube = CodableCube(cubeMin: PointInTime(x: -10.0, y: -10.0, t: 0), cubeMax: PointInTime(x: 10.0, y: 10.0, t: 5000))
 
@@ -945,21 +946,21 @@ class streaming_treeTests: XCTestCase {
         let tree: Octree = Octree(boundingCube: boundingCube, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: getMonotonicId()) // monotonic id 0 is assigned in here
 
         tree.add(leafData: 1, position: PointInTime(x: 0.0, y: 0.0, t: 1.0), &unwrittenSubtrees, getMonotonicId)
-        mt.printTree(tree)
+        mt.printTree(tree, filename)
         tree.add(leafData: 3, position: PointInTime(x: 0.0, y: 0.0, t: 2.0), &unwrittenSubtrees, getMonotonicId)
-        mt.printTree(tree)
+        mt.printTree(tree, filename)
 //        tree.add(leafData: 24, position: PointInTime(x: -0.47073144, y: 0.22030473, t: 653146429.107138), &unwrittenSubtrees, getMonotonicId)
-//        mt.printTree(tree)
+//        mt.printTree(tree, filename)
 //        tree.add(leafData: 27, position: PointInTime(x: -0.47155505, y: 0.22097522, t: 653146429.112996), &unwrittenSubtrees, getMonotonicId)
-//        mt.printTree(tree)
+//        mt.printTree(tree, filename)
 //        tree.add(leafData: 47, position: PointInTime(x: -0.47155505, y: 0.22097522, t: 653146429.120053), &unwrittenSubtrees, getMonotonicId)
-//        mt.printTree(tree)
+//        mt.printTree(tree, filename)
 //        tree.add(leafData: 58, position: PointInTime(x: -0.47155505, y: 0.22097522, t: 653146429.136975), &unwrittenSubtrees, getMonotonicId)
 
 //        tree.add(leafData: 1, position: PointInTime(x: 0.0, y: 0.0, t: 653146428.73627), &unwrittenSubtrees, getMonotonicId)
-//        mt.printTree(tree)
+//        mt.printTree(tree, filename)
 //        tree.add(leafData: 3, position: PointInTime(x: 0.0, y: 0.0, t: 653146429.107138), &unwrittenSubtrees, getMonotonicId)
-//        mt.printTree(tree)
+//        mt.printTree(tree, filename)
 //        tree.add(leafData: 24, position: PointInTime(x: -0.47073144, y: 0.22030473, t: 653146429.107138), &unwrittenSubtrees, getMonotonicId)
 //        tree.add(leafData: 27, position: PointInTime(x: -0.47155505, y: 0.22097522, t: 653146429.112996), &unwrittenSubtrees, getMonotonicId)
 //        tree.add(leafData: 47, position: PointInTime(x: -0.47155505, y: 0.22097522, t: 653146429.120053), &unwrittenSubtrees, getMonotonicId)

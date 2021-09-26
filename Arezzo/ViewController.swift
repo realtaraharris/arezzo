@@ -388,8 +388,10 @@ class ViewController: UIViewController, ToolbarDelegate {
     func stopPlaying() {
         self.playingState.running = false
 
-        check(AudioQueueStop(self.queue!, true))
-        check(AudioQueueDispose(self.queue!, true))
+        if self.queue != nil {
+            check(AudioQueueStop(self.queue!, true))
+            check(AudioQueueDispose(self.queue!, true))
+        }
         self.isPlaying = false
 
         self.playbackTerminationId += 1 // causes playback timers with the previous playId to terminate
@@ -552,11 +554,13 @@ class ViewController: UIViewController, ToolbarDelegate {
         }
 
         let drawOpTimestamp = self.recordingIndex.currentRecording.opList[drawOpIndexes[0]].timestamp
-        let audioOpTimestamp = self.recordingIndex.currentRecording.opList[audioControlOpIndexes[0]].timestamp
-        let audioStart = playbackStart + audioOpTimestamp - drawOpTimestamp
 
-        updateAudioTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, audioStart, 0, 0, 0, updateAudio)
-        RunLoop.current.add(updateAudioTimer!, forMode: .common)
+        if audioControlOpIndexes.count > 0 {
+            let audioOpTimestamp = self.recordingIndex.currentRecording.opList[audioControlOpIndexes[0]].timestamp
+            let audioStart = playbackStart + audioOpTimestamp - drawOpTimestamp
+            updateAudioTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, audioStart, 0, 0, 0, updateAudio)
+            RunLoop.current.add(updateAudioTimer!, forMode: .common)
+        }
 
         updateScreenTimer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, playbackStart, 0, 0, 0, updateScreen)
         RunLoop.current.add(updateScreenTimer!, forMode: .common)

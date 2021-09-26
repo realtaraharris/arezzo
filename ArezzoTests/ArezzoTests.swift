@@ -47,7 +47,7 @@ class ArezzoTests: XCTestCase {
         let capVerticesOdd: [Float] = circleGeometry(edges: capResolutionOdd)
         let capIndicesOdd: [UInt32] = shapeIndices(edges: capResolutionOdd)
 
-        XCTAssertEqual(capVerticesOdd, [0.5, 0.0, 0.31174493, 0.39091572, -0.111260414, 0.48746398, -0.45048442, 0.21694191, -0.45048448, -0.21694177, -0.111260734, -0.4874639, 0.31174484, -0.3909158])
+        XCTAssertEqual(capVerticesOdd, [0.5, 0.0, 0.31174493, 0.39091572, -0.111260414, 0.48746398, -0.45048442, 0.21694191, -0.45048448, -0.21694177, -0.11126074, -0.4874639, 0.31174484, -0.3909158])
         XCTAssertEqual(capIndicesOdd, [6, 0, 5, 1, 4, 2, 3])
 
         let capResolutionEven = 8
@@ -59,56 +59,85 @@ class ArezzoTests: XCTestCase {
     }
 
     func testCollector() {
-        /*
-                let recordingIndex = RecordingIndex()
-                let recording = recordingIndex.currentRecording!
+        let filename = "Root"
 
-                XCTAssertEqual(recording.opList.count, 0)
+        // delete any existing files
+        del(getURL(filename, "bin"))
+        del(getURL(filename, "idx"))
+        del(getURL(filename, "tree"))
 
-                recording.beginProvisionalOps()
-                recording.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []))
-                recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw, portalName: ""))
-                recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
-                recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
-                recording.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .pan, portalName: ""))
-                recording.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()))
-                recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+        let recording = Recording(name: filename)
+        XCTAssertEqual(recording.opList.count, 0)
 
-                XCTAssertEqual(recording.opList[0].type, .audioClip)
-                XCTAssertEqual(recording.opList[1].type, .penDown)
-                XCTAssertEqual(recording.opList[2].type, .point)
-                XCTAssertEqual(recording.opList[3].type, .penUp)
-                XCTAssertEqual(recording.opList[4].type, .penDown)
-                XCTAssertEqual(recording.opList[5].type, .pan)
-                XCTAssertEqual(recording.opList[6].type, .penUp)
+//        recording.addOp(op: AudioClip(timestamp: CFAbsoluteTimeGetCurrent(), audioSamples: []), position: PointInTime(
+//            x: 0, y: 1, t: CFAbsoluteTimeGetCurrent()
+//        ))
+        recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw, portalName: ""), position: PointInTime(
+            x: 2, y: 3, t: CFAbsoluteTimeGetCurrent()
+        ))
+//        recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+//            x: 4, y: 5, t: CFAbsoluteTimeGetCurrent()
+//        ))
+//        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+//            x: 6, y: 7, t: CFAbsoluteTimeGetCurrent()
+//        ))
+//        recording.addOp(op: PenDown(color: [0.0, 0.0, 0.0, 0.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .pan, portalName: ""), position: PointInTime(
+//            x: 8, y: 9, t: CFAbsoluteTimeGetCurrent()
+//        ))
+//        recording.addOp(op: Pan(point: [100, 400], timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+//            x: 10, y: 11, t: CFAbsoluteTimeGetCurrent()
+//        ))
+        recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+            x: 12, y: 13, t: CFAbsoluteTimeGetCurrent()
+        ))
 
-                recording.cancelProvisionalOps()
+        recording.serialize(filename: filename)
+        recording.mapping.printTree(recording.tree, "recording")
+        recording.close()
 
-                // ensure that provisional ops are destroyed when cancelled
-                XCTAssertEqual(recording.opList.count, 0)
-                XCTAssertEqual(recording.shapeList.count, 0)
-                XCTAssertEqual(recording.timestamps.count, 0)
+        let recording2 = Recording(name: filename)
+        recording2.deserialize(filename: filename)
+        recording2.mapping.printTree(recording2.tree, "recording2, after loading")
 
-                recording.beginProvisionalOps()
-                recording.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw, portalName: ""))
-                recording.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()))
-                recording.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()))
-                recording.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()))
-                recording.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()))
+//        XCTAssertEqual(recording2.opList.count, 7)
+//        XCTAssertEqual(recording2.shapeList.count, 2)
+//        XCTAssertEqual(recording2.timestamps.count, 7)
 
-                recording.commitProvisionalOps()
-                recording.cancelProvisionalOps()
+        recording2.addOp(op: PenDown(color: [1.0, 0.0, 1.0, 1.0], lineWidth: DEFAULT_LINE_WIDTH, timestamp: CFAbsoluteTimeGetCurrent(), mode: .draw, portalName: ""), position: PointInTime(
+            x: 24, y: 25, t: CFAbsoluteTimeGetCurrent()
+        ))
+//        recording2.addOp(op: Point(point: [310, 645], timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+//            x: 26, y: 27, t: CFAbsoluteTimeGetCurrent()
+//        ))
+//        recording2.addOp(op: Point(point: [284.791, 429.16245], timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+//            x: 28, y: 29, t: CFAbsoluteTimeGetCurrent()
+//        ))
+//        recording2.addOp(op: Point(point: [800, 100], timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+//            x: 30, y: 31, t: CFAbsoluteTimeGetCurrent()
+//        ))
+        recording2.addOp(op: PenUp(timestamp: CFAbsoluteTimeGetCurrent()), position: PointInTime(
+            x: 32, y: 33, t: CFAbsoluteTimeGetCurrent()
+        ))
 
-                // ensure that commited ops are retained post-cancellation
-                XCTAssertEqual(recording.opList.count, 5)
-                XCTAssertEqual(recording.shapeList.count, 1)
-                XCTAssertEqual(recording.timestamps.count, 5)
+//        XCTAssertEqual(recording2.opList.count, 12)
+//        XCTAssertEqual(recording2.shapeList.count, 3)
+//        XCTAssertEqual(recording2.timestamps.count, 12)
 
-                XCTAssertEqual(recording.opList[0].type, .penDown)
-                XCTAssertEqual(recording.opList[1].type, .point)
-                XCTAssertEqual(recording.opList[2].type, .point)
-                XCTAssertEqual(recording.opList[3].type, .point)
-                XCTAssertEqual(recording.opList[4].type, .penUp)
-         */
+        // write to disk again
+        print("vvvvvvvvvvvvvvvv")
+        recording2.serialize(filename: filename)
+        recording2.mapping.printTree(recording2.tree, "recording2")
+        recording2.close()
+        print("^^^^^^^^^^^^^^^^")
+
+        // now make sure we can read it back
+        let recording3 = Recording(name: filename)
+        recording3.deserialize(filename: filename)
+
+        recording3.mapping.printTree(recording3.tree, "recording3")
+
+        XCTAssertEqual(recording3.opList.count, 4)
+        XCTAssertEqual(recording3.shapeList.count, 2)
+        XCTAssertEqual(recording3.timestamps.count, 4)
     }
 }

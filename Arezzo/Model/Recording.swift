@@ -23,45 +23,56 @@ func getDocumentsDirectory() -> URL {
 
 class Recording {
     var opList: [DrawOperation] = []
+    var unwrittenOpList: [(DrawOperation, PointInTime)] = []
     var shapeList: [Shape] = []
     var provisionalShapeIndex = 0
     var provisionalOpIndex = 0
     var provisionalTimestampIndex = 0
+    var provisionalUnwrittenOpListIndex = 0
     var activeColor: [Float] = []
     var currentLineWidth = DEFAULT_LINE_WIDTH
 
     var penState: PenState = .down
     var timestamps: [Double] = [] // TODO: remove
     var name: String = ""
-    var recordingIndex: RecordingIndex
+//    var recordingIndex: RecordingIndex
     var undoLevel: Int = 0
     var undoable: Bool = false
     var redoable: Bool = false
 
     private var boundingCube: CodableCube
     private var activeCube: CodableCube
-    private var tree: Octree
-    private var mapping: MappedTree
+    var tree: Octree
+    var mapping: MappedTree
     private var monotonicId: Int64 = 1
     private var unwrittenSubtrees: [Octree] = []
+    private var idsAdded = Set<Int64>()
+    private var idsRemoved = Set<Int64>()
 
-    init(name: String, recordingIndex: RecordingIndex) {
+    init(name: String) {
         self.name = name
-        self.recordingIndex = recordingIndex
 
         let now = CFAbsoluteTimeGetCurrent()
         let later = now + 9_999_999.0
 
         self.boundingCube = CodableCube(cubeMin: PointInTime(x: -100.0, y: -100.0, t: 0), cubeMax: PointInTime(x: 100.0, y: 100.0, t: later))
-
         self.activeCube = CodableCube(cubeMin: PointInTime(x: -1.0, y: -1.0, t: 0), cubeMax: PointInTime(x: 1.0, y: 1.0, t: later))
 
-        self.tree = Octree(boundingCube: self.boundingCube, maxLeavesPerNode: 10, maximumDepth: INT64_MAX, id: 0)
+        self.tree = Octree(boundingCube: self.boundingCube, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: 0)
         self.mapping = MappedTree(name)
+    }
+
+    func close() {
+        do {
+            try self.mapping.close()
+        } catch {
+            print("test error:", error)
+        }
     }
 
     func getMonotonicId() -> Int64 {
         let returnValue = self.monotonicId
+        print("minting monotonic id:", returnValue)
         self.monotonicId += 1
         return returnValue
     }
@@ -97,20 +108,15 @@ class Recording {
     }
 
     func addOp(op: DrawOperation, position: PointInTime) {
-        guard let encoded = encodeOp(op), let offset = self.mapping.writeOp(encoded) else { return }
-        let id = self.getMonotonicId()
-        print("adding id:", id, position)
-        self.mapping.writeIndex(id, IndexRecord(offset: Int64(offset), size: UInt16(encoded.count), type: op.type.rawValue))
-        self.tree.add(leafData: UInt64(id), position: position, &self.unwrittenSubtrees, self.getMonotonicId)
-
-//        print("self.unwrittenSubtrees:", self.unwrittenSubtrees)
+        self.unwrittenOpList.append((op, position))
+        print("unwrittenOpList:", self.unwrittenOpList)
 
         self.opList.append(op)
         self.addToShapeList(op: op)
     }
 
     func addToShapeList(op: DrawOperation) {
-//        self.timestamps.append(op.timestamp)
+        self.timestamps.append(op.timestamp)
 
         // TODO: pass in current viewport
         if op.type == .penDown {
@@ -144,13 +150,17 @@ class Recording {
             let panOp = op as! Pan
             lastShape.addShapePoint(point: panOp.point, timestamp: panOp.timestamp, color: [0.8, 0.7, 0.6, 1.0], lineWidth: DEFAULT_LINE_WIDTH)
         } else if op.type == .point, self.penState == .down {
-            let lastShape = self.shapeList[self.shapeList.count - 1]
-            let pointOp = op as! Point
-            lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
+            if self.shapeList.count > 0 {
+                let lastShape = self.shapeList[self.shapeList.count - 1]
+                let pointOp = op as! Point
+                lastShape.addShapePoint(point: pointOp.point, timestamp: pointOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
+            }
         } else if op.type == .portal {
-            let lastShape = self.shapeList[self.shapeList.count - 1]
-            let portalOp = op as! Portal
-            lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
+            if self.shapeList.count > 0 {
+                let lastShape = self.shapeList[self.shapeList.count - 1]
+                let portalOp = op as! Portal
+                lastShape.addShapePoint(point: portalOp.point, timestamp: portalOp.timestamp, color: self.activeColor, lineWidth: self.currentLineWidth)
+            }
         } else if op.type == .penUp {
             self.penState = .up
             self.undoable = true
@@ -175,50 +185,89 @@ class Recording {
         self.provisionalShapeIndex = self.shapeList.count
         self.provisionalOpIndex = self.opList.count
         self.provisionalTimestampIndex = self.timestamps.count
+        self.provisionalUnwrittenOpListIndex = self.unwrittenOpList.count
     }
 
     func commitProvisionalOps() {
         self.provisionalShapeIndex = self.shapeList.count
         self.provisionalOpIndex = self.opList.count
         self.provisionalTimestampIndex = self.timestamps.count
+        self.provisionalUnwrittenOpListIndex = self.unwrittenOpList.count
     }
 
     func cancelProvisionalOps() {
         self.shapeList.removeSubrange(self.provisionalShapeIndex ..< self.shapeList.count)
         self.opList.removeSubrange(self.provisionalOpIndex ..< self.opList.count)
         self.timestamps.removeSubrange(self.provisionalTimestampIndex ..< self.timestamps.count)
+        self.unwrittenOpList.removeSubrange(self.provisionalUnwrittenOpListIndex ..< self.unwrittenOpList.count)
     }
 
     func clear() {
         self.shapeList = []
         self.opList = []
         self.timestamps = []
+        self.unwrittenOpList = []
 
         self.provisionalShapeIndex = 0
         self.provisionalOpIndex = 0
         self.provisionalTimestampIndex = 0
+        self.provisionalUnwrittenOpListIndex = 0
     }
 
     func serialize(filename _: String) {
-        self.mapping.printTree(self.tree)
+//        do {
+//            try self.mapping.treeFh?.seek(toOffset: 0)
+//            try self.mapping.binFh?.seek(toOffset: 0)
+//            try self.mapping.metaTreeFh?.seek(toOffset: 0)
+//            try self.mapping.indexFh?.seek(toOffset: 0)
+//        } catch {
+//            print(error)
+//        }
+
+        for (op, position) in self.unwrittenOpList {
+            guard let encoded = encodeOp(op), let offset = self.mapping.writeOp(encoded) else { return }
+            let id = self.getMonotonicId()
+            print("adding id to tree:", id, position)
+            self.mapping.writeIndex(id, IndexRecord(offset: Int64(offset), size: UInt16(encoded.count), type: op.type.rawValue))
+            self.tree.add(leafData: UInt64(id), position: position, &self.unwrittenSubtrees, self.getMonotonicId)
+
+            print("self.unwrittenSubtrees:", self.unwrittenSubtrees)
+
+            self.idsAdded.insert(id)
+        }
+
+        print("serializing last id:", self.monotonicId)
+        self.mapping.writeMetaTree(self.boundingCube, self.monotonicId)
 
         // query to see what the tree holds
-        let elements = self.tree.elements(in: self.boundingCube)
-        print("serialize, elements:", elements)
+//        let elements = self.tree.elements(in: self.boundingCube)
+//        print("serialize, elements:", elements)
 
-        for subtree in self.unwrittenSubtrees {
-            print("serializing subtree:", subtree)
-            self.mapping.serializeTree(subtree)
-        }
+//        for subtree in self.unwrittenSubtrees {
+//            print("serializing subtree:", subtree.id)
+//            self.mapping.serializeTree(subtree)
+//        }
+
+        self.mapping.serializeTree(self.tree)
         self.unwrittenSubtrees = []
+        self.unwrittenOpList = []
     }
 
     func deserialize(filename: String) {
         print("in deserialize, filename:", filename)
-        self.mapping.restore(self.boundingCube, &self.tree)
 
-//        self.mapping.printTree(self.tree)
+        guard let tm = self.mapping.readMetaTree() else {
+            print("could not read tree metadata")
+            return
+        }
+
+//        print("deserializing last id:", tm.lastId)
+        self.monotonicId = tm.lastId
+
+        self.mapping.restore(self.boundingCube, &self.tree)
+//        self.mapping.printTree(self.tree, filename)
         let elements = self.tree.elements(in: self.boundingCube).sorted()
+        print("elements:", elements)
 
         do {
             for id in elements {
@@ -227,7 +276,9 @@ class Recording {
                 }
 
                 var theOp: DrawOperation?
-                if type == NodeType.line.rawValue {
+                if type == NodeType.leaf.rawValue {
+//                    print("found leaf")
+                } else if type == NodeType.line.rawValue {
                     theOp = try BinaryDecoder(data: newOp).decode(Line.self)
                 } else if type == NodeType.pan.rawValue {
                     theOp = try BinaryDecoder(data: newOp).decode(Pan.self)
@@ -252,10 +303,10 @@ class Recording {
                 } else if type == NodeType.redo.rawValue {
                     theOp = try BinaryDecoder(data: newOp).decode(Redo.self)
                 } else {
-                    print("unhandled type:", type)
+                    print("unhandled type:", type, id)
                 }
 
-                if theOp != nil {
+                if theOp != nil, type != NodeType.nodeRecord.rawValue, type != NodeType.leaf.rawValue {
                     self.opList.append(theOp!)
                     self.addToShapeList(op: theOp!)
                 }
@@ -264,6 +315,6 @@ class Recording {
             print(error)
         }
 
-        print("self.opList:", self.opList)
+//        print("self.opList:", self.opList)
     }
 }
