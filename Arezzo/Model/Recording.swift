@@ -52,13 +52,13 @@ class Recording {
     init(name: String) {
         self.name = name
 
-        let now = CFAbsoluteTimeGetCurrent()
+        let now = 655_146_515.0 // CFAbsoluteTimeGetCurrent()
         let later = now + 9_999_999.0
 
-        self.boundingCube = CodableCube(cubeMin: PointInTime(x: -100.0, y: -100.0, t: 0), cubeMax: PointInTime(x: 100.0, y: 100.0, t: later))
-        self.activeCube = CodableCube(cubeMin: PointInTime(x: -1.0, y: -1.0, t: 0), cubeMax: PointInTime(x: 1.0, y: 1.0, t: later))
+        self.boundingCube = CodableCube(cubeMin: PointInTime(x: -30.0, y: -30.0, t: 0), cubeMax: PointInTime(x: 30.0, y: 30.0, t: later))
+        self.activeCube = CodableCube(cubeMin: PointInTime(x: -30.0, y: -30.0, t: 0), cubeMax: PointInTime(x: 30.0, y: 30.0, t: later))
 
-        self.tree = Octree(boundingCube: self.boundingCube, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: 0)
+        self.tree = Octree(boundingCube: self.boundingCube, maxLeavesPerNode: 32, maximumDepth: INT64_MAX, id: 0)
         self.mapping = MappedTree(name)
     }
 
@@ -72,7 +72,6 @@ class Recording {
 
     func getMonotonicId() -> Int64 {
         let returnValue = self.monotonicId
-        print("minting monotonic id:", returnValue)
         self.monotonicId += 1
         return returnValue
     }
@@ -109,7 +108,6 @@ class Recording {
 
     func addOp(op: DrawOperation, position: PointInTime) {
         self.unwrittenOpList.append((op, position))
-        print("unwrittenOpList:", self.unwrittenOpList)
 
         self.opList.append(op)
         self.addToShapeList(op: op)
@@ -214,60 +212,33 @@ class Recording {
         self.provisionalUnwrittenOpListIndex = 0
     }
 
-    func serialize(filename _: String) {
-//        do {
-//            try self.mapping.treeFh?.seek(toOffset: 0)
-//            try self.mapping.binFh?.seek(toOffset: 0)
-//            try self.mapping.metaTreeFh?.seek(toOffset: 0)
-//            try self.mapping.indexFh?.seek(toOffset: 0)
-//        } catch {
-//            print(error)
-//        }
-
+    func serialize(filename: String) {
         for (op, position) in self.unwrittenOpList {
             guard let encoded = encodeOp(op), let offset = self.mapping.writeOp(encoded) else { return }
             let id = self.getMonotonicId()
-            print("adding id to tree:", id, position)
             self.mapping.writeIndex(id, IndexRecord(offset: Int64(offset), size: UInt16(encoded.count), type: op.type.rawValue))
             self.tree.add(leafData: UInt64(id), position: position, &self.unwrittenSubtrees, self.getMonotonicId)
-
-            print("self.unwrittenSubtrees:", self.unwrittenSubtrees)
 
             self.idsAdded.insert(id)
         }
 
-        print("serializing last id:", self.monotonicId)
         self.mapping.writeMetaTree(self.boundingCube, self.monotonicId)
-
-        // query to see what the tree holds
-//        let elements = self.tree.elements(in: self.boundingCube)
-//        print("serialize, elements:", elements)
-
-//        for subtree in self.unwrittenSubtrees {
-//            print("serializing subtree:", subtree.id)
-//            self.mapping.serializeTree(subtree)
-//        }
-
+        self.mapping.printTree(self.tree, filename)
         self.mapping.serializeTree(self.tree)
         self.unwrittenSubtrees = []
         self.unwrittenOpList = []
     }
 
-    func deserialize(filename: String) {
-        print("in deserialize, filename:", filename)
-
+    func deserialize(filename _: String) {
         guard let tm = self.mapping.readMetaTree() else {
             print("could not read tree metadata")
             return
         }
 
-//        print("deserializing last id:", tm.lastId)
         self.monotonicId = tm.lastId
 
         self.mapping.restore(self.boundingCube, &self.tree)
-//        self.mapping.printTree(self.tree, filename)
         let elements = self.tree.elements(in: self.boundingCube).sorted()
-        print("elements:", elements)
 
         do {
             for id in elements {
@@ -277,7 +248,6 @@ class Recording {
 
                 var theOp: DrawOperation?
                 if type == NodeType.leaf.rawValue {
-//                    print("found leaf")
                 } else if type == NodeType.line.rawValue {
                     theOp = try BinaryDecoder(data: newOp).decode(Line.self)
                 } else if type == NodeType.pan.rawValue {
@@ -314,7 +284,5 @@ class Recording {
         } catch {
             print(error)
         }
-
-//        print("self.opList:", self.opList)
     }
 }

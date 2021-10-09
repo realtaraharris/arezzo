@@ -55,7 +55,6 @@ class Renderer {
             1.0, -0.5,
         ]
 
-        print(segmentVertices)
         let segmentIndices: [UInt32] = shapeIndices(edges: 4)
         segmentVertexBuffer = self.device.makeBuffer(bytes: segmentVertices,
                                                      length: segmentVertices.count * MemoryLayout.size(ofValue: segmentVertices[0]),

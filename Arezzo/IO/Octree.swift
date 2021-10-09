@@ -95,7 +95,7 @@ public final class Octree {
     init(
         boundingCube cube: CodableCube,
         maxLeavesPerNode: Int = 1,
-        maximumDepth: Int64 = 1000,
+        maximumDepth: Int64 = 100_000,
         id: Int64
     ) {
         self.cube = cube
@@ -112,8 +112,8 @@ public final class Octree {
     ///   - point: the point associated with the element you want to store
     /// - Returns: the octree node the element was added to
     @discardableResult func add(leafData: UInt64, position: PointInTime, _ subtreeTracker: inout [Octree], _ getMonotonicId: () -> Int64) -> Octree? {
-        guard self.depth < self.maximumDepth else {
-            return nil
+        if self.depth >= self.maximumDepth {
+            print("warning: exceeded maximum depth of \(self.maximumDepth) with \(self.depth)")
         }
 
         let leaf = DrawOperationEx(leafData: leafData, position: position, id: getMonotonicId())

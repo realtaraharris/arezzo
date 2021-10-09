@@ -946,9 +946,9 @@ class streaming_treeTests: XCTestCase {
         let tree: Octree = Octree(boundingCube: boundingCube, maxLeavesPerNode: 1, maximumDepth: INT64_MAX, id: getMonotonicId()) // monotonic id 0 is assigned in here
 
         tree.add(leafData: 1, position: PointInTime(x: 0.0, y: 0.0, t: 1.0), &unwrittenSubtrees, getMonotonicId)
-        mt.printTree(tree, filename)
+//        mt.printTree(tree, filename)
         tree.add(leafData: 3, position: PointInTime(x: 0.0, y: 0.0, t: 2.0), &unwrittenSubtrees, getMonotonicId)
-        mt.printTree(tree, filename)
+//        mt.printTree(tree, filename)
 //        tree.add(leafData: 24, position: PointInTime(x: -0.47073144, y: 0.22030473, t: 653146429.107138), &unwrittenSubtrees, getMonotonicId)
 //        mt.printTree(tree, filename)
 //        tree.add(leafData: 27, position: PointInTime(x: -0.47155505, y: 0.22097522, t: 653146429.112996), &unwrittenSubtrees, getMonotonicId)

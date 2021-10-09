@@ -201,13 +201,11 @@ class MappedTree {
         let offset = fh.offsetInFile
         fh.write(Data(op))
 
-        print("wrote op to offset:", offset)
         return offset
     }
 
     func writeIndex(_ id: Int64, _ indexRecord: IndexRecord) {
         // TODO: check bounds
-        print("writing index for id:", id)
 
         do {
             guard let fh = self.indexFh else {
@@ -227,8 +225,6 @@ class MappedTree {
     }
 
     func readIndex(_ id: Int64) -> (opOffset: UInt64, length: Int, type: Int)? {
-        print("reading index for id:", id)
-
         do {
             guard let fh = self.indexFh else {
                 print("index file handle unexpectedly unavailable")
@@ -262,7 +258,7 @@ class MappedTree {
 //    }
 
     func writeTreeEntry(_ treeNode: TreeNode) {
-        print("writing tree entry for id:", treeNode.id)
+//        print("writing tree entry for id:", treeNode.id)
 
         guard let fh = self.treeFh else {
             print("tree file handle unexpectedly unavailable")
@@ -346,14 +342,15 @@ class MappedTree {
     func serializeTree(_ tree: Octree) {
         do {
             try self.treeFh?.seek(toOffset: 0)
-        } catch { print(error) }
+        } catch {
+            print(error)
+        }
         var queue = Queue<Octree?>(arrayLiteral: tree)
         var currentDepth: Int64 = 0
         var row: [TreeNode] = []
 
         while queue.count > 0 {
             guard let node = queue.pop() else { continue }
-            print("NODE:", node.id)
 
             if node.encodeChildOccupancy() == 0b0000_0000 { // we are on a leaf node; serialize all children
                 // write a block of ids to go from leaf -> DrawOperationEx
@@ -441,6 +438,26 @@ class MappedTree {
         let childPositions = highBitPositions(root.occupancy) // local position of each child in an array: subtree slot # of each occupied subtree
         for subtreeSlot in childPositions {
             restoreInner(octree, subtreeSlot)
+        }
+
+        // load children of root here
+        do {
+            guard let (opOffset, length, _) = self.readIndex(Int64(0)), let binOp = self.readOp(opOffset, length) else { return }
+            print("opOffset, length, binOp", opOffset, length)
+            if length > 0 {
+                let nr: NodeRecord = try BinaryDecoder(data: binOp).decode(NodeRecord.self)
+                print("NR:", nr)
+                for id in nr.leafIds {
+                    // add multiple DrawOperationEx leaves
+                    guard let (opOffset1, length1, _) = self.readIndex(Int64(id)), let binOp1 = self.readOp(opOffset1, length1) else { return }
+                    print("opOffset1, length1, binOp", opOffset1, length1)
+
+                    let leaf1: DrawOperationEx = try BinaryDecoder(data: binOp1).decode(DrawOperationEx.self)
+                    octree.leaves.append(leaf1)
+                }
+            }
+        } catch {
+            print("error loading leaves on root node:", error)
         }
 
         while positionQueue.count > 0 {
