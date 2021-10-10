@@ -1008,7 +1008,7 @@ class streaming_treeTests: XCTestCase {
         let tree: Octree = Octree(boundingCube: boundingCube, maxLeavesPerNode: 10, maximumDepth: INT64_MAX, id: 0)
         let bc = tree.calcBoundingCubes()
 
-        print(bc)
+//        print(bc)
 
 //        [
 //            ArezzoTests.CodableCube(cubeMin: ArezzoTests.PointInTime(x: 0.0, y: 0.0, t: 0.0), cubeMax: ArezzoTests.PointInTime(x: 100.0, y: 100.0, t: 331582498.3351525)),

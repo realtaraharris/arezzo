@@ -440,17 +440,15 @@ class MappedTree {
             restoreInner(octree, subtreeSlot)
         }
 
-        // load children of root here
+        // load children of root if we have any
         do {
             guard let (opOffset, length, _) = self.readIndex(Int64(0)), let binOp = self.readOp(opOffset, length) else { return }
-            print("opOffset, length, binOp", opOffset, length)
             if length > 0 {
                 let nr: NodeRecord = try BinaryDecoder(data: binOp).decode(NodeRecord.self)
-                print("NR:", nr)
+
                 for id in nr.leafIds {
                     // add multiple DrawOperationEx leaves
                     guard let (opOffset1, length1, _) = self.readIndex(Int64(id)), let binOp1 = self.readOp(opOffset1, length1) else { return }
-                    print("opOffset1, length1, binOp", opOffset1, length1)
 
                     let leaf1: DrawOperationEx = try BinaryDecoder(data: binOp1).decode(DrawOperationEx.self)
                     octree.leaves.append(leaf1)

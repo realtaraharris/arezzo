@@ -212,7 +212,7 @@ class Recording {
         self.provisionalUnwrittenOpListIndex = 0
     }
 
-    func serialize(filename: String) {
+    func serialize(filename _: String) {
         for (op, position) in self.unwrittenOpList {
             guard let encoded = encodeOp(op), let offset = self.mapping.writeOp(encoded) else { return }
             let id = self.getMonotonicId()
@@ -223,7 +223,6 @@ class Recording {
         }
 
         self.mapping.writeMetaTree(self.boundingCube, self.monotonicId)
-        self.mapping.printTree(self.tree, filename)
         self.mapping.serializeTree(self.tree)
         self.unwrittenSubtrees = []
         self.unwrittenOpList = []
