@@ -662,6 +662,7 @@ class ViewController: UIViewController, ToolbarDelegate {
                 self.toolbar.documentVC.restoreButton.isEnabled = true
                 self.toolbar.documentVC.restoreProgressIndicator.isHidden = true
                 self.toolbar.documentVC.restoreProgressIndicator.progress = 0
+                self.updateTotalPan()
             }
         }
     }
